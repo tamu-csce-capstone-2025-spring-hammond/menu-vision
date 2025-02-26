@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  flask-app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - POSTGRES_DB=neondb
+      - POSTGRES_USER=neondb_owner
+      - POSTGRES_PASSWORD=npg_5fXADyjM7cOe
+      - POSTGRES_HOST=ep-cold-voice-a5el4l8h-pooler.us-east-2.aws.neon.tech
+      - POSTGRES_PORT=5432
