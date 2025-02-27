@@ -1,2 +1,4 @@
 Flask
 psycopg2-binary
+easyocr
+scikit-learn
