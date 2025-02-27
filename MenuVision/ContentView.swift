@@ -7,12 +7,6 @@ import SwiftUI
 import RealityKit
 import ARKit
 
-/*private func generateShadow() -> ModelEntity {
-    
-    
-    
-}*/
-
 extension simd_float4x4 {
     func toTranslation() -> SIMD3<Float> {
         return SIMD3<Float>(columns.3.x, columns.3.y, columns.3.z);
@@ -87,14 +81,45 @@ struct ARViewContainer: UIViewRepresentable {
         }
         func placeModel(from raycastResult: ARRaycastResult, in arView: ARView) {
             do {
+                //set up light
+                let light = DirectionalLight();
+                light.light.intensity = 1000;
+                light.isEnabled = true;
+                
+                let lightAnch = AnchorEntity(world: SIMD3(0.0, 0.0, 0.0));
+                lightAnch.addChild(light);
+                arView.scene.addAnchor(lightAnch);
+                
                 //set up a model entity by loading in the usdz file and setting position to be slightly above ground
                 let model = try ModelEntity.loadModel(named: "latte");
-                model.position = SIMD3(0.0, 0.05, 0.0);
+                model.position = SIMD3(0.0, 0.7, 0.0);
                 model.scale = [sz, sz, sz];
+                                
+                //set up rigid body and collision components
+                
+                let rigidBody: PhysicsBodyComponent = .init(massProperties: .default, material: nil, mode: .dynamic);
+                
+                model.generateCollisionShapes(recursive: true); //generate a convex hull collision component for the model
+                                
+                model.components.set(rigidBody);
+                
+                                
+                //set up ground entity to project shadows onto
+                let ground = ModelEntity(mesh: .generatePlane(width: 1000, depth: 1000), materials: [SimpleMaterial(color: .clear, roughness: 1, isMetallic: false)]);
+                
+                //make ground collision component
+                
+                let groundCollisionComponent: CollisionComponent = .init(shapes: [.generateBox(size: [1000, 0.1, 1000])]);
+                
+                let groundphysicsBody: PhysicsBodyComponent = .init(mode: .static);
+                
+                ground.components.set(groundCollisionComponent);
+                ground.components.set(groundphysicsBody);
 
                 //take in raycast result to set anchor and attach the model to this anchor then add anchor to scene
                 let anchor = AnchorEntity(raycastResult: raycastResult);
                 anchor.addChild(model);
+                anchor.addChild(ground);
                 arView.scene.addAnchor(anchor);
 
             } catch {
