@@ -13,18 +13,41 @@ extension simd_float4x4 {
     }
 }
 
+//add AR coaching implementation
+//when user first starts up app (or AR render view) this will pop up directing the user to move their phone around
+//along a surface until a flat surface for anchoring is discovered
+extension ARView: ARCoachingOverlayViewDelegate {
+    func addCoaching() {
+        let coacher = ARCoachingOverlayView(frame: self.bounds);
+        
+        coacher.session = self.session;
+        
+        coacher.autoresizingMask = [.flexibleWidth, .flexibleHeight];
+        
+        coacher.activatesAutomatically = true;
+        
+        coacher.goal = .horizontalPlane; //look for flat surfaces
+        
+        self.addSubview(coacher);
+                
+    }
+}
+
+
 struct ARViewContainer: UIViewRepresentable {
     @Binding var sz: Float; // Bind state to update the model
 
     func makeUIView(context: Context) -> ARView {
         
         let arView = ARView(frame: .zero);
-
+        
         // Setup AR session with occlusion
         let config = ARWorldTrackingConfiguration();
         config.planeDetection = .horizontal;
         config.frameSemantics.insert(.personSegmentationWithDepth);
         arView.session.run(config);
+        
+        arView.addCoaching();
 
         // Add tap gesture for placing objects
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)));
@@ -97,22 +120,23 @@ struct ARViewContainer: UIViewRepresentable {
                                 
                 //set up rigid body and collision components
                 
-                let rigidBody: PhysicsBodyComponent = .init(massProperties: .default, material: nil, mode: .dynamic);
+                let mealPhysicsMaterial = PhysicsMaterialResource.generate(friction: 0.5, restitution: 0.5); //make material with low resitution so it doesnt bounce around
+                
+                let rigidBody: PhysicsBodyComponent = .init(massProperties: .default, material: mealPhysicsMaterial, mode: .dynamic );
                 
                 model.generateCollisionShapes(recursive: true); //generate a convex hull collision component for the model
                                 
                 model.components.set(rigidBody);
                 
-                                
                 //set up ground entity to project shadows onto
                 let ground = ModelEntity(mesh: .generatePlane(width: 1000, depth: 1000), materials: [SimpleMaterial(color: .clear, roughness: 1, isMetallic: false)]);
                 
                 //make ground collision component
                 
-                let groundCollisionComponent: CollisionComponent = .init(shapes: [.generateBox(size: [1000, 0.1, 1000])]);
+                let groundCollisionComponent: CollisionComponent = .init(shapes: [.generateBox(size: [1000, 0.01, 1000])]);
                 
                 let groundphysicsBody: PhysicsBodyComponent = .init(mode: .static);
-                
+                                
                 ground.components.set(groundCollisionComponent);
                 ground.components.set(groundphysicsBody);
 
