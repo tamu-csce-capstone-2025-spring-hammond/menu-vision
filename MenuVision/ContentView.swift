@@ -7,6 +7,8 @@ import SwiftUI
 import RealityKit
 import ARKit
 
+private var grounded: Bool = false;
+
 extension simd_float4x4 {
     func toTranslation() -> SIMD3<Float> {
         return SIMD3<Float>(columns.3.x, columns.3.y, columns.3.z);
@@ -128,22 +130,29 @@ struct ARViewContainer: UIViewRepresentable {
                                 
                 model.components.set(rigidBody);
                 
-                //set up ground entity to project shadows onto
-                let ground = ModelEntity(mesh: .generatePlane(width: 1000, depth: 1000), materials: [SimpleMaterial(color: .clear, roughness: 1, isMetallic: false)]);
-                
-                //make ground collision component
-                
-                let groundCollisionComponent: CollisionComponent = .init(shapes: [.generateBox(size: [1000, 0.01, 1000])]);
-                
-                let groundphysicsBody: PhysicsBodyComponent = .init(mode: .static);
-                                
-                ground.components.set(groundCollisionComponent);
-                ground.components.set(groundphysicsBody);
-
                 //take in raycast result to set anchor and attach the model to this anchor then add anchor to scene
                 let anchor = AnchorEntity(raycastResult: raycastResult);
                 anchor.addChild(model);
-                anchor.addChild(ground);
+                
+                //prevent creating multiple grounds and causing issues
+                if (!grounded){
+                    //set up ground entity
+                    let ground = ModelEntity(mesh: .generatePlane(width: 0.01, depth: 0.01), materials: [SimpleMaterial(color: .clear, roughness: 0, isMetallic: false)]);
+                    
+                    //make ground collision component
+                    
+                    let groundCollisionComponent: CollisionComponent = .init(shapes: [.generateBox(size: [100, 0.01, 100])]);
+                    
+                    let groundphysicsBody: PhysicsBodyComponent = .init(mode: .static);
+                                    
+                    ground.components.set(groundCollisionComponent);
+                    ground.components.set(groundphysicsBody);
+                    
+                    anchor.addChild(ground);
+                    
+                    //grounded = true;
+                }
+                
                 arView.scene.addAnchor(anchor);
 
             } catch {
