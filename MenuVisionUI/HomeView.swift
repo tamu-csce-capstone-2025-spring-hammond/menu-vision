@@ -18,7 +18,7 @@ struct HomeView: View {
             
             ThirdTabView()
             .tabItem {
-                Label("Settings", systemImage: "gearshape")
+                Label("Render", systemImage: "gearshape")
             }
             .tag(3)
         }

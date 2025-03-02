@@ -16,7 +16,7 @@ struct ThirdTabView: View {
                 Button {
                     sz += 0.1  // Increase model size on tap
                 } label: {
-                    Text("Increase Model Size")
+                    Text("Press me!")
                         .padding()
                         .background(Color.white.opacity(0.7))
                         .cornerRadius(10)
