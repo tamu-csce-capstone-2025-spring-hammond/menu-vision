@@ -164,25 +164,39 @@ struct ARViewContainer: UIViewRepresentable {
 
 struct ContentView: View {
     @State private var sz: Float = 0.03;
+    @State private var showScanView = false
 
     var body: some View {
-        ZStack {
-            ARViewContainer(sz: $sz)
-                .edgesIgnoringSafeArea(.all);
+        NavigationView {
+            ZStack {
+                ARViewContainer(sz: $sz)
+                    .edgesIgnoringSafeArea(.all);
 
-            VStack {
-                Spacer()
-                Button {
-                    sz += 0.1; // Increase size on tap
-                } label: {
-                    Text("Button")
-                        .padding()
-                        .background(Color.white.opacity(0.7))
-                        .cornerRadius(10)
+                VStack {
+                    Spacer()
+                    Button {
+                        sz += 0.1; // Increase size on tap
+                    } label: {
+                        Text("Button")
+                            .padding()
+                            .background(Color.white.opacity(0.7))
+                            .cornerRadius(10)
+                    }
+                    
+                    // Navigation Button to ScanView
+                    NavigationLink(destination: ScanView()) {
+                        Text("Scan an Object")
+                            .padding()
+                            .background(Color.blue.opacity(0.7))
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                    .padding()
                 }
-                .padding()
             }
+//            .navigationTitle("AR Viewer")
         }
+        
     }
 }
 
