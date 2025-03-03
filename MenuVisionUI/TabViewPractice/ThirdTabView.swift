@@ -3,7 +3,7 @@ import RealityKit
 import ARKit
 
 struct ThirdTabView: View {
-    @State private var sz: Float = 0.03
+    @State private var sz: Float = 1.0
 
     var body: some View {
         ZStack {
