@@ -1,118 +1,68 @@
 from flask import Blueprint, jsonify, request
-from app.database import db
-from app.models import ARModel
-from app.database import get_dishes_with_ar_models
-from google.cloud import vision
+import google.generativeai as genai
+from PIL import Image
 import os
-
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '../../menuvision-452619-57ee7ca28a05.json'
+import io
+import json
 
 ocr_bp = Blueprint("ocr", __name__)
-
-@ocr_bp.route("/", methods=["GET"])
-def ocr_home():
-    return jsonify({"message": "OCR API Home"})
-
-def perform_ocr_with_google_vision(image_bytes):
-    try:
-        client = vision.ImageAnnotatorClient()
-        image = vision.Image(content=image_bytes)
-        
-        response = client.text_detection(image=image)
-        print(f"API Response: {response}")  # Add this line
-        texts = response.text_annotations
-        
-        if texts:
-            return texts[0].description  # The first element contains the full text
-        else:
-            print("No text found in image")
-            return ""
-    except Exception as e:
-        print(f"Google Cloud Vision API error: {e}")
-        return None
-
-def parse_menu_text(text):
-    """Parse the extracted text into a structured menu format."""
-    # Split the text into lines
-    lines = text.split('\n')
-    
-    # Initialize variables
-    current_category = None
-    menu = {}
-    
-    # Common category headers in menus
-    category_keywords = [
-        "APPETIZERS", "PRIX FIXE", "SALADS AND SOUPS", "STEAK CUTS", 
-        "ENTREES", "DESSERTS", "DRINKS", "SIDES", "MENU"
-    ]
-    
-    # Process each line
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-            
-        # Check if this line is a category header
-        if any(keyword in line.upper() for keyword in category_keywords) or line.isupper():
-            current_category = line
-            menu[current_category] = []
-        elif current_category is not None:
-            # Try to separate item name and price
-            if '..' in line or '...' in line or '. . .' in line:
-                parts = line.split('.')
-                item_name = parts[0].strip()
-                # Join all parts except the last one (which should be the price)
-                price = parts[-1].strip() if len(parts) > 1 else ""
-                
-                # Clean up the price
-                price = price.strip('.')
-                
-                menu[current_category].append({
-                    "name": item_name,
-                    "price": price
-                })
-            else:
-                # If no clear price separator, just add the line as an item
-                menu[current_category].append({
-                    "name": line,
-                    "price": ""
-                })
-    
-    return menu
 
 @ocr_bp.route('/parse_menu', methods=['POST'])
 def process_image():
     if 'image' not in request.files:
         return jsonify({'error': 'No image provided'}), 400
-    
+
     file = request.files['image']
-    
+
     try:
+        # Read the image
         image_bytes = file.read()
-        
-        # Perform OCR using Google Cloud Vision API
-        extracted_text = perform_ocr_with_google_vision(image_bytes)
-        
-        if extracted_text is None:
+        image = Image.open(io.BytesIO(image_bytes))
+
+        # Load the Gemini Pro Vision model
+        model = genai.GenerativeModel('gemini-1.5-flash')
+
+        # Define the prompt
+        prompt = """
+        You are an AI assistant that reads restaurant menu images and extracts structured information. 
+        The menu contains categories like "Appetizers", "Main Courses", "Desserts", and "Drinks". 
+        For each category, extract the dish names and their prices, and return the result as a JSON object.
+        """
+
+        # Generate content with the image and prompt
+        response = model.generate_content([prompt, image])
+
+        # Check for errors
+        if response.prompt_feedback and response.prompt_feedback.block_reason:
+            print(f"Blocked reason: {response.prompt_feedback.block_reason}")
             return jsonify({
                 'success': False,
-                'error': 'Failed to extract text from image'
+                'error': f'Blocked reason: {response.prompt_feedback.block_reason}'
+            }), 400
+
+        # Print the raw text returned by the Gemini API
+        print(f"Gemini API Response: {response.text}")
+
+        # Remove the backticks and "json" from the response
+        json_string = response.text.replace('```json', '').replace('```', '').strip()
+
+        # Parse the JSON string into a Python dictionary
+        try:
+            menu = json.loads(json_string)
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Failed to decode JSON: {e}'
             }), 500
-        
-        # Get dishes with AR models for restaurant_id 1
-        dishes_with_ar_models = get_dishes_with_ar_models(1)  # Hardcoded restaurant_id
-        
-        # Parse the extracted text into a structured format
-        structured_menu = parse_menu_text(extracted_text)
-        
+
+        # Return the structured menu
         return jsonify({
             'success': True,
-            'menu': structured_menu,
-            'dishes_with_ar_models': dishes_with_ar_models,
-            'raw_text': extracted_text  # Keep the raw text for reference
+            'menu': menu
         })
     except Exception as e:
-        print(f"Error processing image: {e}")
+        print(f"Error calling Gemini API: {e}")
         return jsonify({
             'success': False,
             'error': str(e)
