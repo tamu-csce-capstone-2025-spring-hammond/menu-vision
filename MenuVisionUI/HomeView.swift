@@ -4,7 +4,8 @@ struct HomeView: View {
     @State private var selection = 2
     var body: some View {
         TabView {
-            FirstTabView()
+//            FirstTabView()
+            ScanView()
             .tabItem {
                 Label("Home", systemImage: "house")
             }
