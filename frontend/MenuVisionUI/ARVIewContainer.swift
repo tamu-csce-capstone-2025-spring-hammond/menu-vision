@@ -10,7 +10,15 @@ private let modelMap: [Int: String] = [
     0: "apple_1",
     1: "avocado_1",
     2: "onion_1",
-    3: "orange_1"
+    3: "orange_1",
+    4: "apple_1",
+    5: "avocado_1",
+    6: "onion_1",
+    7: "orange_1",
+    8: "apple_1",
+    9: "avocado_1",
+    10: "onion_1",
+    11: "orange_1"
 ];
 
 extension simd_float4x4 {
@@ -42,12 +50,20 @@ extension ARView: ARCoachingOverlayViewDelegate {
 
 class ARViewManager: ObservableObject {
 
-    func changeModel() {
+    func changeModel(index: Int) {
+        modelIndex = index;
+    }
+
+    func incrementModel() {
         modelIndex = (modelIndex + 1) % modelMap.count;
     }
     
     func getCurrentModelName() -> String {
         return modelMap[modelIndex] ?? "";
+    }
+    
+    func getModelMap() -> [Int: String] {
+        return modelMap;
     }
 }
 
