@@ -24,6 +24,11 @@ struct HomeView: View {
                 Label("Render", systemImage: "gearshape")
             }
             .tag(3)
+            
+            CameraView().tabItem {
+                Label("Menu", systemImage: "camera")
+                    .tag(4)
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ extension simd_float4x4 {
 //add AR coaching implementation
 //when user first starts up app (or AR render view) this will pop up directing the user to move their phone around
 //along a surface until a flat surface for anchoring is discovered
-extension ARView: ARCoachingOverlayViewDelegate {
+extension ARView: @retroactive ARCoachingOverlayViewDelegate {
     func addCoaching() {
         let coacher = ARCoachingOverlayView(frame: self.bounds);
         
