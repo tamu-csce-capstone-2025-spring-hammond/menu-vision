@@ -9,42 +9,62 @@ import SwiftUI
 import AVFoundation
 import Vision
 
+// 1. Data Structure for OCR Results
+struct RecognizedText: Identifiable {
+    let id = UUID()
+    let text: String
+    let boundingBox: CGRect
+}
+
 struct CameraView: View {
     @StateObject private var camera = CameraManager()
     @State private var showAlert = false
     @State private var alertMessage = ""
-    @State private var zoomFactor: CGFloat = 1.0 // Initial zoom
+    @State private var zoomFactor: CGFloat = 1.0
+    @State private var recognizedTexts: [RecognizedText] = [] // Store OCR results
 
     var body: some View {
-        ZStack {
-            // Camera Preview
-            CameraPreview(session: camera.captureSession, zoomFactor: zoomFactor)
-                .ignoresSafeArea()
-                .gesture(
-                    MagnificationGesture()
-                        .onChanged { amount in
-                            zoomFactor = amount
-                            camera.setZoom(zoomFactor: amount)
-                        }
-                        .onEnded { _ in
-                            // Optional: Animate back to 1.0 if you want
-                        }
-                )
-                .onAppear {
-                    print("CameraPreview appeared")
+        GeometryReader { geometry in
+            ZStack(alignment: .topLeading) {
+                // Camera Preview
+                CameraPreview(session: camera.captureSession, zoomFactor: zoomFactor)
+                    .ignoresSafeArea()
+                    .gesture(
+                        MagnificationGesture()
+                            .onChanged { amount in
+                                zoomFactor = amount
+                                camera.setZoom(zoomFactor: amount)
+                            }
+                            .onEnded { _ in
+                                // Optional: Animate back to 1.0 if you want
+                            }
+                    )
+                    .onAppear {
+                        print("CameraPreview appeared")
+                    }
+
+                // 2. Overlay View (Highlighting)
+                ForEach(recognizedTexts) { recognizedText in
+                    if shouldHighlight(text: recognizedText.text) { // Your matching logic
+                        Rectangle()
+                            .path(in: convert(boundingBox: recognizedText.boundingBox, geometry: geometry)) // Convert bounding box
+                            .fill(Color.yellow.opacity(0.3))
+                            .border(Color.yellow, width: 2)
+                    }
                 }
 
-            // Capture Button
-            VStack {
-                Spacer()
-                Button(action: {
-                    camera.capturePhoto()
-                }) {
-                    Circle()
-                        .fill(.white)
-                        .frame(width: 70, height: 70)
+                // Capture Button
+                VStack {
+                    Spacer()
+                    Button(action: {
+                        camera.capturePhoto()
+                    }) {
+                        Circle()
+                            .fill(.white)
+                            .frame(width: 70, height: 70)
+                    }
+                    .padding(.bottom, 30)
                 }
-                .padding(.bottom, 30)
             }
         }
         .onAppear {
@@ -55,6 +75,9 @@ struct CameraView: View {
                     showAlert = true
                 }
             }
+            camera.recognizedTextHandler = { results in  // Assign the handler
+                recognizedTexts = results
+            }
         }
         .alert(isPresented: $showAlert) {
             Alert(
@@ -64,13 +87,44 @@ struct CameraView: View {
             )
         }
     }
+
+    // 3. Example Matching Logic (Replace with your actual logic)
+    private func shouldHighlight(text: String) -> Bool {
+         let itemsToHighlight = ["Shrimp Remoulade/Shrimp Cocktail", "Filet Mignon, 8 ounce"]
+
+         return itemsToHighlight.contains { item in
+             let pattern = "\\b" + NSRegularExpression.escapedPattern(for: item) + "\\b"
+             if let range = text.range(of: pattern, options: [.regularExpression, .caseInsensitive]) {
+                 return !range.isEmpty
+             } else {
+                 return false
+             }
+         }
+     }
+
+    // 4. Convert Bounding Box (Vision coordinates to SwiftUI coordinates)
+    private func convert(boundingBox: CGRect, geometry: GeometryProxy) -> CGRect {
+        // Vision uses a coordinate system where the origin is at the bottom-left
+        // SwiftUI uses a coordinate system where the origin is at the top-left
+        let screenWidth = geometry.size.width
+        let screenHeight = geometry.size.height
+
+        let x = boundingBox.origin.x * screenWidth
+        let height = boundingBox.height * screenHeight
+        let y = (1 - boundingBox.origin.y - boundingBox.height) * screenHeight
+        let width = boundingBox.width * screenWidth
+
+        return CGRect(x: x, y: y, width: width, height: height)
+    }
 }
 
 class CameraManager: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     @Published var captureSession = AVCaptureSession()
     private let videoOutput = AVCaptureVideoDataOutput()
     private let textRequest = VNRecognizeTextRequest()
-    private var currentDevice: AVCaptureDevice? // Add device
+    private var currentDevice: AVCaptureDevice?
+    // Add this
+    var recognizedTextHandler: (([RecognizedText]) -> Void)?
 
     override init() {
         super.init()
@@ -148,7 +202,7 @@ class CameraManager: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleB
             completion(false, "Could not find any video device")
             return
         }
-        
+
         currentDevice = videoDevice // Store the device
         print("Found video device: \(videoDevice.localizedName)")
 
@@ -232,15 +286,23 @@ class CameraManager: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleB
             try handler.perform([textRequest])
             guard let observations = textRequest.results else { return }
 
-            var detectedText = ""
+            var recognizedTexts: [RecognizedText] = [] // Local variable
+
             for observation in observations {
                 guard let topCandidate = observation.topCandidates(1).first else { continue }
-                detectedText += topCandidate.string + "\n"
+                let text = topCandidate.string
+                let boundingBox = observation.boundingBox
+                recognizedTexts.append(RecognizedText(text: text, boundingBox: boundingBox))
+
+                print("OCR Result: \(text)")
             }
 
-            if !detectedText.isEmpty {
-                print("OCR Result: \(detectedText)")
+            // Use main thread, call callback
+            DispatchQueue.main.async {
+                self.recognizedTextHandler?(recognizedTexts) // Call Handler
             }
+
+
         } catch {
             print("OCR Error: \(error)")
         }
