@@ -4,6 +4,15 @@ import ARKit
 
 private var grounded: Bool = false;
 
+var modelIndex: Int = 0;
+
+private let modelMap: [Int: String] = [
+    0: "apple_1",
+    1: "avocado_1",
+    2: "onion_1",
+    3: "orange_1"
+];
+
 extension simd_float4x4 {
     func toTranslation() -> SIMD3<Float> {
         return SIMD3<Float>(columns.3.x, columns.3.y, columns.3.z);
@@ -15,6 +24,7 @@ extension simd_float4x4 {
 //along a surface until a flat surface for anchoring is discovered
 extension ARView: ARCoachingOverlayViewDelegate {
     func addCoaching() {
+        print("Model Index: ",modelIndex);
         let coacher = ARCoachingOverlayView(frame: self.bounds);
         
         coacher.session = self.session;
@@ -30,10 +40,22 @@ extension ARView: ARCoachingOverlayViewDelegate {
     }
 }
 
+class ARViewManager: ObservableObject {
+
+    func changeModel() {
+        modelIndex = (modelIndex + 1) % modelMap.count;
+    }
+    
+    func getCurrentModelName() -> String {
+        return modelMap[modelIndex] ?? "";
+    }
+}
+
 
 struct ARViewContainer: UIViewRepresentable {
-    @Binding var sz: Float; // Bind state to update the model
-
+    
+    @ObservedObject var viewManager: ARViewManager
+    
     func makeUIView(context: Context) -> ARView {
         
         let arView = ARView(frame: .zero);
@@ -57,7 +79,8 @@ struct ARViewContainer: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: ARView, context: Context) {
-        context.coordinator.sz = sz;
+        //context.coordinator.sz = sz;
+        
     }
 
     func makeCoordinator() -> Coordinator {
@@ -67,11 +90,9 @@ struct ARViewContainer: UIViewRepresentable {
     class Coordinator: NSObject {
         var parent: ARViewContainer;
         weak var arView: ARView?;
-        var sz: Float;
 
         init(_ parent: ARViewContainer) {
             self.parent = parent;
-            self.sz = parent.sz;
         }
 
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
@@ -110,10 +131,15 @@ struct ARViewContainer: UIViewRepresentable {
                 lightAnch.addChild(light);
                 arView.scene.addAnchor(lightAnch);
                 
+                guard let modelName = modelMap[modelIndex] else {
+                    print("Error: model name is not to be found!");
+                    return;
+                }
+                
                 //set up a model entity by loading in the usdz file and setting position to be slightly above ground
-                let model = try ModelEntity.loadModel(named: "apple");
+                let model = try ModelEntity.loadModel(named: modelName);
                 model.position = SIMD3(0.0, 0.7, 0.0);
-                model.scale = [sz, sz, sz];
+                model.scale = [1.0, 1.0, 1.0];
                                 
                 //set up rigid body and collision components
                 

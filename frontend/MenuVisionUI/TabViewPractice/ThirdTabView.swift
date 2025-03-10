@@ -3,18 +3,19 @@ import RealityKit
 import ARKit
 
 struct ThirdTabView: View {
-    @State private var sz: Float = 1.0
-
+    
+    @StateObject private var viewManager = ARViewManager();
+    
     var body: some View {
         ZStack {
             // ARViewContainer is the AR view from your AR files.
-            ARViewContainer(sz: $sz)
+            ARViewContainer(viewManager: viewManager)
                 .edgesIgnoringSafeArea(.all)
             
             VStack {
                 Spacer()
                 Button {
-                    sz += 0.1  // Increase model size on tap
+                    viewManager.changeModel();
                 } label: {
                     Text("Press me!")
                         .padding()
