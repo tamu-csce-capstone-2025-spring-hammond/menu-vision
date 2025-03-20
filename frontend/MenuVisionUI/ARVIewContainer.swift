@@ -1,6 +1,8 @@
 import SwiftUI
 import RealityKit
 import ARKit
+import AVFoundation
+import Vision
 
 private var grounded: Bool = false;
 
@@ -88,8 +90,11 @@ struct ARViewContainer: UIViewRepresentable {
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)));
         
         arView.addGestureRecognizer(tapGesture);
-
+        
         context.coordinator.arView = arView; // Assign ARView to Coordinator
+        
+        //setup session callback for computer vision
+        arView.session.delegate = context.coordinator;
 
         return arView;
     }
@@ -102,13 +107,58 @@ struct ARViewContainer: UIViewRepresentable {
     func makeCoordinator() -> Coordinator {
         Coordinator(self);
     }
+    
 
-    class Coordinator: NSObject {
+    class Coordinator: NSObject, ARSessionDelegate {
         var parent: ARViewContainer;
         weak var arView: ARView?;
+        
+        private var handPose = VNDetectHumanHandPoseRequest();
 
         init(_ parent: ARViewContainer) {
             self.parent = parent;
+        }
+        
+        //callback called every frame
+        //use this to capture the frame and store it for computer vision processing
+        func session(_ session: ARSession, didUpdate frame: ARFrame) {
+            let frameCapture = frame.capturedImage;
+            trackHand(in: frameCapture);
+        }
+        
+        //take in a frame capture and use computer vision to seek out hand positions and gestures
+        func trackHand(in frameCapture: CVPixelBuffer) {
+            let handler = VNImageRequestHandler(cvPixelBuffer: frameCapture, options: [:]);
+            do {
+                try handler.perform([handPose])
+                if let observationResults = handPose.results?.first {
+                    
+                    let thumbPoints = try observationResults.recognizedPoints(.thumb);
+                    let indexFingerPoints = try observationResults.recognizedPoints(.indexFinger);
+                    
+                    //search for tip points of each finger
+                    guard let thumbTipPoint = thumbPoints[.thumbTip], let indexTipPoint = indexFingerPoints[.indexTip] else {
+                        return;
+                    }
+                    
+                    // Ignore low confidence points.
+                    guard thumbTipPoint.confidence > 0.3 && indexTipPoint.confidence > 0.3 else {
+                        return;
+                    }
+                    // Convert points from Vision coordinates to AVFoundation coordinates.
+                    let thumbTipLocation = CGPoint(x: thumbTipPoint.location.x, y: 1 - thumbTipPoint.location.y);
+                    let indexTipLocation = CGPoint(x: indexTipPoint.location.x, y: 1 - indexTipPoint.location.y);
+                    
+                    let fingerDistance = hypot(thumbTipPoint.location.x - indexTipPoint.location.x,
+                                               thumbTipPoint.location.y - indexTipPoint.location.y);
+                    
+                    if (fingerDistance < 0.03){
+                        print("PINCH DETECTED");
+                    }
+                                    }
+            } catch {
+                print("Hand tracking failed: \(error)")
+            }
         }
 
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
