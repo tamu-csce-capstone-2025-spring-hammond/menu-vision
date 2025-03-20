@@ -5,7 +5,8 @@ struct HomeView: View {
     var body: some View {
         TabView {
 //            FirstTabView()
-            ScanView()
+//            ScanView()
+            ThirdTabView()
             .tabItem {
                 Label("Home", systemImage: "house")
             }
@@ -17,7 +18,8 @@ struct HomeView: View {
             }
             .tag(2)
             
-            ThirdTabView()
+//            ThirdTabView()
+            ScanView()
             .tabItem {
                 Label("Render", systemImage: "gearshape")
             }
