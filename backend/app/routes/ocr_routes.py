@@ -1,121 +1,107 @@
 from flask import Blueprint, jsonify, request
-import google.generativeai as genai
+from app.models import ARModel
+from openai import OpenAI
 from PIL import Image
-import os
 import io
+import base64
 import json
-from app.database import db
-from sqlalchemy import text
+import os
 
 ocr_bp = Blueprint("ocr", __name__)
 
-# Initialize Gemini
-api_key = os.getenv('GOOGLE_API_KEY')
-if not api_key:
-    raise ValueError("No GOOGLE_API_KEY set.")
-genai.configure(api_key=api_key)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def get_dishes_with_ar_models(restaurant_id, dish_names):
-    # Wrap the raw SQL query in text()
-    query = text("""
-    SELECT d.dish_id, d.dish_name, COUNT(ar.model_id) as model_count
-    FROM dish_items d
-    LEFT JOIN ar_models ar ON d.dish_id = ar.dish_id
-    WHERE d.restaurant_id = :restaurant_id AND d.dish_name IN :dish_names
-    GROUP BY d.dish_id, d.dish_name
-    HAVING COUNT(ar.model_id) > 0
-    ORDER BY d.dish_name
-    """)
-    
-    # Execute the query with the provided restaurant_id and dish names
-    results = db.session.execute(query, {"restaurant_id": restaurant_id, "dish_names": tuple(dish_names)}).fetchall()
-    
-    # Format the results into a list of dictionaries
-    dishes_data = [
-        {
-            "dish_id": row.dish_id,
-            "dish_name": row.dish_name,
-            "model_count": row.model_count
-        }
-        for row in results
+EXTRACTION_PROMPT = """
+Accurately extract all relevant details from the menu image in **strict JSON format** while ensuring **dish names are exactly as written** and sizes include **weight (oz, g, lb) or volume (fl oz, ml) if specified**:
+{
+  "restaurant": {
+    "name": "<Extract Restaurant Name exactly as written, otherwise null>",
+    "address": "<Extract full address exactly as written if present, otherwise null>"
+  },
+  "menu": {
+    "<Category Name>": [
+      {
+        "name": "<Dish Name (Preserve exact spelling and formatting as in image)>",
+        "sizes": [
+          {
+            "size": "<Extract exact size label (Small/Medium/Large) OR specific weight/volume if available (e.g., '8 oz', '12 fl oz', '500g')>",
+            "price": <Price>
+          }
+        ],
+        "description": "<Extract full description exactly as written, including ingredients if mentioned>",
+        "spiciness": "<Mild/Medium/Spicy if listed, otherwise null>",
+        "allergens": ["<Extract only if explicitly listed under 'Allergens', otherwise leave empty>"],
+        "dietary_info": ["<List dietary tags such as 'Vegan', 'Vegetarian', 'Gluten-Free', 'Dairy-Free' if explicitly stated, otherwise leave empty>"],
+        "calories": "<Extract if explicitly listed, otherwise null>",
+        "popularity": "<Bestseller/Chef's Recommendation/Seasonal Special if mentioned, otherwise null>",
+        "availability": "<All day/Lunch only/Weekends only if specified, otherwise null>",
+        "addons": [
+          {
+            "name": "<Add-on name (Preserve exact spelling)>",
+            "price": <Price>
+          }
+        ]
+      }
     ]
-    
-    return dishes_data
+  }
+}
 
-@ocr_bp.route('/parse_menu', methods=['POST'])
-def process_image():
-    if 'image' not in request.files:
-        return jsonify({'error': 'No image provided'}), 400
+### **Extraction Rules (STRICT COMPLIANCE REQUIRED):**
+1. **Output strict JSON—no extra text, comments, or formatting deviations.**
+2. **Extract ONLY explicitly stated attributes**:
+   - If a field is missing, set it to `null`—do NOT infer.
+3. **Dish Names MUST be spelled EXACTLY as in the image. No changes, no corrections, no interpretations.**
+4. **All text in 'description' must be extracted EXACTLY as written. No summarization.**
+5. **Extract restaurant name and address EXACTLY as written**:
+   - Address should maintain original punctuation, spacing, and formatting.
+   - If no address is found, set `"address": null`.
+6. **Handle dish sizes and prices correctly**:
+   - If multiple sizes exist, list them in `"sizes"`.
+   - If no sizes are provided, assume `"size": "Regular"`.
+   - If prices vary without explicit size labels, order them as `"Small", "Large"`.
+7. **If an item has weight (oz, g, lb) or volume (fl oz, ml), it MUST be included in the 'sizes' field.**
+   - Example: `"size": "12 oz"` for drinks or `"size": "500g"` for a dish.
+8. **Include add-ons if available**:
+   - Example: `"Add extra cheese for $1"` → `{ "name": "Cheese", "price": 1 }`
+9. **Think about hidden or implied information in footnotes, symbols, or acronyms    for dietary info (e.g., 'GF' = 'Gluten-Free', 'VG/VGN' = 'Vegan') but only extract if explicitly stated.**
+"""
 
-    file = request.files['image']
+def encode_image(image):
+    buffered = io.BytesIO()
+    image.save(buffered, format=image.format)
+    return base64.b64encode(buffered.getvalue()).decode()
+
+@ocr_bp.route("/", methods=["GET"])
+def ocr_home():
+    return jsonify({"message": "OCR API Home"})
+
+
+@ocr_bp.route("/extract-menu", methods=["POST"])
+def extract_menu():
+    if "image" not in request.files:
+        return jsonify({"error": "No image uploaded"}), 400
+
+    image_file = request.files["image"]
+    image = Image.open(image_file)
+    base64_image = encode_image(image)
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are an AI that extracts structured menu details from images."},
+            {"role": "user", "content": EXTRACTION_PROMPT},
+            {"role": "user", "content": [
+                {"type": "text", "text": EXTRACTION_PROMPT},  
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+            ]}
+        ],
+        response_format={"type": "json_object"},
+        max_tokens=2000
+    )
 
     try:
-        # Read the image
-        image_bytes = file.read()
-        image = Image.open(io.BytesIO(image_bytes))
+        structured_data = json.loads(response.choices[0].message.content)
+    except json.JSONDecodeError:
+        structured_data = {"error": "Invalid JSON returned"}
 
-        # Load the Gemini Pro Vision model
-        model = genai.GenerativeModel('gemini-1.5-flash')
-
-        # Define the prompt
-        prompt = """
-        You are an AI assistant that reads restaurant menu images and extracts structured information. 
-        The menu contains categories like "Appetizers", "Main Courses", "Desserts", and "Drinks". 
-        For each category, extract the dish names and their prices, and return the result as a JSON object.
-        """
-
-        # Generate content with the image and prompt
-        response = model.generate_content([prompt, image])
-
-        # Check for errors
-        if response.prompt_feedback and response.prompt_feedback.block_reason:
-            print(f"Blocked reason: {response.prompt_feedback.block_reason}")
-            return jsonify({
-                'success': False,
-                'error': f'Blocked reason: {response.prompt_feedback.block_reason}'
-            }), 400
-
-        # Print the raw text returned by the Gemini API
-        print(f"Gemini API Response: {response.text}")
-
-        # Remove the backticks and "json" from the response
-        json_string = response.text.replace('```json', '').replace('```', '').strip()
-
-        # Parse the JSON string into a Python dictionary
-        try:
-            menu = json.loads(json_string)
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON: {e}")
-            return jsonify({
-                'success': False,
-                'error': f'Failed to decode JSON: {e}',
-                'raw_response': response.text  # Include the raw response for debugging
-            }), 500
-
-        # Extract dish names from the menu
-        dish_names = []
-        for category, items in menu.items():
-            if isinstance(items, list):
-                for item in items:
-                    dish_names.append(item['dish'])
-            elif isinstance(items, dict):
-                for key, value in items.items():
-                    if isinstance(value, str):
-                        dish_names.append(value)
-
-        # Get dishes with AR models
-        dishes_with_ar_models = get_dishes_with_ar_models(1, dish_names)  # Hardcoded restaurant_id
-
-        # Return the structured menu and dishes with AR models
-        return jsonify({
-            'success': True,
-            'menu': menu,
-            'dishes_with_ar_models': dishes_with_ar_models
-        })
-    except Exception as e:
-        print(f"Error calling Gemini API: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e),
-        }), 500
-    
+    return jsonify(structured_data)
