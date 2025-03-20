@@ -1,5 +1,4 @@
 from flask import Blueprint, jsonify, request
-from app.database import db
 from app.models import ARModel
 from openai import OpenAI
 from PIL import Image

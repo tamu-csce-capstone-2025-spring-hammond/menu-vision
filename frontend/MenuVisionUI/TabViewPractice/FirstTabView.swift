@@ -134,10 +134,12 @@ struct ScanView: View {
         // this allows the directory and session to be created/started in the background
         .task {
             guard let directory = createNewScanDirectory() else { return }
-            session = ObjectCaptureSession()
-            imageFolderPath = directory.appending(path: "Images/")
-            guard let imageFolderPath else { return }
-            session?.start(imagesDirectory: imageFolderPath)
+            if (ObjectCaptureSession.isSupported == true){
+                session = ObjectCaptureSession()
+                imageFolderPath = directory.appending(path: "Images/")
+                guard let imageFolderPath else { return }
+                session?.start(imagesDirectory: imageFolderPath)
+            }
         }
         // upon finishing the scan, we will change our session state to 'finished'
         .onChange(of: session?.userCompletedScanPass) { _, newValue in
