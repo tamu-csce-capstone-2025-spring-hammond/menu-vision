@@ -3,7 +3,7 @@ import SwiftUI
 struct LoginView: View {
     // This binding is controlled by the parent view (e.g., ContentView) to switch between login and home screens.
     @Binding var isLoggedIn: Bool
-    @StateObject private var viewModel: LoginViewModel
+    @StateObject public var viewModel: LoginViewModel
 
     init(isLoggedIn: Binding<Bool>) {
         self._isLoggedIn = isLoggedIn

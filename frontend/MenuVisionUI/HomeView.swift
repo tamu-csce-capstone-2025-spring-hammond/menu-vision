@@ -19,7 +19,7 @@ struct HomeView: View {
             .tag(2)
             
 //            ThirdTabView()
-            ScanView()
+            FirstTabView()
             .tabItem {
                 Label("Render", systemImage: "gearshape")
             }
