@@ -1,15 +1,14 @@
 from flask import Blueprint, jsonify, request
-from app.models import ARModel
-from openai import OpenAI
+import google.generativeai as genai
 from PIL import Image
 import io
-import base64
 import json
 import os
+import base64
 
 ocr_bp = Blueprint("ocr", __name__)
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 EXTRACTION_PROMPT = """
 Accurately extract all relevant details from the menu image in **strict JSON format** while ensuring **dish names are exactly as written** and sizes include **weight (oz, g, lb) or volume (fl oz, ml) if specified**:
@@ -66,42 +65,51 @@ Accurately extract all relevant details from the menu image in **strict JSON for
 9. **Think about hidden or implied information in footnotes, symbols, or acronyms    for dietary info (e.g., 'GF' = 'Gluten-Free', 'VG/VGN' = 'Vegan') but only extract if explicitly stated.**
 """
 
-def encode_image(image):
-    buffered = io.BytesIO()
-    image.save(buffered, format=image.format)
-    return base64.b64encode(buffered.getvalue()).decode()
-
 @ocr_bp.route("/", methods=["GET"])
 def ocr_home():
     return jsonify({"message": "OCR API Home"})
-
 
 @ocr_bp.route("/extract-menu", methods=["POST"])
 def extract_menu():
     if "image" not in request.files:
         return jsonify({"error": "No image uploaded"}), 400
 
-    image_file = request.files["image"]
-    image = Image.open(image_file)
-    base64_image = encode_image(image)
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": "You are an AI that extracts structured menu details from images."},
-            {"role": "user", "content": EXTRACTION_PROMPT},
-            {"role": "user", "content": [
-                {"type": "text", "text": EXTRACTION_PROMPT},  
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
-            ]}
-        ],
-        response_format={"type": "json_object"},
-        max_tokens=2000
-    )
+    file = request.files["image"]
 
     try:
-        structured_data = json.loads(response.choices[0].message.content)
-    except json.JSONDecodeError:
-        structured_data = {"error": "Invalid JSON returned"}
+        image_bytes = file.read()
+        image = Image.open(io.BytesIO(image_bytes))
 
-    return jsonify(structured_data)
+        model = genai.GenerativeModel('gemini-1.5-flash-8b')
+
+        prompt = (
+            "You are an AI assistant that extracts structured menu details "
+            "from images. Follow these instructions strictly: \n"
+            + EXTRACTION_PROMPT
+        )
+
+        response = model.generate_content([prompt, image])
+
+        if response.prompt_feedback and response.prompt_feedback.block_reason:
+            print(f"Blocked reason: {response.prompt_feedback.block_reason}")
+            return jsonify({
+                'success': False,
+                'error': f'Blocked reason: {response.prompt_feedback.block_reason}'
+            }), 400
+        
+        json_string = response.text.replace('```json', '').replace('```', '').strip()
+
+        try:
+            structured_data = json.loads(json_string)
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+            return jsonify({
+                'success': False,
+                'error': f'Failed to decode JSON: {e}'
+            }), 500
+
+        return jsonify(structured_data)
+
+    except Exception as e:
+        print(f"Error calling Gemini API: {e}")
+        return jsonify({"error": str(e)}), 500
