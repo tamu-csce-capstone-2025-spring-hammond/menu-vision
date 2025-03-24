@@ -103,7 +103,7 @@ struct FilesListView: View {
                 awsCredentialIdentityResolver: identityResolver,
                 region: "us-east-1"
             )
-            let s3Client = S3Client(config: s3Configuration)
+            let s3Client = S3Client(config: s3Configuration )
             
             // Instantiate ServiceHandler with the S3 client.
             let serviceHandler = ServiceHandler(client: s3Client)
