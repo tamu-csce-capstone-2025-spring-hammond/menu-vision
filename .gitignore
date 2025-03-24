@@ -6,3 +6,4 @@ __pycache__/
 *.log
 *.sqlite3
 .DS_Store
+frontend/MenuVisionUI.xcodeproj/xcuserdata/sam.xcuserdatad/xcschemes/MenuVisionUI.xcscheme
