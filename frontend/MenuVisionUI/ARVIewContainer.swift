@@ -98,7 +98,11 @@ struct ARViewContainer: UIViewRepresentable {
         // Add tap gesture for placing objects
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)));
         
+        // add long press gesture for removing objects
+        let longPressGesture = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleLongPress(_:)));
+        
         arView.addGestureRecognizer(tapGesture);
+        arView.addGestureRecognizer(longPressGesture);
         
         context.coordinator.arView = arView; // Assign ARView to Coordinator
         
@@ -208,13 +212,13 @@ struct ARViewContainer: UIViewRepresentable {
                                     print(modelMap[pm.mealID]);
                                     
                                     
-                                    let textMaterials = SimpleMaterial(color: .cyan, roughness: 0, isMetallic: false)
+                                    let textMaterials = SimpleMaterial(color: .cyan, roughness: 0, isMetallic: false);
                                     
-                                    let textDepth: Float = 0.01
-                                    let textFont = UIFont.systemFont(ofSize: 0.05)
-                                    let textContainerFrame = CGRect(x: -0.25, y: -0.25, width: 0.5, height: 0.5)
-                                    let textAlignment: CTTextAlignment = .center
-                                    let textLineBreak : CTLineBreakMode = .byWordWrapping
+                                    let textDepth: Float = 0.01;
+                                    let textFont = UIFont.systemFont(ofSize: 0.05);
+                                    let textContainerFrame = CGRect(x: -0.25, y: -0.25, width: 0.5, height: 0.5);
+                                    let textAlignment: CTTextAlignment = .center;
+                                    let textLineBreak : CTLineBreakMode = .byWordWrapping;
                                     
                                     let textMeshResource : MeshResource = .generateText(mealName,
                                                                                         extrusionDepth: textDepth,
@@ -222,9 +226,9 @@ struct ARViewContainer: UIViewRepresentable {
                                                                                         containerFrame: textContainerFrame,
                                                                                         alignment: textAlignment,
                                                                                         lineBreakMode: textLineBreak
-                                    )
+                                    );
                                     
-                                    let textEntity = ModelEntity(mesh: textMeshResource, materials: [textMaterials])
+                                    let textEntity = ModelEntity(mesh: textMeshResource, materials: [textMaterials]);
                                     
                                     //let xPos = pm.model.position.x;
                                     
@@ -233,7 +237,10 @@ struct ARViewContainer: UIViewRepresentable {
                                     //let zPos = pm.model.position.z;
                                     
                                     textEntity.position = pm.model.position;
+                                                                                                        
                                     
+                                    //fix orientation to only shift along y axis
+                                                                        
                                     textEntity.name = "label";
                                     
                                     //print("Text Entity Position: \(textEntity.position)")
@@ -274,6 +281,47 @@ struct ARViewContainer: UIViewRepresentable {
             
            
         }
+        
+        @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+            guard let arView = arView else { return }
+            
+            //function takes in a tap and figures out what to do
+            print("Long press at:", gesture.location(in: arView));
+
+            //retrieve the location where the user tapped
+            let location = gesture.location(in: arView);
+            
+            var found = false;
+            
+            //first check if there is already a model here
+            if let tappedModel = arView.entity(at: location){
+                
+                if (tappedModel.name != ""){
+                    
+                    presentModels.enumerated().forEach { i, pm in
+                        if (pm.model.position == tappedModel.position){
+                            
+                            //if already labelled then remove the label
+                            
+                            found = true;
+                            
+                            print("Deleting model", pm.model.name);
+                            
+                            pm.anchor.removeFromParent()
+                            
+                            presentModels.remove(at:i);
+                            
+                                                        
+                        }
+                    }
+                                    
+                }
+                
+            }
+            
+           
+        }
+        
         func placeModel(from raycastResult: ARRaycastResult, in arView: ARView) {
             do {
                 //set up light
