@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		22A0B9462D90F49F00FC38D4 /* AWSS3 in Frameworks */ = {isa = PBXBuildFile; productRef = 22A0B9452D90F49F00FC38D4 /* AWSS3 */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		22E59CD32D6FA92D00D6C4B5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				22A0B9462D90F49F00FC38D4 /* AWSS3 in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = MenuVisionUI;
 			packageProductDependencies = (
+				22A0B9452D90F49F00FC38D4 /* AWSS3 */,
 			);
 			productName = MenuVisionUI;
 			productReference = 22E59CC12D6FA92C00D6C4B5 /* MenuVisionUI.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 22E59CB82D6FA92C00D6C4B5;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				22A0B9442D90F49F00FC38D4 /* XCRemoteSwiftPackageReference "aws-sdk-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 22E59CC22D6FA92C00D6C4B5 /* Products */;
 			projectDirPath = "";
@@ -597,6 +606,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		22A0B9442D90F49F00FC38D4 /* XCRemoteSwiftPackageReference "aws-sdk-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/awslabs/aws-sdk-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.43;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		22A0B9452D90F49F00FC38D4 /* AWSS3 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 22A0B9442D90F49F00FC38D4 /* XCRemoteSwiftPackageReference "aws-sdk-swift" */;
+			productName = AWSS3;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 22E59CB92D6FA92C00D6C4B5 /* Project object */;
 }
