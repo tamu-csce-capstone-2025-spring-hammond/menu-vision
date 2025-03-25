@@ -1,0 +1,46 @@
+name: Deploy Backend to Heroku
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository with full history to avoid shallow clone issues
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch the entire history for Heroku
+
+      # Set up Node.js to install and build frontend
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'  # Adjust based on your Node.js version
+
+      # Configure Git and deploy only the backend directory to Heroku
+      - name: Deploy Backend to Heroku
+        working-directory: ./backend
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          git init
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git checkout -b main  # Create and switch to the main branch
+          git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/menu-vision.git
+          
+          git add .
+          git commit -m "Deploy backend directory" || echo "No changes to commit"
+          git push -f heroku main
+
+        # Remove the .git directory in backend after deployment
+      - name: Cleanup .git directory in backend
+        working-directory: ./backend
+        run: |
+          rm -rf .git
