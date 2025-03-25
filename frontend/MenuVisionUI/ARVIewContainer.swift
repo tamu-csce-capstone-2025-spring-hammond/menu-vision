@@ -290,9 +290,7 @@ struct ARViewContainer: UIViewRepresentable {
 
             //retrieve the location where the user tapped
             let location = gesture.location(in: arView);
-            
-            var found = false;
-            
+                        
             //first check if there is already a model here
             if let tappedModel = arView.entity(at: location){
                 
@@ -302,15 +300,12 @@ struct ARViewContainer: UIViewRepresentable {
                         if (pm.model.position == tappedModel.position){
                             
                             //if already labelled then remove the label
-                            
-                            found = true;
-                            
+                                                        
                             print("Deleting model", pm.model.name);
                             
                             pm.anchor.removeFromParent()
                             
                             presentModels.remove(at:i);
-                            
                                                         
                         }
                     }
