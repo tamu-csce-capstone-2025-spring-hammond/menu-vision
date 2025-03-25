@@ -6,3 +6,7 @@ __pycache__/
 *.log
 *.sqlite3
 .DS_Store
+frontend/MenuVisionUI.xcodeproj/xcuserdata/
+*.xcuserstate
+frontend/MenuVisionUI.xcodeproj/project.xcworkspace/
+frontend/MenuVisionUI.xcodeproj/xcuserdata/
