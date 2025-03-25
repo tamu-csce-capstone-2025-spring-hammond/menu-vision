@@ -11,6 +11,11 @@ struct SignUpAndInView: View {
     @State private var navigationPath = NavigationPath()
     @Binding var isLoggedIn: Bool
 
+    // Initialize with a default value for preview
+    init(isLoggedIn: Binding<Bool> = .constant(false)) {
+        self._isLoggedIn = isLoggedIn
+    }
+
     var body: some View {
         NavigationStack(path: $navigationPath) {
             GeometryReader { geometry in
@@ -105,12 +110,16 @@ struct SignUpAndInView: View {
                 case "signup":
                     SignUpView()
                 case "login":
-                    LoginView()
+                    LoginView(isLoggedIn: $isLoggedIn)
                 default:
                     EmptyView()
                 }
             }
             .navigationBarHidden(true)
+        }
+        // If user is logged in, navigate to Home
+        .fullScreenCover(isPresented: $isLoggedIn) {
+            HomeView()
         }
     }
 
@@ -126,6 +135,5 @@ struct SignUpAndInView: View {
 }
 
 #Preview {
-    // For preview purposes, provide a constant binding.
-    SignUpAndInView(isLoggedIn: .constant(false))
+    SignUpAndInView()
 }

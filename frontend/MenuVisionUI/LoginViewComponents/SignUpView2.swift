@@ -11,6 +11,7 @@ struct SignUpView2: View {
     // State to track selected cuisines - empty by default
     @State private var selectedCuisines: Set<String> = []
     @Environment(\.presentationMode) var presentationMode
+    @State private var navigateToSignUpView3 = false
 
     // List of all available cuisines
     private let cuisines = [
@@ -103,7 +104,7 @@ struct SignUpView2: View {
                 // Bottom button with dynamic text based on selection
                 Button(action: {
                     // Action for button - continue to next screen or dismiss
-                    presentationMode.wrappedValue.dismiss()
+                    navigateToSignUpView3 = true
                 }) {
                     Text(selectedCuisines.isEmpty ? "Nope" : "Lets Go!")
                         .font(.system(size: 12, weight: .bold))
@@ -125,6 +126,9 @@ struct SignUpView2: View {
         .navigationBarBackButtonHidden(true) // Hide the default back button
         .navigationBarHidden(true) // Hide the entire navigation bar
         .toolbar(.hidden, for: .navigationBar) // Additional modifier for iOS 16+
+        .navigationDestination(isPresented: $navigateToSignUpView3) {
+            SignUpView3()
+        }
     }
 
     private func toggleSelection(_ cuisine: String) {

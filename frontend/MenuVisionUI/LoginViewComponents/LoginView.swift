@@ -5,6 +5,10 @@ struct LoginView: View {
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var rememberMe: Bool = false
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
+
+    @Binding var isLoggedIn: Bool
 
     var body: some View {
         GeometryReader { geometry in
@@ -68,6 +72,8 @@ struct LoginView: View {
 
                             Button(action: {
                                 // Forgot password action
+                                alertMessage = "Password reset functionality would be implemented here"
+                                showingAlert = true
                             }) {
                                 Text("Forgot Password?")
                                     .font(.system(size: 14, weight: .medium))
@@ -79,7 +85,14 @@ struct LoginView: View {
 
                     // Login button
                     Button(action: {
-                        // Login action
+                        // Validate login
+                        if validateLogin() {
+                            // Set isLoggedIn to true to trigger navigation to Home
+                            isLoggedIn = true
+                        } else {
+                            alertMessage = "Invalid credentials. Hint: Use 'User' as email and 'password' as password."
+                            showingAlert = true
+                        }
                     }) {
                         Text("LOG IN")
                             .font(.system(size: 16, weight: .semibold))
@@ -119,11 +132,23 @@ struct LoginView: View {
             }
         }
         .navigationBarHidden(true)
+        .alert(isPresented: $showingAlert) {
+            Alert(
+                title: Text("Message"),
+                message: Text(alertMessage),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+    }
+
+    // Use AuthenticationManager to validate login credentials
+    private func validateLogin() -> Bool {
+        return AuthenticationManager.authenticate(email: email, password: password)
     }
 }
 
 struct LoginView_Previews: PreviewProvider {
     static var previews: some View {
-        LoginView()
+        LoginView(isLoggedIn: .constant(false))
     }
 }
