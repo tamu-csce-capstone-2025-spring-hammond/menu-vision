@@ -90,7 +90,15 @@ struct ARViewContainer: UIViewRepresentable {
         // Setup AR session with occlusion
         let config = ARWorldTrackingConfiguration();
         config.planeDetection = .horizontal;
-        config.frameSemantics.insert(.personSegmentationWithDepth);
+        
+        if ARWorldTrackingConfiguration.supportsFrameSemantics(.personSegmentationWithDepth) {
+            config.frameSemantics.insert(.personSegmentationWithDepth);
+        }
+        
+        if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
+            config.frameSemantics.insert(.sceneDepth)
+        }
+        
         arView.session.run(config);
         
         arView.addCoaching();
@@ -108,7 +116,7 @@ struct ARViewContainer: UIViewRepresentable {
         
         //setup session callback for computer vision
         arView.session.delegate = context.coordinator;
-
+        
         return arView;
     }
 
@@ -372,6 +380,8 @@ struct ARViewContainer: UIViewRepresentable {
                 }
                 
                 arView.scene.addAnchor(anchor);
+                
+                arView.installGestures(.all, for: model);
                 
                 //add this new models information to the list of present models to refer back to later
                 
