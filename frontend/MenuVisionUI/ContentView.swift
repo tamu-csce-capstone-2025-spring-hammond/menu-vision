@@ -8,7 +8,7 @@ struct ContentView: View {
             if isLoggedIn {
                 HomeView()
             } else {
-                SignUpAndInView(isLoggedIn: $isLoggedIn)
+                LoginView(isLoggedIn: $isLoggedIn)
             }
         }
     }

@@ -1,9 +1,3 @@
-//
-//  AuthenticationManager.swift
-//  MenuVisionUI
-//
-//  Created by Sam Zhou on 3/1/25.
-//
 import Foundation
 
 struct AuthenticationManager {
