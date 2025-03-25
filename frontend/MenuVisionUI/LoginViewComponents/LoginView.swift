@@ -1,184 +1,154 @@
 import SwiftUI
 
 struct LoginView: View {
-    // This binding is controlled by the parent view (e.g., ContentView) to switch between login and home screens.
-    @Binding var isLoggedIn: Bool
-    @StateObject private var viewModel: LoginViewModel
+    @Environment(\.presentationMode) var presentationMode
+    @State private var email: String = ""
+    @State private var password: String = ""
+    @State private var rememberMe: Bool = false
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
 
-    init(isLoggedIn: Binding<Bool>) {
-        self._isLoggedIn = isLoggedIn
-        let vm = LoginViewModel()
-        // Set the login success callback to update the parent's binding.
-        vm.onLoginSuccess = {
-            isLoggedIn.wrappedValue = true
-        }
-        _viewModel = StateObject(wrappedValue: vm)
-    }
+    @Binding var isLoggedIn: Bool
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // Header Section
-                ZStack(alignment: .top) {
-                    AsyncImage(url: URL(string: "https://cdn.builder.io/api/v1/image/assets/da303a0268f349fd84e7ed4a5889eb71/96a4a47e832365a633e1eb8e215946aaeaa378c7a4d172e7605dc97fbdb89e93?placeholderIfAbsent=true&format=webp")) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        Color.gray.opacity(0.3)
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Back button
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(Color(red: 0.98, green: 0.67, blue: 0.48)) // Same orange color
                     }
-                    .frame(height: 300)
+                    .padding(.top, 20)
 
-                    VStack(spacing: 32) {
-                        // Logo
-                        HStack(spacing: 2) {
-                            AsyncImage(url: URL(string: "https://cdn.builder.io/api/v1/image/assets/da303a0268f349fd84e7ed4a5889eb71/261bfc14d9c7440438ed2b7498fb892c93b6366fdc83c5eef212c02eba01f4d2?placeholderIfAbsent=true&format=webp")) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 18, height: 18)
-                            } placeholder: {
-                                Color.gray.opacity(0.3)
-                            }
+                    // Title
+                    Text("Welcome Back")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(Color(red: 0.29, green: 0.29, blue: 0.29))
+                        .padding(.top, 20)
 
-                            Text("MenuVision")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
+                    // Form fields
+                    VStack(spacing: 20) {
+                        // Email field
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Email")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Color(red: 0.63, green: 0.64, blue: 0.7))
+
+                            TextField("Enter your email", text: $email)
+                                .padding()
+                                .background(Color(red: 0.97, green: 0.97, blue: 0.97))
+                                .cornerRadius(10)
+                                .keyboardType(.emailAddress)
+                                .autocapitalization(.none)
                         }
 
-                        // Headline
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Get Started now")
-                                .font(.system(size: 30, weight: .bold))
-                                .foregroundColor(.white)
+                        // Password field
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Password")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Color(red: 0.63, green: 0.64, blue: 0.7))
 
-                            Text("Create an account or log in to explore about our app")
-                                .font(.system(size: 12))
-                                .foregroundColor(.white)
-                        }
-                    }
-                    .padding(.top, 64)
-                }
-
-                // Content Section
-                VStack(spacing: 24) {
-                    // Login/Signup Toggle
-                    HStack {
-                        Button(action: { viewModel.isLoginMode = true }) {
-                            Text("Log In")
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(viewModel.isLoginMode ? Color.white : Color.clear)
-                                .foregroundColor(viewModel.isLoginMode ? .primary : .gray)
-                                .cornerRadius(8)
+                            SecureField("Enter your password", text: $password)
+                                .padding()
+                                .background(Color(red: 0.97, green: 0.97, blue: 0.97))
+                                .cornerRadius(10)
                         }
 
-                        Button(action: { viewModel.isLoginMode = false }) {
-                            Text("Sign Up")
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(!viewModel.isLoginMode ? Color.white : Color.clear)
-                                .foregroundColor(!viewModel.isLoginMode ? .primary : .gray)
-                                .cornerRadius(8)
-                        }
-                    }
-                    .background(Color.customGray)
-                    .cornerRadius(12)
-
-                    // Form Fields
-                    VStack(spacing: 16) {
-                        CustomTextField(
-                            title: "Email",
-                            placeholder: "Enter your email",
-                            text: $viewModel.email
-                        )
-
-                        CustomTextField(
-                            title: "Password",
-                            placeholder: "Enter your password",
-                            text: $viewModel.password,
-                            isSecure: true
-                        )
-
-                        // Remember Me & Forgot Password
+                        // Remember me and Forgot password
                         HStack {
-                            Toggle(isOn: $viewModel.rememberMe) {
-                                Text("Remember me")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.customPlaceholder)
-                            }
-                            .toggleStyle(CheckboxToggleStyle())
+                            Toggle("", isOn: $rememberMe)
+                                .labelsHidden()
+                                .toggleStyle(SwitchToggleStyle(tint: Color(red: 0.98, green: 0.67, blue: 0.48)))
+
+                            Text("Remember me")
+                                .font(.system(size: 14))
+                                .foregroundColor(Color(red: 0.63, green: 0.64, blue: 0.7))
 
                             Spacer()
 
-                            Button("Forgot Password?") {
-                                viewModel.forgotPassword()
+                            Button(action: {
+                                // Forgot password action
+                                alertMessage = "Password reset functionality would be implemented here"
+                                showingAlert = true
+                            }) {
+                                Text("Forgot Password?")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(Color(red: 0.98, green: 0.67, blue: 0.48))
                             }
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.customBlue)
-                        }
-
-                        // Login Button
-                        Button(action: {
-                            // Do login stuff here and if true switch view to MainContentView
-                            if AuthenticationManager.authenticate(email: viewModel.email, password: viewModel.password) {
-                                isLoggedIn = true
-                            } else {
-                                print("Authentication failed")
-                            }
-                        }) {
-                            Text("Log In")
-                                .font(.system(size: 14, weight: .medium))
-                        }
-                        .customButtonStyle()
-
-                        // Divider
-                        DividerWithText(text: "Or")
-                            .padding(.vertical)
-
-                        // Social Login Buttons
-                        VStack(spacing: 16) {
-                            SocialLoginButton(
-                                title: "Continue with Google",
-                                iconName: "google_icon",
-                                action: viewModel.loginWithGoogle
-                            )
-
-                            SocialLoginButton(
-                                title: "Continue with Apple",
-                                iconName: "apple_icon",
-                                action: viewModel.loginWithApple
-                            )
                         }
                     }
+                    .padding(.top, 20)
+
+                    // Login button
+                    Button(action: {
+                        // Validate login
+                        if validateLogin() {
+                            // Set isLoggedIn to true to trigger navigation to Home
+                            isLoggedIn = true
+                        } else {
+                            alertMessage = "Invalid credentials. Hint: Use 'User' as email and 'password' as password."
+                            showingAlert = true
+                        }
+                    }) {
+                        Text("LOG IN")
+                            .font(.system(size: 16, weight: .semibold))
+                            .tracking(1.5)
+                            .foregroundColor(Color(red: 0.98, green: 0.96, blue: 0.99))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color(red: 0.98, green: 0.67, blue: 0.48))
+                            .cornerRadius(38)
+                    }
+                    .padding(.top, 30)
+
+                    // Don't have an account
+                    HStack {
+                        Spacer()
+                        Text("Don't have an account? ")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(red: 0.63, green: 0.64, blue: 0.7))
+
+                        Button(action: {
+                            // Navigate back and then to sign up
+                            presentationMode.wrappedValue.dismiss()
+                            // We would need a more complex navigation solution to go directly to sign up
+                        }) {
+                            Text("Sign Up")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(Color(red: 0.98, green: 0.67, blue: 0.48))
+                        }
+                        Spacer()
+                    }
+                    .padding(.top, 20)
+
+                    Spacer()
                 }
-                .padding(34)
-                .background(Color.white)
-                .cornerRadius(24)
-                .offset(y: 0)
+                .padding(.horizontal, 24)
+                .frame(minHeight: geometry.size.height)
             }
         }
-        .background(Color.customBackground)
-        .edgesIgnoringSafeArea(.all)
-    }
-}
-
-struct CheckboxToggleStyle: ToggleStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack {
-            Image(systemName: configuration.isOn ? "checkmark.square.fill" : "square")
-                .foregroundColor(configuration.isOn ? .customBlue : .gray)
-                .font(.system(size: 14))
-                .onTapGesture {
-                    configuration.isOn.toggle()
-                }
-
-            configuration.label
+        .navigationBarHidden(true)
+        .alert(isPresented: $showingAlert) {
+            Alert(
+                title: Text("Message"),
+                message: Text(alertMessage),
+                dismissButton: .default(Text("OK"))
+            )
         }
     }
+
+    // Use AuthenticationManager to validate login credentials
+    private func validateLogin() -> Bool {
+        return AuthenticationManager.authenticate(email: email, password: password)
+    }
 }
 
-#Preview {
-    // For preview purposes, provide a constant binding.
-    LoginView(isLoggedIn: .constant(false))
+struct LoginView_Previews: PreviewProvider {
+    static var previews: some View {
+        LoginView(isLoggedIn: .constant(false))
+    }
 }
