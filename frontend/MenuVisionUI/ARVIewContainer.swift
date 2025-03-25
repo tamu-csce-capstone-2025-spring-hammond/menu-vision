@@ -126,6 +126,8 @@ struct ARViewContainer: UIViewRepresentable {
                 model.components.set(rigidBody);
                 
                 //take in raycast result to set anchor and attach the model to this anchor then add anchor to scene
+               
+
                 #if !XCODE_RUNNING_FOR_PREVIEWS
 
                 let anchor = AnchorEntity(world: raycastResult.worldTransform)
@@ -133,6 +135,7 @@ struct ARViewContainer: UIViewRepresentable {
                 let anchor = AnchorEntity(raycastResult: raycastResult)
 
                 #endif
+
                 anchor.addChild(model);
                 
                 //prevent creating multiple grounds and causing issues
