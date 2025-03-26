@@ -122,7 +122,8 @@ struct FilesListView: View {
 //            } else {
 //                print("File not found.")
 //            }
-            try await serviceHandler.uploadFile(bucket: "usdz-store-test", key: "model.usdz", file: modelPath.path)
+            let uuid = UUID().uuidString
+            try await serviceHandler.uploadFile(bucket: "usdz-store-test", key: "\(uuid).usdz", file: modelPath.path)
         } catch {
             print("Error occurred in s3testing: \(error)")
         }

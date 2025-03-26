@@ -9,7 +9,7 @@
 import SwiftUI
 import RealityKit
 
-//import S3Components.FilesListView
+import QuickLookThumbnailing
 
 extension ObjectCaptureSession.CaptureState {
 
@@ -233,7 +233,9 @@ struct ScanView: View {
     @State private var quickLookIsPresented = false
     
     var modelPath: URL? {
+//        let uuid = UUID().uuidString
         return modelFolderPath?.appending(path: "model.usdz")
+//        return modelFolderPath?.appending(path: "\(uuid).usdz")
     }
     
     var body: some View {
@@ -255,6 +257,7 @@ struct ScanView: View {
                             .foregroundStyle(.yellow)
                             .padding(.bottom)
                     }
+
                     
                 }
             }
@@ -278,6 +281,7 @@ struct ScanView: View {
             imageFolderPath = directory.appending(path: "Images/")
             guard let imageFolderPath else { return }
             session?.start(imagesDirectory: imageFolderPath)
+            
         }
         .onChange(of: session?.userCompletedScanPass) { _, newValue in
             if let newValue,
@@ -365,8 +369,11 @@ extension ScanView {
                     isProgressing = false
                     self.photogrammetrySession = nil
                     quickLookIsPresented = true
+                    // uploading usdz file to s3 bucket
                     let filesListView = FilesListView()
                     await filesListView.s3testing(modelPath: modelPath)
+                    
+//                    generateThumbnailRepresentations()
                 default:
                     break
                 }
@@ -377,7 +384,53 @@ extension ScanView {
         }
     }
     
-    
+    // generate thumbnail
+    func generateThumbnailRepresentations() {
+        
+        // Set up the parameters of the request.
+        guard let url = Bundle.main.url(forResource: "apple_1", withExtension: "usdz") else {
+            
+            // Handle the error case.
+            assert(false, "The URL can't be nil")
+            return
+        }
+        let size: CGSize = CGSize(width: 70, height: 70)
+        let scale = UIScreen.main.scale
+        
+        // Create the thumbnail request.
+        let request = QLThumbnailGenerator.Request(fileAt: url,
+                                                   size: size,
+                                                   scale: scale,
+                                                   representationTypes: .all)
+        
+        // Retrieve the singleton instance of the thumbnail generator and generate the thumbnails.
+        let generator = QLThumbnailGenerator.shared
+        generator.generateRepresentations(for: request) { (thumbnail, type, error) in
+            DispatchQueue.main.async {
+//                if thumbnail == nil || error != nil {
+//                    // Handle the error case gracefully.
+//                    print("Error generating thumbnail")
+//                } else {
+//                    // Display the thumbnail that you created.
+//                    print("Thumbnail generated!")
+//                }
+                if let error = error {
+                    print("Error generating thumbnail: \(error.localizedDescription)")
+                } else if let thumbnail = thumbnail {
+                    print("Thumbnail generated successfully!")
+                    // Convert to UIImage and Save to Directory
+                    let uiImage = UIImage(cgImage: thumbnail.cgImage)
+                    // add to s3 bucket (monkeycode rn)
+//                    let filesListView = FilesListView()
+//                    await filesListView.s3testing(modelPath: url)
+                    
+                } else {
+                    print("Unexpected error: No thumbnail and no error.")
+                }
+            }
+        }
+    }
+
     
 }
 
