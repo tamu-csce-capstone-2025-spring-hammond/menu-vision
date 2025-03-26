@@ -11,9 +11,7 @@ import SwiftUI
 struct MenuVisionUIApp: App {
     var body: some Scene {
         WindowGroup {
-            SignUpAndInView()
+            ContentView()
         }
     }
 }
-
-
