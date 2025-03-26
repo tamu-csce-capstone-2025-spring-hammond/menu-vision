@@ -5,7 +5,7 @@ import ARKit
 struct FirstTabView: View {
     
     @StateObject private var viewManager = ARViewManager();
-    @State private var tappedIcon: Int = 0;
+    @State private var modelIndex: Int = 0;
     
     var body: some View {
         ZStack {
@@ -22,7 +22,7 @@ struct FirstTabView: View {
                                 action: {
                                     print("Selected: \(id)")
                                     viewManager.changeModel(index: id);
-                                    tappedIcon = id;
+                                    modelIndex = id;
                                 })
                             {
                                 Image(value)
@@ -30,7 +30,7 @@ struct FirstTabView: View {
                                     .scaledToFit()
                                     .frame(height: 70)
                                     .frame(width: 70)
-                                    .background(tappedIcon == id ? Color(hex: "ff3f00").opacity(0.5) : Color(hex: "73edad").opacity(0.4))
+                                    .background(modelIndex == id ? Color(hex: "ff3f00").opacity(0.5) : Color(hex: "73edad").opacity(0.4))
                                     .clipShape(RoundedRectangle(cornerRadius: 20))
                                     .scrollTransition(.interactive, axis: .horizontal) { effect, phase in
                                         effect
