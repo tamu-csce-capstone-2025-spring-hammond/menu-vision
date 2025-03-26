@@ -233,7 +233,7 @@ struct MenuScannerView: View {
 
     func fetchNearbyRestaurants(longitude: Double, latitude: Double) {
         let urlString =
-            "https://a58e-165-91-13-68.ngrok-free.app/general/nearby-restaurants/\(longitude)/\(latitude)"
+            "https://menu-vision-b202af7ea787.herokuapp.com/general/nearby-restaurants/\(longitude)/\(latitude)"
         guard let url = URL(string: urlString) else {
             print("Invalid URL")
             return
