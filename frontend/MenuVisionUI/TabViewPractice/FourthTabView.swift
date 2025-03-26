@@ -19,6 +19,13 @@ struct MenuScannerView: View {
     @State private var isProcessing = false
     @StateObject private var locationManager = LocationManager()
     @State private var showingLocationAlert = false // New state variable
+    @State private var restaurants: [Restaurant] = []
+    @State private var selectedRestaurant: Restaurant? {
+        didSet { // Observe selectedRestaurant changes
+            saveSelectedRestaurant()
+        }
+    }
+    @State private var apiResponse: String = ""
 
     var body: some View {
         ZStack {
@@ -39,39 +46,98 @@ struct MenuScannerView: View {
                                 }
                         )
 
-                        Button(action: {
-                            guard !isProcessing else { return }
-                            isProcessing = true
-                            camera.capturePhoto { image in
-                                if let image = image {
-                                    capturedImage = image
-                                    DispatchQueue.global(qos: .userInitiated).async {
-                                        sendImageToAPI(image: image)
+                        VStack { // Aligns the button to the bottom
+
+                            if selectedRestaurant == nil {
+                                if !restaurants.isEmpty {
+                                    VStack {
+                                        Text("Select Restaurant")
+                                            .font(.headline)
+                                            .padding(.top)
+
+                                        Picker(
+                                            "Select Restaurant",
+                                            selection: $selectedRestaurant
+                                        ) {
+                                            Text("Select a restaurant")
+                                                .tag(nil as Restaurant?)  // Prompt
+                                            ForEach(restaurants, id: \.self) {
+                                                restaurant in
+                                                if let displayName =
+                                                    restaurant.displayName?.text
+                                                {
+                                                    Text(displayName).tag(
+                                                        restaurant as Restaurant?
+                                                    )
+                                                } else {
+                                                    Text("No Name").tag(
+                                                        restaurant as Restaurant?
+                                                    )  // Handle missing name
+                                                }
+                                            }
+                                        }
+                                        .padding()
+
+                                        Spacer()  // push to center
                                     }
-                                } else {
-                                    alertMessage = "Failed to capture image"
-                                    showAlert = true
+                                    .frame(width: geometry.size.width * 0.8)  // constrain size
+                                    .background(Color.white.opacity(0.8))
+                                    .cornerRadius(10)
                                 }
-                                DispatchQueue.main.async {
-                                    isProcessing = false
+                            } else {
+                                if let displayName = selectedRestaurant?.displayName?.text {
+                                    Text("Selected: \(displayName)")
+                                        .font(.headline)
+                                        .padding()
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                        .background(Color.green.opacity(0.5))
                                 }
+
                             }
-                        }) {
-                            Circle()
-                                .fill(.white)
-                                .frame(width: 70, height: 70)
-                                .overlay(
-                                    isProcessing ?
-                                        ProgressView()
-                                        .progressViewStyle(
-                                            CircularProgressViewStyle(tint: .blue)
-                                        )
-                                        .scaleEffect(1.5)
-                                        : nil
-                                )
+                            Spacer()
+                            Button(action: {
+                                guard !isProcessing, selectedRestaurant != nil else {
+                                    return
+                                }
+                                isProcessing = true
+                                camera.capturePhoto { image in
+                                    if let image = image {
+                                        capturedImage = image
+                                        sendImageToAPI(image: image) // Call extract-menu API
+                                        //  No API call here anymore
+                                    } else {
+                                        alertMessage = "Failed to capture image"
+                                        showAlert = true
+                                    }
+                                    DispatchQueue.main.async {
+                                        isProcessing = false
+                                    }
+                                }
+                            }) {
+                                Circle()
+                                    .fill(.white)
+                                    .frame(width: 70, height: 70)
+                                    .overlay(
+                                        isProcessing ?
+                                            ProgressView()
+                                            .progressViewStyle(
+                                                CircularProgressViewStyle(tint: .blue)
+                                            )
+                                            .scaleEffect(1.5)
+                                            : nil
+                                    )
+                            }
+                            .disabled(isProcessing || selectedRestaurant == nil)
+                            .padding(.bottom, 30)
                         }
-                        .disabled(isProcessing)
-                        .padding(.bottom, 30)
+                        if !apiResponse.isEmpty {
+                            Text("API Response: \(apiResponse)")
+                                .padding()
+                                .background(Color.gray.opacity(0.7))
+                                .cornerRadius(10)
+                                .foregroundColor(.white)
+
+                        }
                     }
                 }
                 .onAppear {
@@ -81,7 +147,20 @@ struct MenuScannerView: View {
                             showAlert = true
                         }
                     }
-                    locationManager.startUpdatingLocation()
+                    loadSelectedRestaurant() // Load previously saved restaurant
+
+                    locationManager.getLocationOnce { location in
+                        if let location = location {
+                            fetchNearbyRestaurants(
+                                longitude: location.coordinate.longitude,
+                                latitude: location.coordinate.latitude
+                            )
+                        } else {
+                            alertMessage =
+                                "Could not retrieve location. Please ensure location services are enabled."
+                            showAlert = true
+                        }
+                    }
                 }
                 .alert(isPresented: $showAlert) {
                     Alert(
@@ -119,6 +198,7 @@ struct MenuScannerView: View {
                     HStack {
                         Button(action: {
                             capturedImage = nil // Reset to camera view
+                            apiResponse = ""
                             camera.checkPermissionsAndSetup { _, _ in } // Restart Camera
                         }) {
                             Image(systemName: "arrow.left")
@@ -138,6 +218,12 @@ struct MenuScannerView: View {
                         .resizable()
                         .scaledToFit()
                         .padding()
+                    Text(apiResponse)
+                                .padding()
+                                .background(Color.gray.opacity(0.7))
+                                .cornerRadius(10)
+                                .foregroundColor(.white)
+
 
                     Spacer() // Push the content to the top
                 }
@@ -145,30 +231,52 @@ struct MenuScannerView: View {
         }
     }
 
+    func fetchNearbyRestaurants(longitude: Double, latitude: Double) {
+        let urlString =
+            "https://a58e-165-91-13-68.ngrok-free.app/general/nearby-restaurants/\(longitude)/\(latitude)"
+        guard let url = URL(string: urlString) else {
+            print("Invalid URL")
+            return
+        }
+        var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error fetching restaurants: \(error)")
+                return
+            }
+
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+
+            if let string = String(data: data, encoding: .utf8) {
+                print("API Response:\n\(string)") // Print the raw response
+            }
+
+            do {
+                //let decodedRestaurants = try JSONDecoder().decode([Restaurant].self, from: data)
+                let decodedResponse =
+                    try JSONDecoder().decode(RestaurantResponse.self, from: data)
+                DispatchQueue.main.async {
+                    self.restaurants = decodedResponse.places ?? []
+                    loadSelectedRestaurant()
+                }
+            } catch {
+                print("Error decoding JSON: \(error)")
+            }
+        }
+        .resume()
+    }
     func sendImageToAPI(image: UIImage) {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             print("Failed to convert image to data")
             return
         }
 
-        guard let location = locationManager.location else {
-            print("Location not available")
-            alertMessage =
-                "Location not available. Please ensure location services are enabled and try again."
-            showAlert = true // Show alert to the user
-            return
-        }
-
-        let longitude = location.coordinate.longitude
-        let latitude = location.coordinate.latitude
-
-        let urlString =
-            "https://menu-vision-b202af7ea787.herokuapp.com/\(longitude)/\(latitude)"
-        guard let url = URL(string: urlString) else {
-            print("Invalid URL")
-            return
-        }
-
+        let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ocr/extract-menu")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         let boundary = UUID().uuidString
@@ -192,37 +300,103 @@ struct MenuScannerView: View {
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("Network error: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.alertMessage = "Network error: \(error.localizedDescription)"
+                    self.showAlert = true
+                }
                 return
             }
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 print("Invalid response")
+                DispatchQueue.main.async {
+                    self.alertMessage = "Invalid response from server"
+                    self.showAlert = true
+                }
                 return
             }
 
             if httpResponse.statusCode != 200 {
                 print("Server error: \(httpResponse.statusCode)")
+                DispatchQueue.main.async {
+                    self.alertMessage = "Server error: \(httpResponse.statusCode)"
+                    self.showAlert = true
+                }
                 return
             }
 
             guard let data = data else {
                 print("No data received")
+                DispatchQueue.main.async {
+                    self.alertMessage = "No data received from server"
+                    self.showAlert = true
+                }
                 return
             }
 
             if let jsonString = String(data: data, encoding: .utf8) {
                 print("API Response: \(jsonString)") // Print to console
+                DispatchQueue.main.async {
+                    self.apiResponse = jsonString
+                }
             } else {
                 print("Could not parse server response")
+                DispatchQueue.main.async {
+                    self.alertMessage = "Could not parse server response"
+                    self.showAlert = true
+                }
             }
         }
         task.resume()
     }
+
+    func saveSelectedRestaurant() {
+        guard let restaurant = selectedRestaurant, let id = restaurant.id else {
+            UserDefaults.standard.removeObject(forKey: "selectedRestaurantId")
+            return
+        }
+        UserDefaults.standard.set(id, forKey: "selectedRestaurantId")
+    }
+
+    func loadSelectedRestaurant() {
+        guard let restaurantId = UserDefaults.standard.string(forKey: "selectedRestaurantId") else {
+            return
+        }
+        // Find restaurant in the loaded restaurants
+        if let restaurant = restaurants.first(where: { $0.id == restaurantId }) {
+            selectedRestaurant = restaurant
+        }
+    }
+}
+
+// Response struct to handle "places" key
+struct RestaurantResponse: Codable {
+    let places: [Restaurant]?
+}
+
+// Define Restaurant struct - adjust properties to match your API response
+struct Restaurant: Codable, Hashable {
+    let id: String?
+    let placeId: String?
+    let displayName: DisplayName?
+    // Add other properties from your Restaurant JSON here
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id) // Ensure unique hash based on the restaurant's ID
+    }
+
+    static func == (lhs: Restaurant, rhs: Restaurant) -> Bool {
+        return lhs.id == rhs.id
+    }
+}
+
+struct DisplayName: Codable {
+    let text: String?
+    let languageCode: String?
 }
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
-    @Published var location: CLLocation?
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined // Initialize
 
     override init() {
@@ -231,16 +405,40 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
     }
 
-    func startUpdatingLocation() {
-        locationManager.requestWhenInUseAuthorization()
-        //The following line of code are commented out due to the suggestion of the previous contributor.
-        //locationManager.startUpdatingLocation()
+    func getLocationOnce(completion: @escaping (CLLocation?) -> Void) {
+        locationManager.requestWhenInUseAuthorization() // Request authorization
+        locationManager.delegate = self // Ensure delegate is set
+
+        // Check authorization status
+        switch locationManager.authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            // Location access granted, start one-time location update
+            locationManager.startUpdatingLocation()
+            oneTimeLocationCompletion = completion // Store completion handler
+        case .denied, .restricted:
+            // Location access denied or restricted
+            print("Location access denied or restricted")
+            completion(nil) // Call completion handler with nil
+        case .notDetermined:
+            // Location access not determined, wait for didChangeAuthorization
+            print("Location access not determined.")
+            locationManager.startUpdatingLocation()
+            oneTimeLocationCompletion = completion
+        default:
+            print("Unhandled location authorization status")
+            completion(nil)
+        }
     }
 
+    private var oneTimeLocationCompletion: ((CLLocation?) -> Void)?
+
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else { return }
-        self.location = location
-        print("Latitude: \(location.coordinate.latitude), Longitude: \(location.coordinate.longitude)")
+        guard let location = locations.first else { return }
+        print("One-time location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+        locationManager.stopUpdatingLocation() // Stop after getting the first location
+        oneTimeLocationCompletion?(location) // Call completion handler
+        oneTimeLocationCompletion = nil // Clear completion handler
+        locationManager.delegate = nil
     }
 
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
@@ -248,20 +446,27 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         switch status {
         case .denied, .restricted:
             print("Location access denied or restricted")
-            // Potentially show an alert here, or update UI to reflect denial
+            oneTimeLocationCompletion?(nil) // Notify about the denial
+            oneTimeLocationCompletion = nil
+            locationManager.delegate = nil // remove delegate
         case .authorizedAlways, .authorizedWhenInUse:
-            locationManager.startUpdatingLocation() // Start updating when authorized
             print("Location access authorized")
-
         case .notDetermined:
             print("Location access not determined.")
         default:
             print("Unhandled location authorization status")
+            oneTimeLocationCompletion?(nil) // Notify about the denial
+            oneTimeLocationCompletion = nil
+            locationManager.delegate = nil // remove delegate
         }
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Location update failed: \(error.localizedDescription)")
+        locationManager.stopUpdatingLocation()
+        oneTimeLocationCompletion?(nil) // Notify about the error
+        oneTimeLocationCompletion = nil
+        locationManager.delegate = nil // remove delegate
         if let clError = error as? CLError {
             switch clError.code {
             case .denied:
@@ -272,9 +477,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 // Handle the unknown location (perhaps a retry mechanism)
             default:
                 print("Other CoreLocation error: \(clError.localizedDescription)")
+            }
         }
     }
-}
 }
 
 class CameraManager: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
