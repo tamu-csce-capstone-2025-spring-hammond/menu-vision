@@ -68,10 +68,10 @@ struct SignUpView3: View {
                 // Title and subtitle
                 VStack(alignment: .leading, spacing: 9) {
                     Text("Sign up")
-                        .font(.system(size: 16, weight: .heavy))
+                        .font(.system(size: 20, weight: .heavy))
                         .foregroundColor(Color(UIColor.darkGray))
 
-                    Text("Create an account to get started")
+                    Text("Create an account to get started!")
                         .font(.system(size: 12))
                         .foregroundColor(Color(UIColor.systemGray))
                 }
