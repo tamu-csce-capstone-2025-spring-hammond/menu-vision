@@ -231,6 +231,9 @@ struct ARViewContainer: UIViewRepresentable {
                                 if let mealName = modelMap[pm.mealID]{
                                     print(modelMap[pm.mealID]);
                                     
+                                    //if we want to change label color in the future use this format
+                                    //let textColor = SimpleMaterial.Color(red: 0.98, green: 0.67, blue: 0.48, alpha: 0.95);
+                                    
                                     
                                     let textMaterials = SimpleMaterial(color: .cyan, roughness: 0, isMetallic: false);
                                     
