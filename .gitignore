@@ -9,9 +9,4 @@ __pycache__/
 frontend/MenuVisionUI.xcodeproj/xcuserdata/
 *.xcuserstate
 frontend/MenuVisionUI.xcodeproj/project.xcworkspace/
-<<<<<<< Updated upstream
 frontend/MenuVisionUI.xcodeproj/xcuserdata/
-=======
-frontend/MenuVisionUI.xcodeproj/xcuserdata/*
-.DS_Store
->>>>>>> Stashed changes

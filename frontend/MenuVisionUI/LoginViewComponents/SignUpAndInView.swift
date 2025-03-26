@@ -23,7 +23,7 @@ struct SignUpAndInView: View {
                     VStack(alignment: .center, spacing: 0) {
                         // Add extra padding at the top to move everything down slightly
                         Spacer()
-                            .frame(height: geometry.size.height * 0.02)
+                            .frame(height: geometry.size.height * 0.03)
 
                         // Header image
                         AsyncImage(url: URL(string: "https://cdn.builder.io/api/v1/image/assets/c5b4e4c8487a42d48871ad1e7d9ecefa/3ec6bc4f-88c8-4af7-ab33-a9b7ae943e35?placeholderIfAbsent=true")) { phase in
@@ -35,7 +35,6 @@ struct SignUpAndInView: View {
                             case .success(let image):
                                 image
                                     .resizable()
-                                    .interpolation(.high)
                                     .aspectRatio(0.82, contentMode: .fit)
                             case .failure:
                                 Rectangle()
@@ -51,7 +50,7 @@ struct SignUpAndInView: View {
                                     .aspectRatio(0.82, contentMode: .fit)
                             }
                         }
-                        .frame(width: min(geometry.size.width, 490))
+                        .frame(width: min(geometry.size.width, 390))
 
                         // Welcome title
                         Text("Welcome to MenuVision")
@@ -82,13 +81,13 @@ struct SignUpAndInView: View {
                                 .background(Color(red: 0.98, green: 0.67, blue: 0.48)) // bg-orange-300
                                 .cornerRadius(38)
                         }
-                        .padding(.top, geometry.size.height * 0.12) // Proportional top padding
+                        .padding(.top, geometry.size.height * 0.08) // Proportional top padding
 
                         // Login text with tap gesture
                         Text("ALREADY HAVE AN ACCOUNT? LOG IN")
                             .font(.system(size: min(14, geometry.size.width * 0.035), weight: .medium))
                             .tracking(2) // tracking-wider
-                            .padding(.top, 40)
+                            .padding(.top, 20)
                             .multilineTextAlignment(.center)
                             .foregroundColor(.clear)
                             .overlay(

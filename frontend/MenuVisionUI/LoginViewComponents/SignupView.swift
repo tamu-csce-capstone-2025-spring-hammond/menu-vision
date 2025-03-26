@@ -40,7 +40,7 @@ struct SignUpView: View {
                         .fill(Color(red: 253/255, green: 186/255, blue: 116/255)) // bg-orange-300
                         .frame(width: 126, height: 8)
                 }
-                .padding(.top, 10)
+                .padding(.top, 24)
 
                 // Back button - moved below progress bar
                 HStack {
@@ -75,10 +75,10 @@ struct SignUpView: View {
                     Text("Choose your dietary preferences.")
                         .font(.system(size: 14))
                         .foregroundColor(Color(red: 113/255, green: 113/255, blue: 122/255)) // text-zinc-500
-                        .padding(.top, -3) // Adjust for the spacing above
+                        .padding(.top, -8) // Adjust for the spacing above
                 }
                 .frame(width: 358, alignment: .leading)
-                .padding(.top, 10) // Reduced from 40 to bring content closer to back button
+                .padding(.top, 9) // Reduced from 40 to bring content closer to back button
 
                 // Dietary restrictions list
                 VStack(spacing: 8) {
