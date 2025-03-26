@@ -8,6 +8,7 @@
 import SwiftUI
 import AVFoundation
 import UIKit
+import CoreLocation
 
 struct MenuScannerView: View {
     @StateObject private var camera = CameraManager()
@@ -16,6 +17,8 @@ struct MenuScannerView: View {
     @State private var zoomFactor: CGFloat = 1.0
     @State private var capturedImage: UIImage?
     @State private var isProcessing = false
+    @StateObject private var locationManager = LocationManager()
+    @State private var showingLocationAlert = false // New state variable
 
     var body: some View {
         ZStack {
@@ -78,6 +81,7 @@ struct MenuScannerView: View {
                             showAlert = true
                         }
                     }
+                    locationManager.startUpdatingLocation()
                 }
                 .alert(isPresented: $showAlert) {
                     Alert(
@@ -85,6 +89,29 @@ struct MenuScannerView: View {
                         message: Text(alertMessage),
                         dismissButton: .default(Text("OK"))
                     )
+                }
+                .alert(isPresented: $showingLocationAlert) {
+                    // Location alert
+                    Alert(
+                        title: Text("Location Access Denied"),
+                        message: Text(
+                            "Please enable location services in Settings for this app to function correctly."
+                        ),
+                        primaryButton: .default(Text("Settings"), action: {
+                            // Open the app's settings page
+                            if let url = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(url)
+                            }
+                        }),
+                        secondaryButton: .cancel()
+                    )
+                }
+                .onChange(of: locationManager.authorizationStatus) { newStatus in
+                    if newStatus == .denied || newStatus == .restricted {
+                        showingLocationAlert = true // Show the alert
+                    } else {
+                        showingLocationAlert = false // Dismiss the alert if access is granted
+                    }
                 }
             } else {
                 // Display Captured Image View
@@ -124,7 +151,24 @@ struct MenuScannerView: View {
             return
         }
 
-        let url = URL(string: "https://e784-165-91-13-68.ngrok-free.app/ocr/extract-menu")!
+        guard let location = locationManager.location else {
+            print("Location not available")
+            alertMessage =
+                "Location not available. Please ensure location services are enabled and try again."
+            showAlert = true // Show alert to the user
+            return
+        }
+
+        let longitude = location.coordinate.longitude
+        let latitude = location.coordinate.latitude
+
+        let urlString =
+            "https://menu-vision-b202af7ea787.herokuapp.com/\(longitude)/\(latitude)"
+        guard let url = URL(string: urlString) else {
+            print("Invalid URL")
+            return
+        }
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         let boundary = UUID().uuidString
@@ -174,6 +218,63 @@ struct MenuScannerView: View {
         }
         task.resume()
     }
+}
+
+class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    private let locationManager = CLLocationManager()
+    @Published var location: CLLocation?
+    @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined // Initialize
+
+    override init() {
+        super.init()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+    }
+
+    func startUpdatingLocation() {
+        locationManager.requestWhenInUseAuthorization()
+        //The following line of code are commented out due to the suggestion of the previous contributor.
+        //locationManager.startUpdatingLocation()
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        self.location = location
+        print("Latitude: \(location.coordinate.latitude), Longitude: \(location.coordinate.longitude)")
+    }
+
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        self.authorizationStatus = status
+        switch status {
+        case .denied, .restricted:
+            print("Location access denied or restricted")
+            // Potentially show an alert here, or update UI to reflect denial
+        case .authorizedAlways, .authorizedWhenInUse:
+            locationManager.startUpdatingLocation() // Start updating when authorized
+            print("Location access authorized")
+
+        case .notDetermined:
+            print("Location access not determined.")
+        default:
+            print("Unhandled location authorization status")
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Location update failed: \(error.localizedDescription)")
+        if let clError = error as? CLError {
+            switch clError.code {
+            case .denied:
+                print("User has denied location access.")
+                // Handle denial (e.g., show an alert)
+            case .locationUnknown:
+                print("Location is currently unknown.")
+                // Handle the unknown location (perhaps a retry mechanism)
+            default:
+                print("Other CoreLocation error: \(clError.localizedDescription)")
+        }
+    }
+}
 }
 
 class CameraManager: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
