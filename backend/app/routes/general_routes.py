@@ -23,7 +23,7 @@ def get_nearby_restaurants(longitude=None, latitude=None):
     headers = {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': os.getenv("GOOGLE_MAPS_API_KEY"),
-        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.priceLevel,places.rating,places.currentOpeningHours,places.generativeSummary.description,places.generativeSummary.overview'
+        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.priceLevel,places.rating,places.currentOpeningHours,places.generativeSummary.description,places.generativeSummary.overview'
     }
     data = {
         "includedTypes": ["restaurant"],
