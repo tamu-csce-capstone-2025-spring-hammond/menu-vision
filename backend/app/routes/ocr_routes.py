@@ -5,7 +5,8 @@ import io
 import json
 import os
 from pydantic import BaseModel, Field, RootModel, ValidationError
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union
+from app.routes.general_routes import get_nearby_restaurants
 
 ocr_bp = Blueprint("ocr", __name__)
 
@@ -27,7 +28,7 @@ class MenuItem(BaseModel):
     spiciness: Optional[str] = Field(None, description="Mild/Medium/Spicy if listed, otherwise null")
     allergens: List[str] = Field(default_factory=list, description="List of allergens explicitly listed under 'Allergens', otherwise leave empty")
     dietary_info: List[str] = Field(default_factory=list, description="List of dietary tags such as 'Vegan', 'Vegetarian', 'Gluten-Free', 'Dairy-Free' if explicitly stated, otherwise leave empty")
-    calories: Optional[str] = Field(None, description="Calories if explicitly listed, otherwise null")
+    calories: Optional[str] = Field(None, description="Calories if explicitly listed (e.g., '840-1080' or '530'), otherwise null")
     popularity: Optional[str] = Field(None, description="Bestseller/Chef's Recommendation/Seasonal Special if mentioned, otherwise null")
     availability: Optional[str] = Field(None, description="All day/Lunch only/Weekends only if specified, otherwise null")
     addons: List[Addon] = Field(default_factory=list, description="List of add-ons for the dish")
@@ -35,12 +36,7 @@ class MenuItem(BaseModel):
 class MenuCategory(RootModel):
     root: List[MenuItem]
 
-class Restaurant(BaseModel):
-    name: Optional[str] = Field(None, description="Extract Restaurant Name exactly as written, otherwise null")
-    address: Optional[str] = Field(None, description="Extract full address exactly as written if present, otherwise null")
-
 class Menu(BaseModel):
-    restaurant: Optional[Restaurant] = Field(None, description="Restaurant details")
     menu: Dict[str, List[MenuItem]] = Field(..., description="Dictionary of menu categories with a list of menu items")
 
 @ocr_bp.route("/", methods=["GET"])
@@ -62,7 +58,6 @@ def extract_menu():
 
         # Example of the JSON structure
         example_json = {
-            "restaurant": {"name": "Example Restaurant", "address": "123 Main St"},
             "menu": {
                 "APPETIZERS": [
                     {"name": "Shrimp Cocktail", "sizes": [{"size": "Regular", "price": 12.0}], "description": "Chilled shrimp with cocktail sauce", "spiciness": None, "allergens": [], "dietary_info": [], "calories": None, "popularity": None, "availability": None, "addons": []}
@@ -84,6 +79,8 @@ def extract_menu():
             "It is CRUCIAL to extract every menu category and all items within each category.\n"
             "Ensure dish names are exactly as written, and sizes include "
             "weight (oz, g, lb) or volume (fl oz, ml) if specified.\n"
+            "IMPORTANT: For prices, extract ONLY the numerical value without any additional text. "
+            "For example, if you see '$10.89 840-1080 Cal.', the price should be 10.89.\n"
             "Output MUST be valid JSON. If a field is not present in the image, "
             "its value should be 'null' if nullable, or an empty list/string if appropriate.\n"
             "Preserve exact spelling and formatting from the image.\n\n"
