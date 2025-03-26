@@ -46,7 +46,7 @@ struct SignUpView2: View {
                         .fill(orangeButton) // bg-orange-300
                         .frame(width: 230, height: 8)
                 }
-                .padding(.top, 24)
+                .padding(.top, 10)
 
                 // Back button - moved below progress bar
                 HStack {
@@ -81,10 +81,10 @@ struct SignUpView2: View {
                     Text("MenuVision will recommend you items based off your tastes.")
                         .font(.system(size: 14))
                         .foregroundColor(Color(red: 113/255, green: 113/255, blue: 122/255)) // text-zinc-500
-                        .padding(.top, -8) // Adjust for the spacing above
+                        .padding(.top, -3) // Adjust for the spacing above
                 }
                 .frame(width: 358, alignment: .leading)
-                .padding(.top, 9) // Reduced from 40 to bring content closer to back button
+                .padding(.top, 10) // Reduced from 40 to bring content closer to back button
 
                 // Cuisine list
                 VStack(spacing: 8) {
