@@ -59,6 +59,10 @@ extension ARView: ARCoachingOverlayViewDelegate {
     }
 }
 
+func incModel(){
+    modelIndex = (modelIndex + 1) % modelMap.count;
+}
+
 class ARViewManager: ObservableObject {
 
     func changeModel(index: Int) {
@@ -66,7 +70,12 @@ class ARViewManager: ObservableObject {
     }
 
     func incrementModel() {
-        modelIndex = (modelIndex + 1) % modelMap.count;
+        incModel();
+    }
+    
+    func currentIndex() -> Int {
+        
+        return modelIndex;
     }
     
     func getCurrentModelName() -> String {
@@ -148,6 +157,7 @@ struct ARViewContainer: UIViewRepresentable {
             //let frameCapture = frame.capturedImage;
             //trackHand(in: frameCapture);
             
+            //for each frame go through the presentModels if they have a label update its position
             presentModels.forEach { pm in
                if (pm.labelled == true){
                    for childEntity in pm.anchor.children{
@@ -185,10 +195,11 @@ struct ARViewContainer: UIViewRepresentable {
                     let fingerDistance = hypot(thumbTipPoint.location.x - indexTipPoint.location.x,
                                                thumbTipPoint.location.y - indexTipPoint.location.y);
                     
-                    if (fingerDistance < 0.03){
+                    if (fingerDistance < 0.015){
                         print("PINCH DETECTED");
+                        incModel();
                     }
-                                    }
+                }
             } catch {
                 print("Hand tracking failed: \(error)")
             }
@@ -399,6 +410,21 @@ struct ARViewContainer: UIViewRepresentable {
                     //grounded = true;
                 }
                 
+                var particles = ParticleEmitterComponent()
+                particles.emitterShape = .sphere
+                particles.emitterShapeSize = [1,1,1] * 0.005
+
+                particles.mainEmitter.birthRate = 700 //amount of particles spawned per frame
+                particles.mainEmitter.size = 0.013 //size of each particle
+                particles.mainEmitter.lifeSpan = 0.8 //how long each particle will stay active before disappearing
+                
+                particles.mainEmitter.color = .constant(.random(a: .cyan, b: .red)); //color of each particle set to either cyan or red (Random)
+                    
+                //how long the particles will be emitted
+                particles.timing = .once(warmUp: 0.01, emit: ParticleEmitterComponent.Timing.VariableDuration(duration:0.5));
+
+                
+                model.components.set(particles);
                 arView.scene.addAnchor(anchor);
                 
                 arView.installGestures(.translation, for: model);
