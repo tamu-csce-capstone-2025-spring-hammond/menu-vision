@@ -9,6 +9,8 @@
 import SwiftUI
 import RealityKit
 
+//import S3Components.FilesListView
+
 extension ObjectCaptureSession.CaptureState {
 
     var label: String {
@@ -363,6 +365,8 @@ extension ScanView {
                     isProgressing = false
                     self.photogrammetrySession = nil
                     quickLookIsPresented = true
+                    let filesListView = FilesListView()
+                    await filesListView.s3testing(modelPath: modelPath)
                 default:
                     break
                 }
@@ -372,6 +376,9 @@ extension ScanView {
             print("error", error)
         }
     }
+    
+    
+    
 }
 
 

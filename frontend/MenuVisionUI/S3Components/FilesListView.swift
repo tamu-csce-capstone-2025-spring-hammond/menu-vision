@@ -29,7 +29,7 @@ struct FilesListView: View {
                 .padding()
                 Button("download Files") {
                     Task {
-                        await s3testing()
+//                        await s3testing()
                     }
                 }
                 .padding()
@@ -86,7 +86,7 @@ struct FilesListView: View {
     }
     
     // s3testing() is responsible for the S3 operations.
-    func s3testing() async {
+    func s3testing(modelPath: URL) async {
         
         do {
 //            let transferUtility = AWSS3TransferUtility.default()
@@ -112,17 +112,47 @@ struct FilesListView: View {
             let buckets = try await serviceHandler.listBuckets()
             print("Buckets available:", buckets)
             // Download a file from S3 to the Documents directory.
-            let fileManager = FileManager.default
-            if let documentsDirectoryURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
-                let documentsDirectoryPath = documentsDirectoryURL.path
-                try await serviceHandler.downloadFile(bucket: "usdz-store-test", key: "pancakes.usdz", to: documentsDirectoryPath)
-            }
-            
+//            let fileManager = FileManager.default
+//            if let documentsDirectoryURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+//                let documentsDirectoryPath = documentsDirectoryURL.path
+//                try await serviceHandler.downloadFile(bucket: "usdz-store-test", key: "pancakes.usdz", to: documentsDirectoryPath)
+//            }
+//            // testing: upload
+//            if let fileURL = Bundle.main.url(forResource: "apple_1", withExtension: "usdz") {                try await serviceHandler.uploadFile(bucket: "usdz-store-test", key: "apple_1.usdz", file: fileURL.path)
+//            } else {
+//                print("File not found.")
+//            }
+            try await serviceHandler.uploadFile(bucket: "usdz-store-test", key: "model.usdz", file: modelPath.path)
         } catch {
             print("Error occurred in s3testing: \(error)")
         }
         
     }
+    
+//    func setupServiceHandler() async throws -> ServiceHandler {
+//        // Setup AWS credentials (replace with your own or use a secure method).
+//        let env = ProcessInfo.processInfo.environment
+//        let credentials = AWSCredentialIdentity(
+//            accessKey: env["AWS_ACCESS_KEY"] ?? "NULL",
+//            secret: env["AWS_SECRET_KEY"] ?? "NULL"
+//        )
+//        let identityResolver = try StaticAWSCredentialIdentityResolver(credentials)
+//        
+//        // Configure the S3 client.
+//        let s3Configuration = try await S3Client.S3ClientConfiguration(
+//            awsCredentialIdentityResolver: identityResolver,
+//            region: "us-east-1"
+//        )
+//        let s3Client = S3Client(config: s3Configuration)
+//        
+//        // Instantiate ServiceHandler with the S3 client.
+//        return ServiceHandler(client: s3Client)
+//    }
+//    
+//    func uploadFile(serviceHandler: ServiceHandler, modelPath: URL) async throws {
+//        // Perform the upload action
+//        try await serviceHandler.uploadFile(bucket: "usdz-store-test", key: "model.usdz", file: modelPath.path)
+//    }
 }
 
 // Uncomment to enable previews.
