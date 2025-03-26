@@ -117,6 +117,8 @@ struct ARViewContainer: UIViewRepresentable {
         //setup session callback for computer vision
         arView.session.delegate = context.coordinator;
         
+
+        
         return arView;
     }
 
@@ -145,6 +147,16 @@ struct ARViewContainer: UIViewRepresentable {
         func session(_ session: ARSession, didUpdate frame: ARFrame) {
             //let frameCapture = frame.capturedImage;
             //trackHand(in: frameCapture);
+            
+            presentModels.forEach { pm in
+               if (pm.labelled == true){
+                   for childEntity in pm.anchor.children{
+                       if (childEntity.name == "label"){
+                           childEntity.position = pm.model.position;
+                       }
+                   }
+               }
+           }
         }
         
         //take in a frame capture and use computer vision to seek out hand positions and gestures
@@ -219,6 +231,9 @@ struct ARViewContainer: UIViewRepresentable {
                                 if let mealName = modelMap[pm.mealID]{
                                     print(modelMap[pm.mealID]);
                                     
+                                    //if we want to change label color in the future use this format
+                                    //let textColor = SimpleMaterial.Color(red: 0.98, green: 0.67, blue: 0.48, alpha: 0.95);
+                                    
                                     
                                     let textMaterials = SimpleMaterial(color: .cyan, roughness: 0, isMetallic: false);
                                     
@@ -254,6 +269,7 @@ struct ARViewContainer: UIViewRepresentable {
                                     //print("Text Entity Position: \(textEntity.position)")
                                     
                                     pm.anchor.addChild(textEntity);
+                                    
                                     
                                     presentModels[i].labelled = true;
                                     
@@ -385,7 +401,7 @@ struct ARViewContainer: UIViewRepresentable {
                 
                 arView.scene.addAnchor(anchor);
                 
-                arView.installGestures(.all, for: model);
+                arView.installGestures(.translation, for: model);
                 
                 //add this new models information to the list of present models to refer back to later
                 
