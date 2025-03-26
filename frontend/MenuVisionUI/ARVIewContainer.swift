@@ -1,8 +1,36 @@
 import SwiftUI
 import RealityKit
 import ARKit
+import AVFoundation
+import Vision
+
+struct PresentModel{
+    var model: ModelEntity
+    var anchor: AnchorEntity
+    var mealID: Int;
+    var labelled: Bool;
+}
+
+var presentModels: [PresentModel] = [];
 
 private var grounded: Bool = false;
+
+var modelIndex: Int = 0;
+
+private let modelMap: [Int: String] = [
+    0: "apple_1",
+    1: "avocado_1",
+    2: "onion_1",
+    3: "orange_1",
+    4: "apple_1",
+    5: "avocado_1",
+    6: "onion_1",
+    7: "orange_1",
+    8: "apple_1",
+    9: "avocado_1",
+    10: "onion_1",
+    11: "orange_1"
+];
 
 extension simd_float4x4 {
     func toTranslation() -> SIMD3<Float> {
@@ -15,6 +43,7 @@ extension simd_float4x4 {
 //along a surface until a flat surface for anchoring is discovered
 extension ARView: ARCoachingOverlayViewDelegate {
     func addCoaching() {
+        print("Model Index: ",modelIndex);
         let coacher = ARCoachingOverlayView(frame: self.bounds);
         
         coacher.session = self.session;
@@ -30,10 +59,39 @@ extension ARView: ARCoachingOverlayViewDelegate {
     }
 }
 
+func incModel(){
+    modelIndex = (modelIndex + 1) % modelMap.count;
+}
+
+class ARViewManager: ObservableObject {
+
+    func changeModel(index: Int) {
+        modelIndex = index;
+    }
+
+    func incrementModel() {
+        incModel();
+    }
+    
+    func currentIndex() -> Int {
+        
+        return modelIndex;
+    }
+    
+    func getCurrentModelName() -> String {
+        return modelMap[modelIndex] ?? "";
+    }
+    
+    func getModelMap() -> [Int: String] {
+        return modelMap;
+    }
+}
+
 
 struct ARViewContainer: UIViewRepresentable {
-    @Binding var sz: Float; // Bind state to update the model
-
+    
+    @ObservedObject var viewManager: ARViewManager
+    
     func makeUIView(context: Context) -> ARView {
         
         let arView = ARView(frame: .zero);
@@ -41,7 +99,15 @@ struct ARViewContainer: UIViewRepresentable {
         // Setup AR session with occlusion
         let config = ARWorldTrackingConfiguration();
         config.planeDetection = .horizontal;
-        config.frameSemantics.insert(.personSegmentationWithDepth);
+        
+        if ARWorldTrackingConfiguration.supportsFrameSemantics(.personSegmentationWithDepth) {
+            config.frameSemantics.insert(.personSegmentationWithDepth);
+        }
+        
+        if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
+            config.frameSemantics.insert(.sceneDepth)
+        }
+        
         arView.session.run(config);
         
         arView.addCoaching();
@@ -49,29 +115,94 @@ struct ARViewContainer: UIViewRepresentable {
         // Add tap gesture for placing objects
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)));
         
+        // add long press gesture for removing objects
+        let longPressGesture = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleLongPress(_:)));
+        
         arView.addGestureRecognizer(tapGesture);
-
+        arView.addGestureRecognizer(longPressGesture);
+        
         context.coordinator.arView = arView; // Assign ARView to Coordinator
+        
+        //setup session callback for computer vision
+        arView.session.delegate = context.coordinator;
+        
 
+        
         return arView;
     }
 
     func updateUIView(_ uiView: ARView, context: Context) {
-        context.coordinator.sz = sz;
+        //context.coordinator.sz = sz;
+        
     }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self);
     }
+    
 
-    class Coordinator: NSObject {
+    class Coordinator: NSObject, ARSessionDelegate {
         var parent: ARViewContainer;
         weak var arView: ARView?;
-        var sz: Float;
+        
+        private var handPose = VNDetectHumanHandPoseRequest();
 
         init(_ parent: ARViewContainer) {
             self.parent = parent;
-            self.sz = parent.sz;
+        }
+        
+        //callback called every frame
+        //use this to capture the frame and store it for computer vision processing
+        func session(_ session: ARSession, didUpdate frame: ARFrame) {
+            //let frameCapture = frame.capturedImage;
+            //trackHand(in: frameCapture);
+            
+            //for each frame go through the presentModels if they have a label update its position
+            presentModels.forEach { pm in
+               if (pm.labelled == true){
+                   for childEntity in pm.anchor.children{
+                       if (childEntity.name == "label"){
+                           childEntity.position = pm.model.position;
+                       }
+                   }
+               }
+           }
+        }
+        
+        //take in a frame capture and use computer vision to seek out hand positions and gestures
+        func trackHand(in frameCapture: CVPixelBuffer) {
+            let handler = VNImageRequestHandler(cvPixelBuffer: frameCapture, options: [:]);
+            do {
+                try handler.perform([handPose])
+                if let observationResults = handPose.results?.first {
+                    
+                    let thumbPoints = try observationResults.recognizedPoints(.thumb);
+                    let indexFingerPoints = try observationResults.recognizedPoints(.indexFinger);
+                    
+                    //search for tip points of each finger
+                    guard let thumbTipPoint = thumbPoints[.thumbTip], let indexTipPoint = indexFingerPoints[.indexTip] else {
+                        return;
+                    }
+                    
+                    // Ignore low confidence points.
+                    guard thumbTipPoint.confidence > 0.3 && indexTipPoint.confidence > 0.3 else {
+                        return;
+                    }
+                    // Convert points from Vision coordinates to AVFoundation coordinates.
+                    let thumbTipLocation = CGPoint(x: thumbTipPoint.location.x, y: 1 - thumbTipPoint.location.y);
+                    let indexTipLocation = CGPoint(x: indexTipPoint.location.x, y: 1 - indexTipPoint.location.y);
+                    
+                    let fingerDistance = hypot(thumbTipPoint.location.x - indexTipPoint.location.x,
+                                               thumbTipPoint.location.y - indexTipPoint.location.y);
+                    
+                    if (fingerDistance < 0.015){
+                        print("PINCH DETECTED");
+                        incModel();
+                    }
+                }
+            } catch {
+                print("Hand tracking failed: \(error)")
+            }
         }
 
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
@@ -83,22 +214,144 @@ struct ARViewContainer: UIViewRepresentable {
             //retrieve the location where the user tapped
             let location = gesture.location(in: arView);
             
-            //scan the scene looking for anchor options
-            if let currentFrame = arView.session.currentFrame {
-                let anchors = currentFrame.anchors;
-                print("Detected anchors: \(anchors)");
+            var found = false;
+            
+            //first check if there is already a model here
+            if let tappedModel = arView.entity(at: location){
+                
+                if (tappedModel.name != ""){
+                    
+                    presentModels.enumerated().forEach { i, pm in
+                        if (pm.model.position == tappedModel.position){
+                            
+                            //if already labelled then remove the label
+                            
+                            found = true;
+                            
+                            if (pm.labelled == true){
+                                for childEntity in pm.anchor.children{
+                                    if (childEntity.name == "label"){
+                                        childEntity.removeFromParent();
+                                        presentModels[i].labelled = false;
+                                        break;
+                                    }
+                                }
+                            }
+                            else {
+                                //in this case we will add the label text
+                                if let mealName = modelMap[pm.mealID]{
+                                    print(modelMap[pm.mealID]);
+                                    
+                                    //if we want to change label color in the future use this format
+                                    //let textColor = SimpleMaterial.Color(red: 0.98, green: 0.67, blue: 0.48, alpha: 0.95);
+                                    
+                                    
+                                    let textMaterials = SimpleMaterial(color: .cyan, roughness: 0, isMetallic: false);
+                                    
+                                    let textDepth: Float = 0.01;
+                                    let textFont = UIFont.systemFont(ofSize: 0.05);
+                                    let textContainerFrame = CGRect(x: -0.25, y: -0.25, width: 0.5, height: 0.5);
+                                    let textAlignment: CTTextAlignment = .center;
+                                    let textLineBreak : CTLineBreakMode = .byWordWrapping;
+                                    
+                                    let textMeshResource : MeshResource = .generateText(mealName,
+                                                                                        extrusionDepth: textDepth,
+                                                                                        font: textFont,
+                                                                                        containerFrame: textContainerFrame,
+                                                                                        alignment: textAlignment,
+                                                                                        lineBreakMode: textLineBreak
+                                    );
+                                    
+                                    let textEntity = ModelEntity(mesh: textMeshResource, materials: [textMaterials]);
+                                    
+                                    //let xPos = pm.model.position.x;
+                                    
+                                    //let yPos = pm.model.position.y;
+                                    
+                                    //let zPos = pm.model.position.z;
+                                    
+                                    textEntity.position = pm.model.position;
+                                                                                                        
+                                    
+                                    //fix orientation to only shift along y axis
+                                                                        
+                                    textEntity.name = "label";
+                                    
+                                    //print("Text Entity Position: \(textEntity.position)")
+                                    
+                                    pm.anchor.addChild(textEntity);
+                                    
+                                    
+                                    presentModels[i].labelled = true;
+                                    
+                                    //print("Anchor Entities: \(arView.scene.anchors)")
+                                }
+                            }
+                            
+                        }
+                    }
+                                    
+                }
+                
             }
             
-            //shoot out a ray from tap location to determine if selected position is a possible anchor point
-            //if so then retrieve anchor point information
-            if let result = arView.raycast(from: location, allowing: .existingPlaneGeometry, alignment: .horizontal).first {
-                print("Hit detected at:", result.worldTransform.toTranslation())
-                //render the model at the detected anchor point
-                placeModel(from: result, in: arView);
-            } else {
-                print("No surface detected");
+            //if no model already there then go ahead and place a model
+            if (!found){
+                //scan the scene looking for anchor options
+                if let currentFrame = arView.session.currentFrame {
+                    let anchors = currentFrame.anchors;
+                    print("Detected anchors: \(anchors)");
+                }
+                
+                //shoot out a ray from tap location to determine if selected position is a possible anchor point
+                //if so then retrieve anchor point information
+                if let result = arView.raycast(from: location, allowing: .existingPlaneGeometry, alignment: .horizontal).first {
+                    print("Hit detected at:", result.worldTransform.toTranslation())
+                    //render the model at the detected anchor point
+                    placeModel(from: result, in: arView);
+                } else {
+                    print("No surface detected");
+                }
             }
+            
+           
         }
+        
+        @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+            guard let arView = arView else { return }
+            
+            //function takes in a tap and figures out what to do
+            print("Long press at:", gesture.location(in: arView));
+
+            //retrieve the location where the user tapped
+            let location = gesture.location(in: arView);
+                        
+            //first check if there is already a model here
+            if let tappedModel = arView.entity(at: location){
+                
+                if (tappedModel.name != ""){
+                    
+                    presentModels.enumerated().forEach { i, pm in
+                        if (pm.model.position == tappedModel.position){
+                            
+                            //if already labelled then remove the label
+                                                        
+                            print("Deleting model", pm.model.name);
+                            
+                            pm.anchor.removeFromParent()
+                            
+                            presentModels.remove(at:i);
+                                                        
+                        }
+                    }
+                                    
+                }
+                
+            }
+            
+           
+        }
+        
         func placeModel(from raycastResult: ARRaycastResult, in arView: ARView) {
             do {
                 //set up light
@@ -110,10 +363,15 @@ struct ARViewContainer: UIViewRepresentable {
                 lightAnch.addChild(light);
                 arView.scene.addAnchor(lightAnch);
                 
+                guard let modelName = modelMap[modelIndex] else {
+                    print("Error: model name is not to be found!");
+                    return;
+                }
+                
                 //set up a model entity by loading in the usdz file and setting position to be slightly above ground
-                let model = try ModelEntity.loadModel(named: "apple");
+                let model = try ModelEntity.loadModel(named: modelName);
                 model.position = SIMD3(0.0, 0.7, 0.0);
-                model.scale = [sz, sz, sz];
+                model.scale = [1.0, 1.0, 1.0];
                                 
                 //set up rigid body and collision components
                 
@@ -126,16 +384,11 @@ struct ARViewContainer: UIViewRepresentable {
                 model.components.set(rigidBody);
                 
                 //take in raycast result to set anchor and attach the model to this anchor then add anchor to scene
-               
-
                 #if !XCODE_RUNNING_FOR_PREVIEWS
-
                 let anchor = AnchorEntity(world: raycastResult.worldTransform)
                 #else
                 let anchor = AnchorEntity(raycastResult: raycastResult)
-
                 #endif
-
                 anchor.addChild(model);
                 
                 //prevent creating multiple grounds and causing issues
@@ -153,11 +406,33 @@ struct ARViewContainer: UIViewRepresentable {
                     ground.components.set(groundphysicsBody);
                     
                     anchor.addChild(ground);
-                    
+                                        
                     //grounded = true;
                 }
                 
+                var particles = ParticleEmitterComponent()
+                particles.emitterShape = .sphere
+                particles.emitterShapeSize = [1,1,1] * 0.005
+
+                particles.mainEmitter.birthRate = 700 //amount of particles spawned per frame
+                particles.mainEmitter.size = 0.013 //size of each particle
+                particles.mainEmitter.lifeSpan = 0.8 //how long each particle will stay active before disappearing
+                
+                particles.mainEmitter.color = .constant(.random(a: .cyan, b: .red)); //color of each particle set to either cyan or red (Random)
+                    
+                //how long the particles will be emitted
+                particles.timing = .once(warmUp: 0.01, emit: ParticleEmitterComponent.Timing.VariableDuration(duration:0.5));
+
+                
+                model.components.set(particles);
                 arView.scene.addAnchor(anchor);
+                
+                arView.installGestures(.translation, for: model);
+                
+                //add this new models information to the list of present models to refer back to later
+                
+                presentModels.append(PresentModel(model:model, anchor:anchor, mealID:modelIndex, labelled: false));
+                                
 
             } catch {
                 print("Error loading model: \(error)");
@@ -165,4 +440,3 @@ struct ARViewContainer: UIViewRepresentable {
         }
     }
 }
-
