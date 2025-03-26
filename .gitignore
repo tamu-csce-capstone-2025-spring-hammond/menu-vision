@@ -9,4 +9,8 @@ __pycache__/
 frontend/MenuVisionUI.xcodeproj/xcuserdata/
 *.xcuserstate
 frontend/MenuVisionUI.xcodeproj/project.xcworkspace/
-frontend/MenuVisionUI.xcodeproj/xcuserdata/*
+xcuserdata/
+*.ipa
+*.dSYM.zip
+*.dSYM
+.build/
