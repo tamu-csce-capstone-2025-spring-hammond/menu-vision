@@ -46,6 +46,16 @@ struct LoginView: View {
 //                                    .foregroundColor(Color.zinc100)
 //                            }
 //                            .padding(.top, 8)
+                            
+                            // Logo
+                            HStack(spacing: 2) {
+                                CustomLogo(width: 18, height: 18, color: Color(hex: "FAAC7B"))
+
+                                    Text("MenuVision")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(.white)
+                                    }
+                            .padding(.top, 5)
 
                             // Headline
                             VStack(alignment: .leading, spacing: 12) {
@@ -58,7 +68,7 @@ struct LoginView: View {
                                     .font(.system(size: 12))
                                     .foregroundColor(.white)
                             }
-                            .padding(.top, 22)
+                            .padding(.top, 15)
                             .padding(.bottom, 28) // Increased bottom padding to move white box down
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
