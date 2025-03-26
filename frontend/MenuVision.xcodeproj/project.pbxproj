@@ -28,9 +28,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		22E59CC12D6FA92C00D6C4B5 /* MenuVisionUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MenuVisionUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		22E59CD22D6FA92D00D6C4B5 /* MenuVisionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MenuVisionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		22E59CDC2D6FA92D00D6C4B5 /* MenuVisionUIUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MenuVisionUIUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		22E59CC12D6FA92C00D6C4B5 /* MenuVision.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MenuVision.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		22E59CD22D6FA92D00D6C4B5 /* MenuVisionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MenuVisionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		22E59CDC2D6FA92D00D6C4B5 /* MenuVisionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MenuVisionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -90,9 +90,9 @@
 		22E59CC22D6FA92C00D6C4B5 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				22E59CC12D6FA92C00D6C4B5 /* MenuVisionUI.app */,
-				22E59CD22D6FA92D00D6C4B5 /* MenuVisionUITests.xctest */,
-				22E59CDC2D6FA92D00D6C4B5 /* MenuVisionUIUITests.xctest */,
+				22E59CC12D6FA92C00D6C4B5 /* MenuVision.app */,
+				22E59CD22D6FA92D00D6C4B5 /* MenuVisionTests.xctest */,
+				22E59CDC2D6FA92D00D6C4B5 /* MenuVisionUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -100,9 +100,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		22E59CC02D6FA92C00D6C4B5 /* MenuVisionUI */ = {
+		22E59CC02D6FA92C00D6C4B5 /* MenuVision */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 22E59CE62D6FA92D00D6C4B5 /* Build configuration list for PBXNativeTarget "MenuVisionUI" */;
+			buildConfigurationList = 22E59CE62D6FA92D00D6C4B5 /* Build configuration list for PBXNativeTarget "MenuVision" */;
 			buildPhases = (
 				22E59CBD2D6FA92C00D6C4B5 /* Sources */,
 				22E59CBE2D6FA92C00D6C4B5 /* Frameworks */,
@@ -115,17 +115,17 @@
 			fileSystemSynchronizedGroups = (
 				22E59CC32D6FA92C00D6C4B5 /* MenuVisionUI */,
 			);
-			name = MenuVisionUI;
+			name = MenuVision;
 			packageProductDependencies = (
 				22A0B9452D90F49F00FC38D4 /* AWSS3 */,
 			);
 			productName = MenuVisionUI;
-			productReference = 22E59CC12D6FA92C00D6C4B5 /* MenuVisionUI.app */;
+			productReference = 22E59CC12D6FA92C00D6C4B5 /* MenuVision.app */;
 			productType = "com.apple.product-type.application";
 		};
-		22E59CD12D6FA92D00D6C4B5 /* MenuVisionUITests */ = {
+		22E59CD12D6FA92D00D6C4B5 /* MenuVisionTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 22E59CE92D6FA92D00D6C4B5 /* Build configuration list for PBXNativeTarget "MenuVisionUITests" */;
+			buildConfigurationList = 22E59CE92D6FA92D00D6C4B5 /* Build configuration list for PBXNativeTarget "MenuVisionTests" */;
 			buildPhases = (
 				22E59CCE2D6FA92D00D6C4B5 /* Sources */,
 				22E59CCF2D6FA92D00D6C4B5 /* Frameworks */,
@@ -139,16 +139,16 @@
 			fileSystemSynchronizedGroups = (
 				22E59CD52D6FA92D00D6C4B5 /* MenuVisionUITests */,
 			);
-			name = MenuVisionUITests;
+			name = MenuVisionTests;
 			packageProductDependencies = (
 			);
 			productName = MenuVisionUITests;
-			productReference = 22E59CD22D6FA92D00D6C4B5 /* MenuVisionUITests.xctest */;
+			productReference = 22E59CD22D6FA92D00D6C4B5 /* MenuVisionTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		22E59CDB2D6FA92D00D6C4B5 /* MenuVisionUIUITests */ = {
+		22E59CDB2D6FA92D00D6C4B5 /* MenuVisionUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 22E59CEC2D6FA92D00D6C4B5 /* Build configuration list for PBXNativeTarget "MenuVisionUIUITests" */;
+			buildConfigurationList = 22E59CEC2D6FA92D00D6C4B5 /* Build configuration list for PBXNativeTarget "MenuVisionUITests" */;
 			buildPhases = (
 				22E59CD82D6FA92D00D6C4B5 /* Sources */,
 				22E59CD92D6FA92D00D6C4B5 /* Frameworks */,
@@ -162,11 +162,11 @@
 			fileSystemSynchronizedGroups = (
 				22E59CDF2D6FA92D00D6C4B5 /* MenuVisionUIUITests */,
 			);
-			name = MenuVisionUIUITests;
+			name = MenuVisionUITests;
 			packageProductDependencies = (
 			);
 			productName = MenuVisionUIUITests;
-			productReference = 22E59CDC2D6FA92D00D6C4B5 /* MenuVisionUIUITests.xctest */;
+			productReference = 22E59CDC2D6FA92D00D6C4B5 /* MenuVisionUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -192,7 +192,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 22E59CBC2D6FA92C00D6C4B5 /* Build configuration list for PBXProject "MenuVisionUI" */;
+			buildConfigurationList = 22E59CBC2D6FA92C00D6C4B5 /* Build configuration list for PBXProject "MenuVision" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -209,9 +209,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				22E59CC02D6FA92C00D6C4B5 /* MenuVisionUI */,
-				22E59CD12D6FA92D00D6C4B5 /* MenuVisionUITests */,
-				22E59CDB2D6FA92D00D6C4B5 /* MenuVisionUIUITests */,
+				22E59CC02D6FA92C00D6C4B5 /* MenuVision */,
+				22E59CD12D6FA92D00D6C4B5 /* MenuVisionTests */,
+				22E59CDB2D6FA92D00D6C4B5 /* MenuVisionUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -267,12 +267,12 @@
 /* Begin PBXTargetDependency section */
 		22E59CD42D6FA92D00D6C4B5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 22E59CC02D6FA92C00D6C4B5 /* MenuVisionUI */;
+			target = 22E59CC02D6FA92C00D6C4B5 /* MenuVision */;
 			targetProxy = 22E59CD32D6FA92D00D6C4B5 /* PBXContainerItemProxy */;
 		};
 		22E59CDE2D6FA92D00D6C4B5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 22E59CC02D6FA92C00D6C4B5 /* MenuVisionUI */;
+			target = 22E59CC02D6FA92C00D6C4B5 /* MenuVision */;
 			targetProxy = 22E59CDD2D6FA92D00D6C4B5 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -402,7 +402,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"MenuVisionUI/Preview Content\"";
-				DEVELOPMENT_TEAM = 43DFGXAM8T;
+				DEVELOPMENT_TEAM = DRKX39HB2S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
@@ -425,7 +425,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.AlbertYin.MenuVisionUI7;
+				PRODUCT_BUNDLE_IDENTIFIER = com.AlbertYin.MenuVisionUI729829;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -446,7 +446,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"MenuVisionUI/Preview Content\"";
-				DEVELOPMENT_TEAM = 43DFGXAM8T;
+				DEVELOPMENT_TEAM = DRKX39HB2S;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
@@ -469,7 +469,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.AlbertYin.MenuVisionUI7;
+				PRODUCT_BUNDLE_IDENTIFIER = com.AlbertYin.MenuVisionUI729829;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -497,7 +497,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MenuVisionUI.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MenuVisionUI";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MenuVision.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MenuVision";
 				XROS_DEPLOYMENT_TARGET = 2.2;
 			};
 			name = Debug;
@@ -519,7 +519,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MenuVisionUI.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MenuVisionUI";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MenuVision.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MenuVision";
 				XROS_DEPLOYMENT_TARGET = 2.2;
 			};
 			name = Release;
@@ -569,7 +569,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		22E59CBC2D6FA92C00D6C4B5 /* Build configuration list for PBXProject "MenuVisionUI" */ = {
+		22E59CBC2D6FA92C00D6C4B5 /* Build configuration list for PBXProject "MenuVision" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				22E59CE42D6FA92D00D6C4B5 /* Debug */,
@@ -578,7 +578,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		22E59CE62D6FA92D00D6C4B5 /* Build configuration list for PBXNativeTarget "MenuVisionUI" */ = {
+		22E59CE62D6FA92D00D6C4B5 /* Build configuration list for PBXNativeTarget "MenuVision" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				22E59CE72D6FA92D00D6C4B5 /* Debug */,
@@ -587,7 +587,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		22E59CE92D6FA92D00D6C4B5 /* Build configuration list for PBXNativeTarget "MenuVisionUITests" */ = {
+		22E59CE92D6FA92D00D6C4B5 /* Build configuration list for PBXNativeTarget "MenuVisionTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				22E59CEA2D6FA92D00D6C4B5 /* Debug */,
@@ -596,7 +596,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		22E59CEC2D6FA92D00D6C4B5 /* Build configuration list for PBXNativeTarget "MenuVisionUIUITests" */ = {
+		22E59CEC2D6FA92D00D6C4B5 /* Build configuration list for PBXNativeTarget "MenuVisionUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				22E59CED2D6FA92D00D6C4B5 /* Debug */,
