@@ -9,6 +9,7 @@ struct PresentModel{
     var anchor: AnchorEntity
     var mealID: Int;
     var labelled: Bool;
+    var atRest: Bool;
 }
 
 var presentModels: [PresentModel] = [];
@@ -22,7 +23,7 @@ private let modelMap: [Int: String] = [
     1: "avocado_1",
     2: "onion_1",
     3: "orange_1",
-    4: "apple_1",
+    4: "bottle",
     5: "avocado_1",
     6: "onion_1",
     7: "orange_1",
@@ -158,7 +159,7 @@ struct ARViewContainer: UIViewRepresentable {
             //trackHand(in: frameCapture);
             
             //for each frame go through the presentModels if they have a label update its position
-            presentModels.forEach { pm in
+            presentModels.enumerated().forEach { i, pm in
                if (pm.labelled == true){
                    for childEntity in pm.anchor.children{
                        if (childEntity.name == "label"){
@@ -166,6 +167,28 @@ struct ARViewContainer: UIViewRepresentable {
                        }
                    }
                }
+                
+                //check if model is now at rest and should be reoriented
+                
+                if (!pm.atRest){
+                    guard let motion = pm.model.components[PhysicsMotionComponent.self] as? PhysicsMotionComponent else { return }
+                    
+                    let velocity = motion.linearVelocity;
+                    let velocityThreshold: Float = 0.0001;
+
+                    if abs(velocity.x) < velocityThreshold && abs(velocity.y) < velocityThreshold && abs(velocity.z) < velocityThreshold {
+                        
+                        let targetOrientation = simd_quatf(angle: 0, axis: [1, 0, 0]);
+                        
+                        var transform = pm.model.transform;
+                        transform.rotation = targetOrientation;
+                        
+                        // Use a transform animation to gradually apply the rotation
+                        pm.model.move(to: transform, relativeTo: pm.model.parent, duration: 0.5, timingFunction: .easeInOut);
+                        
+                        presentModels[i].atRest = true;
+                    }
+                }
            }
         }
         
@@ -383,6 +406,8 @@ struct ARViewContainer: UIViewRepresentable {
                                 
                 model.components.set(rigidBody);
                 
+                model.physicsMotion = .init();
+                
                 //take in raycast result to set anchor and attach the model to this anchor then add anchor to scene
                 #if !XCODE_RUNNING_FOR_PREVIEWS
                 let anchor = AnchorEntity(world: raycastResult.worldTransform)
@@ -431,7 +456,7 @@ struct ARViewContainer: UIViewRepresentable {
                 
                 //add this new models information to the list of present models to refer back to later
                 
-                presentModels.append(PresentModel(model:model, anchor:anchor, mealID:modelIndex, labelled: false));
+                presentModels.append(PresentModel(model:model, anchor:anchor, mealID:modelIndex, labelled: false, atRest: false));
                                 
 
             } catch {
