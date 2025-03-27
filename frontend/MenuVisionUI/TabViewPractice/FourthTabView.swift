@@ -26,210 +26,216 @@ struct MenuScannerView: View {
         }
     }
     @State private var apiResponse: String = ""
+    @State private var shouldNavigateToResult = false
 
     var body: some View {
-        ZStack {
-            if capturedImage == nil {
-                // Camera View
-                GeometryReader { geometry in
-                    ZStack(alignment: .bottom) {
-                        CameraPreview(
-                            session: camera.captureSession,
-                            zoomFactor: zoomFactor
-                        )
-                        .ignoresSafeArea()
-                        .gesture(
-                            MagnificationGesture()
-                                .onChanged { amount in
-                                    zoomFactor = amount
-                                    camera.setZoom(zoomFactor: zoomFactor)
-                                }
-                        )
-
-                        VStack { // Aligns the button to the bottom
-
-                            if selectedRestaurant == nil {
-                                if !restaurants.isEmpty {
-                                    VStack {
-                                        Text("Select Restaurant")
-                                            .font(.headline)
-                                            .padding(.top)
-
-                                        Picker(
-                                            "Select Restaurant",
-                                            selection: $selectedRestaurant
-                                        ) {
-                                            Text("Select a restaurant")
-                                                .tag(nil as Restaurant?)  // Prompt
-                                            ForEach(restaurants, id: \.self) {
-                                                restaurant in
-                                                if let displayName =
-                                                    restaurant.displayName?.text
-                                                {
-                                                    Text(displayName).tag(
-                                                        restaurant as Restaurant?
-                                                    )
-                                                } else {
-                                                    Text("No Name").tag(
-                                                        restaurant as Restaurant?
-                                                    )  // Handle missing name
+        NavigationStack {
+            ZStack {
+                if capturedImage == nil {
+                    // Camera View
+                    GeometryReader { geometry in
+                        ZStack(alignment: .bottom) {
+                            CameraPreview(
+                                session: camera.captureSession,
+                                zoomFactor: zoomFactor
+                            )
+                            .ignoresSafeArea()
+                            .gesture(
+                                MagnificationGesture()
+                                    .onChanged { amount in
+                                        zoomFactor = amount
+                                        camera.setZoom(zoomFactor: zoomFactor)
+                                    }
+                            )
+                            
+                            VStack { // Aligns the button to the bottom
+                                
+                                if selectedRestaurant == nil {
+                                    if !restaurants.isEmpty {
+                                        VStack {
+                                            Text("Select Restaurant")
+                                                .font(.headline)
+                                                .padding(.top)
+                                            
+                                            Picker(
+                                                "Select Restaurant",
+                                                selection: $selectedRestaurant
+                                            ) {
+                                                Text("Select a restaurant")
+                                                    .tag(nil as Restaurant?)  // Prompt
+                                                ForEach(restaurants, id: \.self) {
+                                                    restaurant in
+                                                    if let displayName =
+                                                        restaurant.displayName?.text
+                                                    {
+                                                        Text(displayName).tag(
+                                                            restaurant as Restaurant?
+                                                        )
+                                                    } else {
+                                                        Text("No Name").tag(
+                                                            restaurant as Restaurant?
+                                                        )  // Handle missing name
+                                                    }
                                                 }
                                             }
+                                            .padding()
+                                            
+                                            Spacer()  // push to center
                                         }
-                                        .padding()
-
-                                        Spacer()  // push to center
+                                        .frame(width: geometry.size.width * 0.8)  // constrain size
+                                        .background(Color.white.opacity(0.8))
+                                        .cornerRadius(10)
                                     }
-                                    .frame(width: geometry.size.width * 0.8)  // constrain size
-                                    .background(Color.white.opacity(0.8))
-                                    .cornerRadius(10)
-                                }
-                            } else {
-                                if let displayName = selectedRestaurant?.displayName?.text {
-                                    Text("Selected: \(displayName)")
-                                        .font(.headline)
-                                        .padding()
-                                        .frame(maxWidth: .infinity, alignment: .center)
-                                        .background(Color.green.opacity(0.5))
-                                }
-
-                            }
-                            Spacer()
-                            Button(action: {
-                                guard !isProcessing, selectedRestaurant != nil else {
-                                    return
-                                }
-                                isProcessing = true
-                                camera.capturePhoto { image in
-                                    if let image = image {
-                                        capturedImage = image
-                                        sendImageToAPI(image: image) // Call extract-menu API
-                                        //  No API call here anymore
-                                    } else {
-                                        alertMessage = "Failed to capture image"
-                                        showAlert = true
+                                } else {
+                                    if let displayName = selectedRestaurant?.displayName?.text {
+                                        Text("Selected: \(displayName)")
+                                            .font(.headline)
+                                            .padding()
+                                            .frame(maxWidth: .infinity, alignment: .center)
+                                            .background(Color.green.opacity(0.5))
                                     }
-                                    DispatchQueue.main.async {
-                                        isProcessing = false
-                                    }
+                                    
                                 }
-                            }) {
-                                Circle()
-                                    .fill(.white)
-                                    .frame(width: 70, height: 70)
-                                    .overlay(
-                                        isProcessing ?
+                                Spacer()
+                                Button(action: {
+                                    guard !isProcessing, selectedRestaurant != nil else {
+                                        return
+                                    }
+                                    isProcessing = true
+                                    camera.capturePhoto { image in
+                                        if let image = image {
+                                            capturedImage = image
+                                            sendImageToAPI(image: image) // Call extract-menu API
+                                            //  No API call here anymore
+                                        } else {
+                                            alertMessage = "Failed to capture image"
+                                            showAlert = true
+                                        }
+                                        DispatchQueue.main.async {
+                                            isProcessing = false
+                                        }
+                                    }
+                                }) {
+                                    Circle()
+                                        .fill(.white)
+                                        .frame(width: 70, height: 70)
+                                        .overlay(
+                                            isProcessing ?
                                             ProgressView()
-                                            .progressViewStyle(
-                                                CircularProgressViewStyle(tint: .blue)
-                                            )
-                                            .scaleEffect(1.5)
+                                                .progressViewStyle(
+                                                    CircularProgressViewStyle(tint: .blue)
+                                                )
+                                                .scaleEffect(1.5)
                                             : nil
-                                    )
+                                        )
+                                }
+                                .disabled(isProcessing || selectedRestaurant == nil)
+                                .padding(.bottom, 30)
                             }
-                            .disabled(isProcessing || selectedRestaurant == nil)
-                            .padding(.bottom, 30)
-                        }
-                        if !apiResponse.isEmpty {
-                            Text("API Response: \(apiResponse)")
-                                .padding()
-                                .background(Color.gray.opacity(0.7))
-                                .cornerRadius(10)
-                                .foregroundColor(.white)
-
+                            if !apiResponse.isEmpty {
+                                Text("API Response: \(apiResponse)")
+                                    .padding()
+                                    .background(Color.gray.opacity(0.7))
+                                    .cornerRadius(10)
+                                    .foregroundColor(.white)
+                                
+                            }
                         }
                     }
-                }
-                .onAppear {
-                    camera.checkPermissionsAndSetup { success, message in
-                        if !success {
-                            alertMessage = message
-                            showAlert = true
+                    .onAppear {
+                        camera.checkPermissionsAndSetup { success, message in
+                            if !success {
+                                alertMessage = message
+                                showAlert = true
+                            }
                         }
-                    }
-                    loadSelectedRestaurant() // Load previously saved restaurant
-
-                    locationManager.getLocationOnce { location in
-                        if let location = location {
-                            fetchNearbyRestaurants(
-                                longitude: location.coordinate.longitude,
-                                latitude: location.coordinate.latitude
-                            )
-                        } else {
-                            alertMessage =
+                        loadSelectedRestaurant() // Load previously saved restaurant
+                        
+                        locationManager.getLocationOnce { location in
+                            if let location = location {
+                                fetchNearbyRestaurants(
+                                    longitude: location.coordinate.longitude,
+                                    latitude: location.coordinate.latitude
+                                )
+                            } else {
+                                alertMessage =
                                 "Could not retrieve location. Please ensure location services are enabled."
-                            showAlert = true
-                        }
-                    }
-                }
-                .alert(isPresented: $showAlert) {
-                    Alert(
-                        title: Text("Camera Error"),
-                        message: Text(alertMessage),
-                        dismissButton: .default(Text("OK"))
-                    )
-                }
-                .alert(isPresented: $showingLocationAlert) {
-                    // Location alert
-                    Alert(
-                        title: Text("Location Access Denied"),
-                        message: Text(
-                            "Please enable location services in Settings for this app to function correctly."
-                        ),
-                        primaryButton: .default(Text("Settings"), action: {
-                            // Open the app's settings page
-                            if let url = URL(string: UIApplication.openSettingsURLString) {
-                                UIApplication.shared.open(url)
+                                showAlert = true
                             }
-                        }),
-                        secondaryButton: .cancel()
-                    )
-                }
-                .onChange(of: locationManager.authorizationStatus) { newStatus in
-                    if newStatus == .denied || newStatus == .restricted {
-                        showingLocationAlert = true // Show the alert
-                    } else {
-                        showingLocationAlert = false // Dismiss the alert if access is granted
-                    }
-                }
-                .onDisappear {
-                    camera.captureSession.stopRunning();
-                }
-            } else {
-                // Display Captured Image View
-                VStack {
-                    HStack {
-                        Button(action: {
-                            capturedImage = nil // Reset to camera view
-                            apiResponse = ""
-                            camera.checkPermissionsAndSetup { _, _ in } // Restart Camera
-                        }) {
-                            Image(systemName: "arrow.left")
-                                .font(.title2)
                         }
-                        .padding()
-
-                        Spacer()
-
-                        Text("Captured Menu")
-                            .font(.headline)
-
-                        Spacer()
                     }
-
-                    Image(uiImage: capturedImage!)
-                        .resizable()
-                        .scaledToFit()
-                        .padding()
-                    Text(apiResponse)
-                                .padding()
-                                .background(Color.gray.opacity(0.7))
-                                .cornerRadius(10)
-                                .foregroundColor(.white)
-
-
-                    Spacer() // Push the content to the top
+                    .alert(isPresented: $showAlert) {
+                        Alert(
+                            title: Text("Camera Error"),
+                            message: Text(alertMessage),
+                            dismissButton: .default(Text("OK"))
+                        )
+                    }
+                    .alert(isPresented: $showingLocationAlert) {
+                        // Location alert
+                        Alert(
+                            title: Text("Location Access Denied"),
+                            message: Text(
+                                "Please enable location services in Settings for this app to function correctly."
+                            ),
+                            primaryButton: .default(Text("Settings"), action: {
+                                // Open the app's settings page
+                                if let url = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(url)
+                                }
+                            }),
+                            secondaryButton: .cancel()
+                        )
+                    }
+                    .onChange(of: locationManager.authorizationStatus) { newStatus in
+                        if newStatus == .denied || newStatus == .restricted {
+                            showingLocationAlert = true // Show the alert
+                        } else {
+                            showingLocationAlert = false // Dismiss the alert if access is granted
+                        }
+                    }
+                    .onDisappear {
+                        camera.captureSession.stopRunning();
+                    }
+                } else {
+                    // Display Captured Image View
+                    VStack {
+                        HStack {
+                            Button(action: {
+                                capturedImage = nil // Reset to camera view
+                                apiResponse = ""
+                                camera.checkPermissionsAndSetup { _, _ in } // Restart Camera
+                            }) {
+                                Image(systemName: "arrow.left")
+                                    .font(.title2)
+                            }
+                            .padding()
+                            
+                            Spacer()
+                            
+//                            Text("Captured Menu")
+//                                .font(.headline)
+                            
+//                            Spacer()
+                        }
+                        
+                        Image(uiImage: capturedImage!)
+                            .resizable()
+                            .scaledToFit()
+                            .padding()
+//                        Text(apiResponse)
+//                            .padding()
+//                            .background(Color.gray.opacity(0.7))
+//                            .cornerRadius(10)
+//                            .foregroundColor(.white)
+                        
+                        
+                        Spacer() // Push the content to the top
+                    }
                 }
+            }
+            .navigationDestination(isPresented: $shouldNavigateToResult) {
+                MenuListView(response: apiResponse)
             }
         }
     }
@@ -338,9 +344,10 @@ struct MenuScannerView: View {
             }
 
             if let jsonString = String(data: data, encoding: .utf8) {
-                print("API Response: \(jsonString)") // Print to console
+                print("API Response: \(jsonString)")
                 DispatchQueue.main.async {
                     self.apiResponse = jsonString
+                    self.shouldNavigateToResult = true
                 }
             } else {
                 print("Could not parse server response")
