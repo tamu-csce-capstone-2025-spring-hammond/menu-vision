@@ -52,14 +52,13 @@ class User(db.Model):
     __tablename__ = "users"
     
     user_id = db.Column(db.Integer, primary_key=True)
-    user_type = db.Column(db.String)
     first_name = db.Column(db.String, nullable=False)
     last_name = db.Column(db.String, nullable=False)
-    user_name = db.Column(db.String, unique=True, nullable=False)
-    hashed_password = db.Column(db.String, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
+    hashed_password = db.Column(db.String, nullable=False)
     age = db.Column(db.Integer)
-    food_restrictions = db.Column(db.Text)
+    food_restrictions = db.Column(db.JSON)
+    food_preferences = db.Column(db.JSON)
     total_points = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
