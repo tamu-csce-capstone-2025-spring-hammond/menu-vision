@@ -21,7 +21,6 @@ import SmithyHTTPAPI
 import SmithyStreams
 
 
-
 public class ServiceHandler {
     private let client: S3Client
 
@@ -142,7 +141,3 @@ public class ServiceHandler {
         return fileNames
     }
 }
-
-    /// List all file names in a bucket.
-    
-
