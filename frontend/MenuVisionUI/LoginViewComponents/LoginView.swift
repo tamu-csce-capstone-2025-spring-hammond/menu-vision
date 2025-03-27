@@ -162,14 +162,8 @@ struct LoginView: View {
 
                             // Login button
                             Button(action: {
-                                // Validate login
-                                if validateLogin() {
-                                    // Set isLoggedIn to true to trigger navigation to Home
-                                    isLoggedIn = true
-                                } else {
-                                    alertMessage = "Invalid credentials. Hint: Use 'User' as email and 'password' as password."
-                                    showingAlert = true
-                                }
+                                // Just call the API, don't assume success/failure here
+                                validateLogin()
                             }) {
                                 Text("Login")
                                     .font(.system(size: 14, weight: .medium))
@@ -225,7 +219,7 @@ struct LoginView: View {
     }
 
     // Use AuthenticationManager to validate login credentials
-    private func validateLogin() -> Bool {
+    private func validateLogin() {
         let payload = [
             "email": email,
             "password": password
@@ -234,7 +228,7 @@ struct LoginView: View {
         guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
             alertMessage = "Failed to encode credentials."
             showingAlert = true
-            return false
+            return
         }
 
         API.shared.request(
@@ -264,8 +258,6 @@ struct LoginView: View {
                 }
             }
         }
-
-        return false
     }
 }
 struct LoginView_Previews: PreviewProvider {
