@@ -252,7 +252,7 @@ struct ARViewContainer: UIViewRepresentable {
                             found = true;
                             
                             if (pm.labelled == true){
-                                for childEntity in pm.anchor.children{
+                                for childEntity in pm.model.children{
                                     if (childEntity.name == "label"){
                                         childEntity.removeFromParent();
                                         presentModels[i].labelled = false;
@@ -273,7 +273,7 @@ struct ARViewContainer: UIViewRepresentable {
                                     
                                     let textDepth: Float = 0.01;
                                     let textFont = UIFont.systemFont(ofSize: 0.05);
-                                    let textContainerFrame = CGRect(x: -0.25, y: -0.25, width: 0.5, height: 0.5);
+                                    let textContainerFrame = CGRect(x: -0.15, y: -0.15, width: 0.3, height: 0.3);
                                     let textAlignment: CTTextAlignment = .center;
                                     let textLineBreak : CTLineBreakMode = .byWordWrapping;
                                     
@@ -293,16 +293,19 @@ struct ARViewContainer: UIViewRepresentable {
                                     
                                     //let zPos = pm.model.position.z;
                                     
-                                    textEntity.position = pm.model.position;
+                                    let modelBounds = pm.model.visualBounds(relativeTo: nil)
+                                    let offset = modelBounds.max.y - modelBounds.min.y
+                                    //textEntity.position = SIMD3<Float>(pm.model.position., topWorldY, 0);
                                                                                                         
+                                                                        //fix orientation to only shift along y axis
                                     
-                                    //fix orientation to only shift along y axis
+                                    textEntity.position += SIMD3<Float>(0, offset, 0);
                                                                         
                                     textEntity.name = "label";
                                     
                                     //print("Text Entity Position: \(textEntity.position)")
                                     
-                                    pm.anchor.addChild(textEntity);
+                                    pm.model.addChild(textEntity);
                                     
                                     
                                     presentModels[i].labelled = true;
