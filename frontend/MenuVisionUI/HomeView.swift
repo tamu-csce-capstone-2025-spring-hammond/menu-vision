@@ -2,31 +2,31 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var selection = 2
+
     var body: some View {
         TabView {
-//            FirstTabView()
-//            ScanView()
             ThirdTabView()
-            .tabItem {
-                Label("Home", systemImage: "house")
-            }
-            .tag(1)
-            
+                .tabItem {
+                    Label("Home", systemImage: "house")
+                }
+                .tag(1)
+
             ScanView()
-            .tabItem {
-                Label("Profile", systemImage: "person")
-            }
-            .tag(2)
-            
-//            ThirdTabView()
+                .tabItem {
+                    Label("Profile", systemImage: "person")
+                }
+                .tag(2)
+
             FirstTabView()
-            .tabItem {
-                Label("Render", systemImage: "gearshape")
+                .tabItem {
+                    Label("Render", systemImage: "gearshape")
+                }
+                .tag(3)
+
+            NavigationStack {
+                MenuScannerView()
             }
-            .tag(3)
-            
-            MenuScannerView()
-            .tabItem{
+            .tabItem {
                 Label("Menu", systemImage: "camera")
             }
             .tag(4)
