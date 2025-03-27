@@ -3,8 +3,8 @@ import Foundation
 class API {
     static let shared = API()
     
-    private let primaryBaseURL = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/")!
-    private let backupBaseURL = URL(string: "http://127.0.0.1:8080")!
+    private let primaryBaseURL = URL(string: "http://127.0.0.1:8080/")!
+    private let backupBaseURL = URL(string: "http://127.0.0.1:8080/")!
     private let timeout: TimeInterval = 10.0
 
     private init() {}

@@ -238,7 +238,7 @@ struct LoginView: View {
         }
 
         API.shared.request(
-            endpoint: "api/user/login",
+            endpoint: "user/login",
             method: "POST",
             body: jsonData,
             headers: ["Content-Type": "application/json"]
@@ -265,7 +265,7 @@ struct LoginView: View {
             }
         }
 
-        return false // API call is async — actual success is handled in closure
+        return false
     }
 }
 struct LoginView_Previews: PreviewProvider {
