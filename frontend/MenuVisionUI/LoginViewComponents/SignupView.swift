@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SignUpView: View {
+    @ObservedObject var signUpData: SignUpData
     @State private var selectedRestrictions: Set<String> = []
     @Environment(\.presentationMode) var presentationMode
     @State private var navigateToSignUpView2 = false
@@ -26,26 +27,22 @@ struct SignUpView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .center, spacing: 0) {
-                // Add extra space at the top
-                Spacer()
-                    .frame(height: 50)
+                Spacer().frame(height: 50)
 
                 // Progress bar
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(red: 226/255, green: 232/255, blue: 240/255)) // bg-slate-200
+                        .fill(Color(red: 226/255, green: 232/255, blue: 240/255))
                         .frame(width: 366, height: 8)
-
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(red: 253/255, green: 186/255, blue: 116/255)) // bg-orange-300
+                        .fill(Color(red: 253/255, green: 186/255, blue: 116/255))
                         .frame(width: 126, height: 8)
                 }
                 .padding(.top, 10)
 
-                // Back button - moved below progress bar
+                // Back button
                 HStack {
                     Button(action: {
-                        // Navigate back to SignUpAndInView
                         presentationMode.wrappedValue.dismiss()
                     }) {
                         AsyncImage(url: URL(string: "https://cdn.builder.io/api/v1/image/assets/c5b4e4c8487a42d48871ad1e7d9ecefa/b1c514e5da7aa07687c0633cdd64b564107ccdde?placeholderIfAbsent=true&format=webp")) { image in
@@ -65,22 +62,22 @@ struct SignUpView: View {
                 .padding(.top, 18)
                 .zIndex(10)
 
-                // Title section
+                // Title
                 VStack(alignment: .leading, spacing: 9) {
                     Text("Any dietary restrictions?")
                         .font(.system(size: 25, weight: .heavy))
                         .tracking(0.5)
-                        .foregroundColor(Color(red: 33/255, green: 33/255, blue: 33/255)) // text-neutral-800
+                        .foregroundColor(Color(red: 33/255, green: 33/255, blue: 33/255))
 
                     Text("Choose your dietary preferences.")
                         .font(.system(size: 14))
-                        .foregroundColor(Color(red: 113/255, green: 113/255, blue: 122/255)) // text-zinc-500
-                        .padding(.top, -3) // Adjust for the spacing above
+                        .foregroundColor(Color(red: 113/255, green: 113/255, blue: 122/255))
+                        .padding(.top, -3)
                 }
                 .frame(width: 358, alignment: .leading)
-                .padding(.top, 10) // Reduced from 40 to bring content closer to back button
+                .padding(.top, 10)
 
-                // Dietary restrictions list
+                // Restriction list
                 VStack(spacing: 8) {
                     ForEach(dietaryOptions, id: \.self) { option in
                         DietaryRestrictionItem(
@@ -92,11 +89,11 @@ struct SignUpView: View {
                         )
                     }
                 }
-                .padding(.top, 22) // Reduced from 40 to bring content closer together
+                .padding(.top, 22)
 
-                // Bottom button with dynamic text based on selection
+                // Button
                 Button(action: {
-                    // Navigate to SignUpView2
+                    signUpData.dietaryRestrictions = selectedRestrictions
                     navigateToSignUpView2 = true
                 }) {
                     Text(selectedRestrictions.isEmpty ? "Nope" : "Lets Go!")
@@ -106,7 +103,7 @@ struct SignUpView: View {
                         .padding(.vertical, 16)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(red: 253/255, green: 186/255, blue: 116/255)) // bg-orange-300
+                                .fill(Color(red: 253/255, green: 186/255, blue: 116/255))
                         )
                 }
                 .padding(.top, 70)
@@ -116,11 +113,11 @@ struct SignUpView: View {
         }
         .background(Color.white)
         .edgesIgnoringSafeArea(.all)
-        .navigationBarBackButtonHidden(true) // Hide the default back button
-        .navigationBarHidden(true) // Hide the entire navigation bar
-        .toolbar(.hidden, for: .navigationBar) // Additional modifier for iOS 16+
+        .navigationBarBackButtonHidden(true)
+        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
         .navigationDestination(isPresented: $navigateToSignUpView2) {
-            SignUpView2()
+            SignUpView2(signUpData: signUpData)
         }
     }
 
@@ -134,5 +131,5 @@ struct SignUpView: View {
 }
 
 #Preview("iPhone 13 Pro") {
-    SignUpView()
+    SignUpView(signUpData: SignUpData())
 }

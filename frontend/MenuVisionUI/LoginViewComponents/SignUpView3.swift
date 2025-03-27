@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct SignUpView3: View {
-    @State private var name: String = "Luc"
+    @ObservedObject var signUpData: SignUpData
+    @State private var name: String = ""
     @State private var username: String = ""
     @State private var email: String = ""
     @State private var password: String = ""
@@ -17,33 +18,28 @@ struct SignUpView3: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var navigateToRoot = false
 
-    // Define colors to match SignUpView2
-    private let orangeHighlight = Color(red: 254/255, green: 215/255, blue: 170/255) // Lighter orange
-    private let orangeButton = Color(red: 253/255, green: 186/255, blue: 116/255) // Original orange-300
+    private let orangeHighlight = Color(red: 254/255, green: 215/255, blue: 170/255)
+    private let orangeButton = Color(red: 253/255, green: 186/255, blue: 116/255)
 
     var body: some View {
         ScrollView {
             VStack(alignment: .center, spacing: 0) {
-                // Add extra space at the top
-                Spacer()
-                    .frame(height: 50)
+                Spacer().frame(height: 50)
 
-                // Progress bar - updated to match SignUpView2
+                // Progress bar
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(red: 226/255, green: 232/255, blue: 240/255)) // bg-slate-200
+                        .fill(Color(red: 226/255, green: 232/255, blue: 240/255))
                         .frame(width: 366, height: 8)
-
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(orangeButton) // bg-orange-300
+                        .fill(orangeButton)
                         .frame(width: 324, height: 8)
                 }
                 .padding(.top, 24)
 
-                // Back button - moved below progress bar to match SignUpView2
+                // Back button
                 HStack {
                     Button(action: {
-                        // Navigate back to SignUpView2
                         presentationMode.wrappedValue.dismiss()
                     }) {
                         AsyncImage(url: URL(string: "https://cdn.builder.io/api/v1/image/assets/c5b4e4c8487a42d48871ad1e7d9ecefa/ca2f1e5c314910e288f793b2b172a0ab972f546e?placeholderIfAbsent=true&format=webp")) { image in
@@ -58,7 +54,6 @@ struct SignUpView3: View {
                         .frame(width: 9)
                     }
                     .buttonStyle(PlainButtonStyle())
-
                     Spacer()
                 }
                 .padding(.leading, 0)
@@ -70,7 +65,6 @@ struct SignUpView3: View {
                     Text("Sign up")
                         .font(.system(size: 20, weight: .heavy))
                         .foregroundColor(Color(UIColor.darkGray))
-
                     Text("Create an account to get started!")
                         .font(.system(size: 12))
                         .foregroundColor(Color(UIColor.systemGray))
@@ -80,58 +74,34 @@ struct SignUpView3: View {
 
                 // Form fields
                 VStack(spacing: 16) {
-                    InputField(
-                        title: "Name",
-                        text: $name,
-                        placeholder: "Name"
-                    )
-
-                    InputField(
-                        title: "Username",
-                        text: $username,
-                        placeholder: "username"
-                    )
-
-                    InputField(
-                        title: "Email Address",
-                        text: $email,
-                        placeholder: "name@email.com",
-                        keyboardType: .emailAddress
-                    )
-
-                    PasswordField(
-                        title: "Password",
-                        password: $password,
-                        placeholder: "Create a password"
-                    )
-
-                    PasswordField(
-                        title: "",
-                        password: $confirmPassword,
-                        placeholder: "Confirm password"
-                    )
+                    InputField(title: "Name", text: $name, placeholder: "Name")
+                    InputField(title: "Username", text: $username, placeholder: "username")
+                    InputField(title: "Email Address", text: $email, placeholder: "name@email.com", keyboardType: .emailAddress)
+                    PasswordField(title: "Password", password: $password, placeholder: "Create a password")
+                    PasswordField(title: "", password: $confirmPassword, placeholder: "Confirm password")
                 }
                 .padding(.top, 22)
 
-                // Terms and conditions checkbox
                 CheckboxField(
                     isChecked: $agreedToTerms,
                     text: "I've read and agree with the Terms and Conditions and the Privacy Policy."
                 )
                 .padding(.top, 55)
 
-                // Sign up button
                 Button(action: {
-                    // Complete sign up and navigate back to root
-                    // This will pop to the root of the navigation stack
-                    navigateToRoot = true
+                    // Store values in shared signUpData
+                    signUpData.name = name
+                    signUpData.username = username
+                    signUpData.email = email
+                    signUpData.password = password
 
-                    // Dismiss all the way back to SignUpAndInView
+                    sendSignUpData()
+
+                    // Simulate dismiss to root after sending
+                    navigateToRoot = true
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        // Use UIApplication to pop to root if in a NavigationStack
                         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                            let rootViewController = windowScene.windows.first?.rootViewController {
-                            // Find the navigation controller and pop to root
                             findNavigationController(from: rootViewController)?.popToRootViewController(animated: true)
                         }
                     }
@@ -158,15 +128,78 @@ struct SignUpView3: View {
         .toolbar(.hidden, for: .navigationBar)
     }
 
-    // Helper function to find navigation controller
-    private func findNavigationController(from viewController: UIViewController) -> UINavigationController? {
-        if let navigationController = viewController as? UINavigationController {
-            return navigationController
+    private func sendSignUpData() {
+        guard let hashURL = URL(string: "https://api.algobook.info/v1/crypto/hash?plain=\(password)") else {
+            print("Invalid hashing URL")
+            return
         }
 
-        for childViewController in viewController.children {
-            if let navigationController = findNavigationController(from: childViewController) {
-                return navigationController
+        URLSession.shared.dataTask(with: hashURL) { data, response, error in
+            if let error = error {
+                print("Hashing failed: \(error.localizedDescription)")
+                return
+            }
+
+            guard let data = data,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let hashedPassword = json["hashed"] as? String else {
+                print("Failed to parse hash response")
+                return
+            }
+
+            let payload: [String: Any] = [
+                "user_name": signUpData.username,
+                "email": signUpData.email,
+                "hashed_password": hashedPassword,
+                "first_name": signUpData.name,
+                "last_name": "",
+                "user_type": "user",
+                "age": 20,
+                "food_restrictions": Array(signUpData.dietaryRestrictions),
+                "food_preferences": Array(signUpData.selectedCuisines),
+                "total_points": 0
+            ]
+            
+            print(payload)
+
+            guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+                print("Failed to encode signup payload")
+                return
+            }
+
+            API.shared.request(
+                endpoint: "user/signup",
+                method: "POST",
+                body: jsonData,
+                headers: ["Content-Type": "application/json"]
+            ) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let data):
+                        if let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                           let message = response["message"] as? String {
+                            print("Signup success: \(message)")
+                        } else {
+                            print("Signup response missing message")
+                        }
+                    case .failure(let error):
+                        print("Signup request failed: \(error.localizedDescription)")
+                    }
+                }
+            }
+
+        }.resume()
+    }
+
+
+    private func findNavigationController(from viewController: UIViewController) -> UINavigationController? {
+        if let nav = viewController as? UINavigationController {
+            return nav
+        }
+
+        for child in viewController.children {
+            if let nav = findNavigationController(from: child) {
+                return nav
             }
         }
 
@@ -175,5 +208,5 @@ struct SignUpView3: View {
 }
 
 #Preview("iPhone 13 Pro") {
-    SignUpView3()
+    SignUpView3(signUpData: SignUpData())
 }
