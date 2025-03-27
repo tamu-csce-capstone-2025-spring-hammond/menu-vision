@@ -192,6 +192,9 @@ struct MenuScannerView: View {
                         showingLocationAlert = false // Dismiss the alert if access is granted
                     }
                 }
+                .onDisappear {
+                    camera.captureSession.stopRunning();
+                }
             } else {
                 // Display Captured Image View
                 VStack {
