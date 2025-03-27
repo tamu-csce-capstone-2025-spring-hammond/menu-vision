@@ -12,7 +12,7 @@ struct HomeView: View {
             }
             .tag(1)
             
-            SecondTabView()
+            ScanView()
             .tabItem {
                 Label("Profile", systemImage: "person")
             }
