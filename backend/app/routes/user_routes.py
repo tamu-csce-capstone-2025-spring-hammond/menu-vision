@@ -18,6 +18,8 @@ def get_user(user_id):
         return jsonify({
             "user_id": user.user_id,
             "user_type": user.user_type,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
             "user_name": user.user_name,
             "email": user.email,
             "age": user.age,
@@ -38,6 +40,8 @@ def create_user():
         
         new_user = User(
             user_type=data.get("user_type"),
+            first_name=data["first_name"],
+            last_name=data["last_name"],
             user_name=data["user_name"],
             hashed_password=["hashed_password"],  
             email=data["email"],
@@ -63,6 +67,8 @@ def update_user(user_id):
         
         data = request.get_json()
         user.user_type = data.get("user_type", user.user_type)
+        user.first_name = data.get("first_name", user.first_name)
+        user.last_name = data.get("last_name", user.last_name)
         user.user_name = data.get("user_name", user.user_name)
         user.email = data.get("email", user.email)
         user.age = data.get("age", user.age)
