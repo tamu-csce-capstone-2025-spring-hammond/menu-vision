@@ -9,7 +9,9 @@ import SwiftUI
 
 struct SignUpView3: View {
     @ObservedObject var signUpData: SignUpData
-    @State private var name: String = ""
+    @State private var first_name: String = ""
+    @State private var last_name: String = ""
+    @State private var age: String = ""
     @State private var username: String = ""
     @State private var email: String = ""
     @State private var password: String = ""
@@ -74,8 +76,9 @@ struct SignUpView3: View {
 
                 // Form fields
                 VStack(spacing: 16) {
-                    InputField(title: "Name", text: $name, placeholder: "Name")
-                    InputField(title: "Username", text: $username, placeholder: "username")
+                    InputField(title: "First Name", text: $first_name, placeholder: "John")
+                    InputField(title: "Last Name", text: $last_name, placeholder: "Doe")
+                    InputField(title: "Age", text: $age, placeholder: "e.g. 14")
                     InputField(title: "Email Address", text: $email, placeholder: "name@email.com", keyboardType: .emailAddress)
                     PasswordField(title: "Password", password: $password, placeholder: "Create a password")
                     PasswordField(title: "", password: $confirmPassword, placeholder: "Confirm password")
@@ -90,8 +93,9 @@ struct SignUpView3: View {
 
                 Button(action: {
                     // Store values in shared signUpData
-                    signUpData.name = name
-                    signUpData.username = username
+                    signUpData.first_name = first_name
+                    signUpData.last_name = last_name
+                    signUpData.age = age
                     signUpData.email = email
                     signUpData.password = password
 
@@ -148,16 +152,13 @@ struct SignUpView3: View {
             }
 
             let payload: [String: Any] = [
-                "user_name": signUpData.username,
                 "email": signUpData.email,
                 "hashed_password": hashedPassword,
-                "first_name": signUpData.name,
-                "last_name": "",
-                "user_type": "user",
-                "age": 20,
+                "first_name": signUpData.first_name,
+                "last_name": signUpData.last_name,
+                "age": Int(signUpData.age) ?? 0,
                 "food_restrictions": Array(signUpData.dietaryRestrictions),
                 "food_preferences": Array(signUpData.selectedCuisines),
-                "total_points": 0
             ]
             
             print(payload)
