@@ -27,10 +27,20 @@ struct MenuItem: Codable, Identifiable {
     let description: String?
     let sizes: [MenuItemSize]
     let availability: String?
+    let spiciness: String?
+    let allergens: [String]
+    let dietary_info: [String]
+    let calories: String?
+    let popularity: String?
+    let addons: [Addon]
 }
-
 
 struct MenuItemSize: Codable {
     let price: Double?
     let size: String?
+}
+
+struct Addon: Codable, Hashable {
+    let name: String
+    let price: Double?
 }

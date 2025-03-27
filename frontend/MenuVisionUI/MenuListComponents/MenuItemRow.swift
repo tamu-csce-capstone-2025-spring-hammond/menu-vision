@@ -2,16 +2,15 @@ import SwiftUI
 
 struct MenuItemRow: View {
     let item: MenuItem
+    @State private var showDetail = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Placeholder thumbnail
             Rectangle()
                 .fill(Color.gray.opacity(0.3))
                 .frame(width: 60, height: 60)
                 .cornerRadius(8)
 
-            // Title and description stack
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.name)
                     .font(.headline)
@@ -23,7 +22,6 @@ struct MenuItemRow: View {
 
             Spacer()
 
-            // Right-side price, dot, info icon
             VStack(alignment: .trailing, spacing: 6) {
                 Text(String(format: "$%.2f", item.sizes.first?.price ?? 0.0))
                     .font(.subheadline)
@@ -34,7 +32,7 @@ struct MenuItemRow: View {
                         .frame(width: 12, height: 12)
 
                     Button(action: {
-                        // Future: Show info modal
+                        showDetail = true
                     }) {
                         Image(systemName: "info.circle")
                             .foregroundColor(.gray)
@@ -47,6 +45,9 @@ struct MenuItemRow: View {
             }
         }
         .padding(.vertical, 8)
+        .sheet(isPresented: $showDetail) {
+            MenuItemDetailView(item: item)
+        }
     }
 
     func colorForPrice(_ price: Double) -> Color {
