@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from app.database import db
 from app.models import User
 import requests
+import os
 
 user_bp = Blueprint("user", __name__)
 
@@ -24,7 +25,9 @@ def login():
         if not user:
             return jsonify({"message": "User not found"}), 404
 
-        validate_url = "https://api.algobook.info/v1/crypto/validate"
+        crypto_base_url = os.environ.get("HASH_API_KEY")
+        validate_url = f"{crypto_base_url}validate"
+
         params = {
             "plain": plain_password,
             "hashed": user.hashed_password
