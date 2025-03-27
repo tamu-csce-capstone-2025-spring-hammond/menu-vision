@@ -131,6 +131,7 @@ struct ARViewContainer: UIViewRepresentable {
         
         return arView;
     }
+    
 
     func updateUIView(_ uiView: ARView, context: Context) {
         //context.coordinator.sz = sz;
@@ -466,5 +467,6 @@ struct ARViewContainer: UIViewRepresentable {
                 print("Error loading model: \(error)");
             }
         }
+
     }
 }
