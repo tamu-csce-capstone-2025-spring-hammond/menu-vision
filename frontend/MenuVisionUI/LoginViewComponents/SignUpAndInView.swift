@@ -105,7 +105,7 @@ struct SignUpAndInView: View {
             .navigationDestination(for: String.self) { destination in
                 switch destination {
                 case "signup":
-                    SignUpView()
+                    SignUpView(signUpData: SignUpData())
                 case "login":
                     LoginView(isLoggedIn: $isLoggedIn)
                 default:
