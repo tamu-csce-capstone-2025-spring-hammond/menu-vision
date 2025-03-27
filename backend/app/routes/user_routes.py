@@ -61,7 +61,6 @@ def get_user(user_id):
             "user_id": user.user_id,
             "first_name": user.first_name,
             "last_name": user.last_name,
-            "user_name": user.user_name,
             "email": user.email,
             "age": user.age,
             "food_restrictions": user.food_restrictions,
@@ -77,19 +76,17 @@ def signup():
     try:
         data = request.get_json()
         
-        if not data.get("user_name") or not data.get("email") or not data.get("hashed_password"):
+        if not data.get("email") or not data.get("hashed_password"):
             return jsonify({"message": "Missing required fields"}), 400
         
         new_user = User(
             first_name=data["first_name"],
             last_name=data["last_name"],
-            user_name=data["user_name"],
-            hashed_password=data["hashed_password"],
             email=data["email"],
-            age=data.get("age", 0),
+            hashed_password=data["hashed_password"],
+            age=data.get("age"),
             food_restrictions=data.get("food_restrictions"),
             food_preferences=data.get("food_preferences"),
-            total_points=data.get("total_points", 0)
         )
 
         db.session.add(new_user)
@@ -110,7 +107,6 @@ def update_user(user_id):
         data = request.get_json()
         user.first_name = data.get("first_name", user.first_name)
         user.last_name = data.get("last_name", user.last_name)
-        user.user_name = data.get("user_name", user.user_name)
         user.email = data.get("email", user.email)
         user.age = data.get("age", user.age)
         user.food_restrictions = data.get("food_restrictions", user.food_restrictions)
