@@ -218,7 +218,6 @@ struct LoginView: View {
         }
     }
 
-    // Use AuthenticationManager to validate login credentials
     private func validateLogin() {
         let payload = [
             "email": email,
