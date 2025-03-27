@@ -162,14 +162,8 @@ struct LoginView: View {
 
                             // Login button
                             Button(action: {
-                                // Validate login
-                                if validateLogin() {
-                                    // Set isLoggedIn to true to trigger navigation to Home
-                                    isLoggedIn = true
-                                } else {
-                                    alertMessage = "Invalid credentials. Hint: Use 'User' as email and 'password' as password."
-                                    showingAlert = true
-                                }
+                                // Just call the API, don't assume success/failure here
+                                validateLogin()
                             }) {
                                 Text("Login")
                                     .font(.system(size: 14, weight: .medium))
@@ -224,9 +218,45 @@ struct LoginView: View {
         }
     }
 
-    // Use AuthenticationManager to validate login credentials
-    private func validateLogin() -> Bool {
-        return AuthenticationManager.authenticate(email: email, password: password)
+    private func validateLogin() {
+        let payload = [
+            "email": email,
+            "password": password
+        ]
+
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+            alertMessage = "Failed to encode credentials."
+            showingAlert = true
+            return
+        }
+
+        API.shared.request(
+            endpoint: "user/login",
+            method: "POST",
+            body: jsonData,
+            headers: ["Content-Type": "application/json"]
+        ) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let data):
+                    if let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                        if let message = response["message"] as? String, message == "Login successful" {
+                            isLoggedIn = true
+                        } else {
+                            alertMessage = response["message"] as? String ?? "Login failed"
+                            showingAlert = true
+                        }
+                    } else {
+                        alertMessage = "Invalid response format"
+                        showingAlert = true
+                    }
+
+                case .failure(let error):
+                    alertMessage = "Request failed: \(error.localizedDescription)"
+                    showingAlert = true
+                }
+            }
+        }
     }
 }
 struct LoginView_Previews: PreviewProvider {
