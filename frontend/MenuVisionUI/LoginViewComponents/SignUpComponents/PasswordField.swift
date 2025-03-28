@@ -23,25 +23,38 @@ struct PasswordField: View {
                     .foregroundColor(Color(UIColor.darkGray))
             }
 
-            HStack {
-                if isSecured {
-                    SecureField(placeholder, text: $password)
-                        .focused($isFocused)
-                        .font(.system(size: 14))
-                        .foregroundColor(password.isEmpty ? Color(UIColor.systemGray) : Color(UIColor.darkGray))
-                } else {
-                    TextField(placeholder, text: $password)
-                        .focused($isFocused)
-                        .font(.system(size: 14))
-                        .foregroundColor(password.isEmpty ? Color(UIColor.systemGray) : Color(UIColor.darkGray))
+            ZStack(alignment: .leading) {
+                HStack {
+                    if isSecured {
+                        // Secure field without placeholder
+                        SecureField("", text: $password)
+                            .focused($isFocused)
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(UIColor.darkGray))
+                    } else {
+                        // Regular text field without placeholder
+                        TextField("", text: $password)
+                            .focused($isFocused)
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(UIColor.darkGray))
+                    }
+
+                    Button(action: {
+                        isSecured.toggle()
+                    }) {
+                        Image(systemName: isSecured ? "eye.slash" : "eye")
+                            .foregroundColor(Color(UIColor.systemGray))
+                            .frame(width: 16, height: 16)
+                    }
                 }
 
-                Button(action: {
-                    isSecured.toggle()
-                }) {
-                    Image(systemName: isSecured ? "eye.slash" : "eye")
+                // Placeholder text that only shows when password is empty
+                if password.isEmpty {
+                    Text(placeholder)
+                        .font(.system(size: 14).italic())
                         .foregroundColor(Color(UIColor.systemGray))
-                        .frame(width: 16, height: 16)
+                        .padding(.leading, 0)
+                        .allowsHitTesting(false) // Make sure this doesn't interfere with field interaction
                 }
             }
             .padding(.horizontal, 16)
