@@ -428,9 +428,48 @@ struct ARViewContainer: UIViewRepresentable {
                                                         
                             print("Deleting model", pm.model.name);
                             
+                            let oldPosition = pm.model.position;
+                            let oldAnchorPosition = pm.anchor.position;
+                            
                             pm.anchor.removeFromParent()
                             
                             presentModels.remove(at:i);
+                            
+                            //add smoke then remove it once its done
+                            /*var smoke = ParticleEmitterComponent()
+                            smoke.emitterShape = .sphere
+                            smoke.emitterShapeSize = [1,1,1] * 0.005
+
+                            smoke.mainEmitter.birthRate = 2000 //amount of particles spawned per frame
+                            smoke.mainEmitter.size = 0.1 //size of each particle
+                            smoke.mainEmitter.lifeSpan = 0.6 //how long each particle will stay active before disappearing
+                            
+                            smoke.mainEmitter.color = .evolving(start: .single(.lightGray),
+                                                                end: .single(.darkGray));
+                            
+                            var emissionDuration = 0.3;
+                                
+                            //how long the particles will be emitted
+                            smoke.timing = .once(warmUp: 0.01, emit: ParticleEmitterComponent.Timing.VariableDuration(duration:emissionDuration));
+                            
+                            let particleEntity = Entity()
+                            particleEntity.components.set(smoke);
+                            
+                            particleEntity.position = oldPosition;
+
+                            let smokeAnchor = AnchorEntity();
+                            
+                            smokeAnchor.position = oldAnchorPosition;
+                            
+                            smokeAnchor.addChild(particleEntity);
+                            
+                            arView.scene.addAnchor(smokeAnchor);
+                            
+                            //remove after smoke is done
+                            DispatchQueue.main.asyncAfter(deadline: .now() + emissionDuration + smoke.mainEmitter.lifeSpan) { [weak self] in
+                                arView.scene.removeAnchor(smokeAnchor)
+                            }*/
+
                                                                 
                         }
                     }
@@ -497,8 +536,8 @@ struct ARViewContainer: UIViewRepresentable {
                 //how long the particles will be emitted
                 particles.timing = .once(warmUp: 0.01, emit: ParticleEmitterComponent.Timing.VariableDuration(duration:0.5));
 
-                
                 model.components.set(particles);
+                
                 arView.scene.addAnchor(anchor);
                 
                 arView.installGestures(.translation, for: model);
@@ -532,6 +571,23 @@ func swapModel(){
     var model = createModel();
     
     model.position = oldModel.position;
+    
+    //add smoke
+    var smoke = ParticleEmitterComponent()
+    smoke.emitterShape = .sphere
+    smoke.emitterShapeSize = [1,1,1] * 0.005
+
+    smoke.mainEmitter.birthRate = 2000 //amount of particles spawned per frame
+    smoke.mainEmitter.size = 0.1 //size of each particle
+    smoke.mainEmitter.lifeSpan = 0.6 //how long each particle will stay active before disappearing
+    
+    smoke.mainEmitter.color = .evolving(start: .single(.lightGray),
+                                        end: .single(.white));
+        
+    //how long the particles will be emitted
+    smoke.timing = .once(warmUp: 0.01, emit: ParticleEmitterComponent.Timing.VariableDuration(duration:0.3));
+
+    model.components.set(smoke);
     
     presentModels[0].anchor.addChild(model);
     
