@@ -35,9 +35,13 @@ struct MenuScannerView: View {
                 .onChange(of: selectedRestaurant) { newValue in
                     if let id = newValue?.id {
                         restaurantData.restaurant_id = id
+                        Task {
+                            await ModelFileManager.shared.clearAndDownloadFiles(for: id)
+                        }
                         shouldNavigateToFilesListView = true
                     }
                 }
+
 
                 if capturedImage == nil {
                     GeometryReader { geometry in
@@ -75,7 +79,7 @@ struct MenuScannerView: View {
                                                 .font(.headline)
                                                 .foregroundColor(.primary)
 
-                                            ScrollView {
+                                            ScrollView(showsIndicators: true) {
                                                 VStack(spacing: 12) {
                                                     ForEach(restaurants, id: \.self) { restaurant in
                                                         Button(action: {
@@ -100,7 +104,9 @@ struct MenuScannerView: View {
                                                 }
                                                 .padding(.horizontal)
                                             }
-                                            .frame(maxHeight: 250) // adjust as needed
+                                            .scrollIndicators(.visible)
+                                            .frame(maxHeight: UIScreen.main.bounds.height * 1)
+
                                         }
                                         .padding()
                                         .background(.ultraThinMaterial)

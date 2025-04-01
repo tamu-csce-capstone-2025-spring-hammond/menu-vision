@@ -16,6 +16,7 @@ struct FilesListView: View {
     @State private var fileNames: [String] = []
     @EnvironmentObject var restaurantData: RestaurantData
     @State private var hasFetchedModels = false
+    @State private var lastRestaurantID: String = ""
     
     var body: some View {
         NavigationView {
@@ -26,20 +27,6 @@ struct FilesListView: View {
                 .refreshable {
                     await loadFiles()
                 }
-                Button("Download Files") {
-                    Task {
-                        let keys = await fetchModelKeysFromAPI()
-                        await asyncDownload(keys: keys)
-//                        await downloadAllFiles()
-                    }
-                }
-                .padding()
-                Button("Remove All Files") {
-                    Task {
-                        removeAllFiles()
-                    }
-                }
-                .padding()
             }
             .navigationTitle("Files in Documents")
             .onAppear {
@@ -47,19 +34,6 @@ struct FilesListView: View {
                     await loadFiles()
                 }
             }
-            .onChange(of: restaurantData.restaurant_id) { newID in
-                if !newID.isEmpty && !hasFetchedModels {
-                    Task {
-                        await loadFiles()
-                        removeAllFiles()
-                        let keys = await fetchModelKeysFromAPI()
-                        await asyncDownload(keys: keys)
-                        await loadFiles()
-                        hasFetchedModels = true
-                    }
-                }
-            }
-
         }
     }
     
@@ -75,118 +49,6 @@ struct FilesListView: View {
             } catch {
                 print("Error loading files: \(error.localizedDescription)")
             }
-        }
-    }
-    
-    func removeFiles() {
-        let fileManager = FileManager.default
-        
-        // Locate the Documents directory.
-        if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
-            // Specify the file name you want to remove.
-            let fileURL = documentsURL.appendingPathComponent("A7D65F03-0A7D-4B14-8B68-3A068EEB55D5.usdz")
-            
-            // Optionally, check if the file exists before trying to remove it.
-            if fileManager.fileExists(atPath: fileURL.path) {
-                do {
-                    try fileManager.removeItem(at: fileURL)
-                    print("File removed successfully.")
-                } catch {
-                    print("Error removing file: \(error.localizedDescription)")
-                }
-            } else {
-                print("File does not exist.")
-            }
-        }
-    }
-    
-    func removeAllFiles() {
-        let fileManager = FileManager.default
-        if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
-            do {
-                let files = try fileManager.contentsOfDirectory(at: documentsURL, includingPropertiesForKeys: nil)
-                for file in files {
-                    try fileManager.removeItem(at: file)
-                    print("Removed: \(file.lastPathComponent)")
-                }
-                Task { await loadFiles() } // Refresh UI file list
-            } catch {
-                print("Failed to remove files: \(error.localizedDescription)")
-            }
-        }
-    }
-    
-    func fetchModelKeysFromAPI() async -> [String] {
-        guard !restaurantData.restaurant_id.isEmpty else {
-            print("restaurant_id is not set")
-            return []
-        }
-
-        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/restaurant/\(restaurantData.restaurant_id)/models") else {
-            print("Invalid URL")
-            return []
-        }
-
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let models = json["models"] as? [[String: Any]] {
-                return models.compactMap { model in
-                    if let modelID = model["model_id"] as? String, !modelID.trimmingCharacters(in: .whitespaces).isEmpty {
-                        return "\(modelID).usdz"
-                    }
-                    return nil
-                }
-            }
-        } catch {
-            print("Failed to fetch or parse model IDs: \(error)")
-        }
-
-        return []
-    }
-    
-    func asyncDownload(keys: [String]) async {
-        do {
-            let env = ProcessInfo.processInfo.environment
-            let credentials = AWSCredentialIdentity(
-                accessKey: env["AWS_ACCESS_KEY"] ?? "NULL",
-                secret: env["AWS_SECRET_KEY"] ?? "NULL"
-            )
-            let identityResolver = try StaticAWSCredentialIdentityResolver(credentials)
-            
-            let s3Configuration = try await S3Client.S3ClientConfiguration(
-                awsCredentialIdentityResolver: identityResolver,
-                region: "us-east-1"
-            )
-            let s3Client = S3Client(config: s3Configuration)
-            let serviceHandler = ServiceHandler(client: s3Client)
-            
-            guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-                print("Could not find documents directory")
-                return
-            }
-            
-            try await withTaskGroup(of: Void.self) { group in
-                for key in keys {
-                    group.addTask {
-                        do {
-                            print("⬇️ Downloading: \(key)")
-                            try await serviceHandler.downloadFile(
-                                bucket: "usdz-store-test",
-                                key: key,
-                                to: documentsDirectory.path
-                            )
-                            print("Finished: \(key)")
-                        } catch {
-                            print("Error downloading \(key): \(error)")
-                        }
-                    }
-                }
-            }
-            
-            await loadFiles()
-        } catch {
-            print("Error setting up AWS download: \(error)")
         }
     }
     
