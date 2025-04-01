@@ -11,6 +11,7 @@ import UIKit
 import CoreLocation
 
 struct MenuScannerView: View {
+    @EnvironmentObject var restaurantData: RestaurantData
     @StateObject private var camera = CameraManager()
     @State private var showAlert = false
     @State private var alertMessage = ""
@@ -21,10 +22,13 @@ struct MenuScannerView: View {
     @State private var showingLocationAlert = false // New state variable
     @State private var restaurants: [Restaurant] = []
     @State private var selectedRestaurant: Restaurant? {
-        didSet { // Observe selectedRestaurant changes
-            saveSelectedRestaurant()
+    didSet {
+        saveSelectedRestaurant()
+        if let id = selectedRestaurant?.id {
+            restaurantData.restaurant_id = id
         }
     }
+}
     @State private var apiResponse: String = ""
     @State private var shouldNavigateToResult = false
 
@@ -372,9 +376,9 @@ struct MenuScannerView: View {
         guard let restaurantId = UserDefaults.standard.string(forKey: "selectedRestaurantId") else {
             return
         }
-        // Find restaurant in the loaded restaurants
         if let restaurant = restaurants.first(where: { $0.id == restaurantId }) {
             selectedRestaurant = restaurant
+            restaurantData.restaurant_id = restaurantId
         }
     }
 }

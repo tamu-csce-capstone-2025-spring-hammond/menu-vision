@@ -14,6 +14,8 @@ import AWSSDKIdentity
 
 struct FilesListView: View {
     @State private var fileNames: [String] = []
+    @EnvironmentObject var restaurantData: RestaurantData
+    @State private var hasFetchedModels = false
     
     var body: some View {
         NavigationView {
@@ -40,9 +42,14 @@ struct FilesListView: View {
                 .padding()
             }
             .navigationTitle("Files in Documents")
-            //             Initial load of files when the view appears.
-            .task {
-                await loadFiles()
+            .onChange(of: restaurantData.restaurant_id) { newID in
+                if !newID.isEmpty && !hasFetchedModels {
+                    Task {
+                        let keys = await fetchModelKeysFromAPI()
+                        await downloadMultipleFiles(keys: keys)
+                        hasFetchedModels = true
+                    }
+                }
             }
         }
     }
@@ -101,16 +108,20 @@ struct FilesListView: View {
     }
     
     func fetchModelKeysFromAPI() async -> [String] {
-        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/restaurant/ChIJ92rcyJWDRoYRotK6QCjsFf8/models") else {
+        guard !restaurantData.restaurant_id.isEmpty else {
+            print("restaurant_id is not set")
+            return []
+        }
+
+        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/restaurant/\(restaurantData.restaurant_id)/models") else {
             print("Invalid URL")
             return []
         }
-        
+
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let models = json["models"] as? [[String: Any]] {
-                // Extract and return model_id values with .usdz extension
+            let models = json["models"] as? [[String: Any]] {
                 return models.compactMap { model in
                     if let modelID = model["model_id"] as? String, !modelID.trimmingCharacters(in: .whitespaces).isEmpty {
                         return "\(modelID).usdz"
@@ -121,7 +132,7 @@ struct FilesListView: View {
         } catch {
             print("Failed to fetch or parse model IDs: \(error)")
         }
-        
+
         return []
     }
     
