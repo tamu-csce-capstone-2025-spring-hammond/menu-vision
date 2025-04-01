@@ -41,17 +41,17 @@ struct MenuItemDetailView: View {
                     }
                 }
 
-                if !item.allergens.isEmpty {
+                if let allergens = item.allergens, !allergens.isEmpty {
                     Section(header: Text("Allergens")) {
-                        ForEach(item.allergens, id: \.self) { allergen in
+                        ForEach(allergens, id: \.self) { allergen in
                             Text(allergen)
                         }
                     }
                 }
 
-                if !item.dietary_info.isEmpty {
+                if let dietaryInfo = item.dietary_info, !dietaryInfo.isEmpty {
                     Section(header: Text("Dietary Info")) {
-                        ForEach(item.dietary_info, id: \.self) { tag in
+                        ForEach(dietaryInfo, id: \.self) { tag in
                             Text(tag)
                         }
                     }
@@ -70,9 +70,9 @@ struct MenuItemDetailView: View {
                     }
                 }
 
-                if !item.addons.isEmpty {
+                if let addons = item.addons, !addons.isEmpty {
                     Section(header: Text("Add-ons")) {
-                        ForEach(item.addons, id: \.self) { addon in
+                        ForEach(addons, id: \.name) { addon in
                             VStack(alignment: .leading) {
                                 Text(addon.name)
                                     .fontWeight(.medium)

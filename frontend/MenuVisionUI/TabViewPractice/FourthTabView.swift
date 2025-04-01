@@ -19,115 +19,106 @@ struct MenuScannerView: View {
     @State private var capturedImage: UIImage?
     @State private var isProcessing = false
     @StateObject private var locationManager = LocationManager()
-    @State private var showingLocationAlert = false // New state variable
+    @State private var showingLocationAlert = false
     @State private var restaurants: [Restaurant] = []
     @State private var selectedRestaurant: Restaurant?
     @State private var apiResponse: String = ""
     @State private var shouldNavigateToResult = false
-    @State private var showRestaurantPicker = false
-
     @State private var shouldNavigateToFilesListView = false
 
     var body: some View {
         NavigationStack {
             ZStack {
-                NavigationLink(
-                    destination: FilesListView().environmentObject(restaurantData),
-                    isActive: $shouldNavigateToFilesListView
-                ) {
+                NavigationLink(destination: FilesListView().environmentObject(restaurantData), isActive: $shouldNavigateToFilesListView) {
                     EmptyView()
                 }
-                
                 .onChange(of: selectedRestaurant) { newValue in
-                        if let id = newValue?.id {
-//                            restaurantData.restaurant_id = id
-                            restaurantData.restaurant_id = "ChIJ92rcyJWDRoYRotK6QCjsFf8"
-                            shouldNavigateToFilesListView = true
-                        }
+                    if let id = newValue?.id {
+                        restaurantData.restaurant_id = id
+                        shouldNavigateToFilesListView = true
                     }
+                }
 
                 if capturedImage == nil {
-                    // Camera View
                     GeometryReader { geometry in
                         ZStack(alignment: .bottom) {
-                            CameraPreview(
-                                session: camera.captureSession,
-                                zoomFactor: zoomFactor
-                            )
-                            .ignoresSafeArea()
-                            .gesture(
-                                MagnificationGesture()
-                                    .onChanged { amount in
-                                        zoomFactor = amount
-                                        camera.setZoom(zoomFactor: zoomFactor)
-                                    }
-                            )
-                            
-                            VStack { // Aligns the button to the bottom
-                                
-                                if selectedRestaurant == nil {
-                                    if !restaurants.isEmpty {
-                                        VStack {
-                                            Text("Select Restaurant")
-                                                .font(.headline)
-                                                .padding(.top)
-                                            
-                                            Picker(
-                                                "Select Restaurant",
-                                                selection: $selectedRestaurant
-                                            ) {
-                                                Text("Select a restaurant")
-                                                    .tag(nil as Restaurant?)  // Prompt
-                                                ForEach(restaurants, id: \.self) {
-                                                    restaurant in
-                                                    if let displayName =
-                                                        restaurant.displayName?.text
-                                                    {
-                                                        Text(displayName).tag(
-                                                            restaurant as Restaurant?
-                                                        )
-                                                    } else {
-                                                        Text("No Name").tag(
-                                                            restaurant as Restaurant?
-                                                        )  // Handle missing name
-                                                    }
-                                                }
-                                            }
-                                            .padding()
-                                            
-                                            Spacer()  // push to center
+                            CameraPreview(session: camera.captureSession, zoomFactor: zoomFactor)
+                                .ignoresSafeArea()
+                                .gesture(
+                                    MagnificationGesture()
+                                        .onChanged { amount in
+                                            zoomFactor = amount
+                                            camera.setZoom(zoomFactor: zoomFactor)
                                         }
-                                        .frame(width: geometry.size.width * 0.8)  // constrain size
-                                        .background(Color.white.opacity(0.8))
-                                        .cornerRadius(10)
-                                    }
-                                } else {
+                                )
+
+                            VStack(spacing: 12) {
+                                Group {
                                     if let displayName = selectedRestaurant?.displayName?.text {
-                                        VStack {
+                                        VStack(spacing: 10) {
                                             Text("Selected: \(displayName)")
                                                 .font(.headline)
                                                 .padding()
                                                 .frame(maxWidth: .infinity, alignment: .center)
-                                                .background(Color.green.opacity(0.5))
-                                            
+                                                .background(Color.green.opacity(0.6))
+                                                .cornerRadius(10)
+
                                             Button("Change Restaurant") {
                                                 selectedRestaurant = nil
                                             }
                                             .padding(.bottom)
+                                            .foregroundColor(.red)
                                         }
+                                    } else if !restaurants.isEmpty {
+                                        VStack(spacing: 16) {
+                                            Text("Select Restaurant")
+                                                .font(.headline)
+                                                .foregroundColor(.primary)
+
+                                            ScrollView {
+                                                VStack(spacing: 12) {
+                                                    ForEach(restaurants, id: \.self) { restaurant in
+                                                        Button(action: {
+                                                            selectedRestaurant = restaurant
+                                                        }) {
+                                                            HStack {
+                                                                Text(restaurant.displayName?.text ?? "No Name")
+                                                                    .fontWeight(.medium)
+                                                                    .foregroundColor(.primary)
+                                                                Spacer()
+                                                                if selectedRestaurant == restaurant {
+                                                                    Image(systemName: "checkmark.circle.fill")
+                                                                        .foregroundColor(.blue)
+                                                                }
+                                                            }
+                                                            .padding()
+                                                            .background(Color(UIColor.systemBackground))
+                                                            .cornerRadius(10)
+                                                            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                                        }
+                                                    }
+                                                }
+                                                .padding(.horizontal)
+                                            }
+                                            .frame(maxHeight: 250) // adjust as needed
+                                        }
+                                        .padding()
+                                        .background(.ultraThinMaterial)
+                                        .cornerRadius(16)
+                                        .shadow(radius: 10)
+                                        .padding(.horizontal, 32)
                                     }
                                 }
+
                                 Spacer()
+
                                 Button(action: {
-                                    guard !isProcessing, selectedRestaurant != nil else {
-                                        return
-                                    }
+                                    guard !isProcessing, selectedRestaurant != nil else { return }
                                     isProcessing = true
                                     camera.capturePhoto { image in
                                         if let image = image {
                                             capturedImage = image
-                                            sendImageToAPI(image: image) // Call extract-menu API
-                                            //  No API call here anymore
+                                            sendImageToAPI(image: image)
                                         } else {
                                             alertMessage = "Failed to capture image"
                                             showAlert = true
@@ -137,29 +128,29 @@ struct MenuScannerView: View {
                                         }
                                     }
                                 }) {
-                                    Circle()
-                                        .fill(.white)
-                                        .frame(width: 70, height: 70)
-                                        .overlay(
-                                            isProcessing ?
+                                    ZStack {
+                                        Circle()
+                                            .fill(.white)
+                                            .frame(width: 75, height: 75)
+
+                                        if isProcessing {
                                             ProgressView()
-                                                .progressViewStyle(
-                                                    CircularProgressViewStyle(tint: .blue)
-                                                )
-                                                .scaleEffect(1.5)
-                                            : nil
-                                        )
+                                                .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                                                .scaleEffect(1.3)
+                                        }
+                                    }
                                 }
-                                .disabled(isProcessing || selectedRestaurant == nil)
                                 .padding(.bottom, 30)
                             }
+                            .padding(.horizontal)
+
                             if !apiResponse.isEmpty {
                                 Text("API Response: \(apiResponse)")
-                                    .padding()
-                                    .background(Color.gray.opacity(0.7))
-                                    .cornerRadius(10)
+                                    .padding(8)
+                                    .background(Color.black.opacity(0.75))
                                     .foregroundColor(.white)
-                                
+                                    .cornerRadius(8)
+                                    .padding(.top, 30)
                             }
                         }
                     }
@@ -170,7 +161,6 @@ struct MenuScannerView: View {
                                 showAlert = true
                             }
                         }
-                        
                         locationManager.getLocationOnce { location in
                             if let location = location {
                                 fetchNearbyRestaurants(
@@ -178,28 +168,22 @@ struct MenuScannerView: View {
                                     latitude: location.coordinate.latitude
                                 )
                             } else {
-                                alertMessage =
-                                "Could not retrieve location. Please ensure location services are enabled."
+                                alertMessage = "Could not retrieve location. Please ensure location services are enabled."
                                 showAlert = true
                             }
                         }
                     }
+                    .onDisappear {
+                        camera.stopCameraSafely()
+                    }
                     .alert(isPresented: $showAlert) {
-                        Alert(
-                            title: Text("Camera Error"),
-                            message: Text(alertMessage),
-                            dismissButton: .default(Text("OK"))
-                        )
+                        Alert(title: Text("Camera Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
                     }
                     .alert(isPresented: $showingLocationAlert) {
-                        // Location alert
                         Alert(
                             title: Text("Location Access Denied"),
-                            message: Text(
-                                "Please enable location services in Settings for this app to function correctly."
-                            ),
+                            message: Text("Please enable location services in Settings for this app to function correctly."),
                             primaryButton: .default(Text("Settings"), action: {
-                                // Open the app's settings page
                                 if let url = URL(string: UIApplication.openSettingsURLString) {
                                     UIApplication.shared.open(url)
                                 }
@@ -208,49 +192,30 @@ struct MenuScannerView: View {
                         )
                     }
                     .onChange(of: locationManager.authorizationStatus) { newStatus in
-                        if newStatus == .denied || newStatus == .restricted {
-                            showingLocationAlert = true // Show the alert
-                        } else {
-                            showingLocationAlert = false // Dismiss the alert if access is granted
-                        }
+                        showingLocationAlert = (newStatus == .denied || newStatus == .restricted)
                     }
-                    .onDisappear {
-                        camera.captureSession.stopRunning();
-                    }
+
                 } else {
-                    // Display Captured Image View
                     VStack {
                         HStack {
                             Button(action: {
-                                capturedImage = nil // Reset to camera view
+                                capturedImage = nil
                                 apiResponse = ""
-                                camera.checkPermissionsAndSetup { _, _ in } // Restart Camera
+                                camera.checkPermissionsAndSetup { _, _ in }
                             }) {
                                 Image(systemName: "arrow.left")
                                     .font(.title2)
                             }
                             .padding()
-                            
                             Spacer()
-                            
-//                            Text("Captured Menu")
-//                                .font(.headline)
-                            
-//                            Spacer()
                         }
-                        
                         Image(uiImage: capturedImage!)
                             .resizable()
                             .scaledToFit()
+                            .cornerRadius(10)
                             .padding()
-//                        Text(apiResponse)
-//                            .padding()
-//                            .background(Color.gray.opacity(0.7))
-//                            .cornerRadius(10)
-//                            .foregroundColor(.white)
-                        
-                        
-                        Spacer() // Push the content to the top
+
+                        Spacer()
                     }
                 }
             }
@@ -261,124 +226,65 @@ struct MenuScannerView: View {
     }
 
     func fetchNearbyRestaurants(longitude: Double, latitude: Double) {
-        let urlString =
-            "https://menu-vision-b202af7ea787.herokuapp.com/general/nearby-restaurants/\(longitude)/\(latitude)"
-        guard let url = URL(string: urlString) else {
-            print("Invalid URL")
-            return
-        }
+        let urlString = "https://menu-vision-b202af7ea787.herokuapp.com/general/nearby-restaurants/\(longitude)/\(latitude)"
+        guard let url = URL(string: urlString) else { return }
+
         var request = URLRequest(url: url)
-                request.httpMethod = "POST"
+        request.httpMethod = "POST"
 
         URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("Error fetching restaurants: \(error)")
-                return
-            }
-
-            guard let data = data else {
-                print("No data received")
-                return
-            }
-
-            if let string = String(data: data, encoding: .utf8) {
-                print("API Response:\n\(string)") // Print the raw response
-            }
+            guard error == nil, let data = data else { return }
 
             do {
-                //let decodedRestaurants = try JSONDecoder().decode([Restaurant].self, from: data)
-                let decodedResponse =
-                    try JSONDecoder().decode(RestaurantResponse.self, from: data)
+                let decodedResponse = try JSONDecoder().decode(RestaurantResponse.self, from: data)
                 DispatchQueue.main.async {
                     self.restaurants = decodedResponse.places ?? []
                 }
             } catch {
                 print("Error decoding JSON: \(error)")
             }
-        }
-        .resume()
+        }.resume()
     }
+
     func sendImageToAPI(image: UIImage) {
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            print("Failed to convert image to data")
-            return
-        }
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
 
         let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ocr/extract-menu")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         let boundary = UUID().uuidString
-        request.setValue(
-            "multipart/form-data; boundary=\(boundary)",
-            forHTTPHeaderField: "Content-Type"
-        )
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
         var body = Data()
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append(
-            "Content-Disposition: form-data; name=\"image\"; filename=\"menu.jpg\"\r\n"
-                .data(using: .utf8)!
-        )
+        body.append("Content-Disposition: form-data; name=\"image\"; filename=\"menu.jpg\"\r\n".data(using: .utf8)!)
         body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
         body.append(imageData)
-        body.append("\r\n".data(using: .utf8)!)
-        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
         request.httpBody = body
 
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("Network error: \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    self.alertMessage = "Network error: \(error.localizedDescription)"
-                    self.showAlert = true
-                }
-                return
-            }
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                print("Invalid response")
-                DispatchQueue.main.async {
-                    self.alertMessage = "Invalid response from server"
-                    self.showAlert = true
-                }
-                return
-            }
-
-            if httpResponse.statusCode != 200 {
-                print("Server error: \(httpResponse.statusCode)")
-                DispatchQueue.main.async {
-                    self.alertMessage = "Server error: \(httpResponse.statusCode)"
-                    self.showAlert = true
-                }
-                return
-            }
-
-            guard let data = data else {
-                print("No data received")
-                DispatchQueue.main.async {
-                    self.alertMessage = "No data received from server"
-                    self.showAlert = true
-                }
-                return
-            }
-
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else { return }
             if let jsonString = String(data: data, encoding: .utf8) {
-                print("API Response: \(jsonString)")
                 DispatchQueue.main.async {
                     self.apiResponse = jsonString
                     self.shouldNavigateToResult = true
                 }
-            } else {
-                print("Could not parse server response")
-                DispatchQueue.main.async {
-                    self.alertMessage = "Could not parse server response"
-                    self.showAlert = true
-                }
+            }
+        }.resume()
+    }
+}
+
+extension CameraManager {
+    func stopCameraSafely() {
+        DispatchQueue.global(qos: .background).async {
+            if self.captureSession.isRunning {
+                self.captureSession.stopRunning()
             }
         }
-        task.resume()
     }
-    }
+}
+
 
 // Response struct to handle "places" key
 struct RestaurantResponse: Codable {
