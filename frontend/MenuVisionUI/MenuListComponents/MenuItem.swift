@@ -28,11 +28,11 @@ struct MenuItem: Codable, Identifiable {
     let sizes: [MenuItemSize]
     let availability: String?
     let spiciness: String?
-    let allergens: [String]
-    let dietary_info: [String]
+    let allergens: [String]?
+    let dietary_info: [String]?
     let calories: String?
     let popularity: String?
-    let addons: [Addon]
+    let addons: [Addon]?
 }
 
 struct MenuItemSize: Codable {
