@@ -5,31 +5,27 @@ struct HomeView: View {
 
     var body: some View {
         TabView {
-            ThirdTabView()
-                .tabItem {
-                    Label("Home", systemImage: "house")
-                }
-                .tag(1)
 
             ScanView()
                 .tabItem {
-                    Label("Profile", systemImage: "person")
+                    Label("Model Scan", systemImage: "camera")
                 }
                 .tag(2)
-
-            FirstTabView()
-                .tabItem {
-                    Label("Render", systemImage: "gearshape")
-                }
-                .tag(3)
-
+            
             NavigationStack {
                 MenuScannerView()
             }
             .tabItem {
-                Label("Menu", systemImage: "camera")
+                Label("Home", systemImage: "house")
             }
             .tag(4)
+
+            FirstTabView()
+                .tabItem {
+                    Label("Profile", systemImage: "person")
+                }
+                .tag(3)
+
         }
     }
 }

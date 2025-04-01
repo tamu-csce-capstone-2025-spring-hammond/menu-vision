@@ -591,6 +591,11 @@ struct ScanView: View {
     var body: some View {
         
         ZStack(alignment: .bottom) {
+            
+            if (!ObjectCaptureSession.isSupported){
+                Text("Your device is not supported peasant");
+            }
+            
             if let session {
                 ObjectCaptureView(session: session)
                 
@@ -625,6 +630,12 @@ struct ScanView: View {
         .task {
             guard let directory = createNewScanDirectory()
             else { return }
+            
+            if (!ObjectCaptureSession.isSupported){
+                print("Not supported");
+                return;
+            }
+            
             session = ObjectCaptureSession()
             
             modelFolderPath = directory.appending(path: "Models/")
