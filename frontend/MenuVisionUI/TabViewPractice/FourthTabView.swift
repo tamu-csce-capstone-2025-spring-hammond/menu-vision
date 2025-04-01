@@ -21,20 +21,31 @@ struct MenuScannerView: View {
     @StateObject private var locationManager = LocationManager()
     @State private var showingLocationAlert = false // New state variable
     @State private var restaurants: [Restaurant] = []
-    @State private var selectedRestaurant: Restaurant? {
-    didSet {
-        saveSelectedRestaurant()
-        if let id = selectedRestaurant?.id {
-            restaurantData.restaurant_id = id
-        }
-    }
-}
+    @State private var selectedRestaurant: Restaurant?
     @State private var apiResponse: String = ""
     @State private var shouldNavigateToResult = false
+    @State private var showRestaurantPicker = false
+
+    @State private var shouldNavigateToFilesListView = false
 
     var body: some View {
         NavigationStack {
             ZStack {
+                NavigationLink(
+                    destination: FilesListView().environmentObject(restaurantData),
+                    isActive: $shouldNavigateToFilesListView
+                ) {
+                    EmptyView()
+                }
+                
+                .onChange(of: selectedRestaurant) { newValue in
+                        if let id = newValue?.id {
+//                            restaurantData.restaurant_id = id
+                            restaurantData.restaurant_id = "ChIJ92rcyJWDRoYRotK6QCjsFf8"
+                            shouldNavigateToFilesListView = true
+                        }
+                    }
+
                 if capturedImage == nil {
                     // Camera View
                     GeometryReader { geometry in
@@ -92,13 +103,19 @@ struct MenuScannerView: View {
                                     }
                                 } else {
                                     if let displayName = selectedRestaurant?.displayName?.text {
-                                        Text("Selected: \(displayName)")
-                                            .font(.headline)
-                                            .padding()
-                                            .frame(maxWidth: .infinity, alignment: .center)
-                                            .background(Color.green.opacity(0.5))
+                                        VStack {
+                                            Text("Selected: \(displayName)")
+                                                .font(.headline)
+                                                .padding()
+                                                .frame(maxWidth: .infinity, alignment: .center)
+                                                .background(Color.green.opacity(0.5))
+                                            
+                                            Button("Change Restaurant") {
+                                                selectedRestaurant = nil
+                                            }
+                                            .padding(.bottom)
+                                        }
                                     }
-                                    
                                 }
                                 Spacer()
                                 Button(action: {
@@ -153,7 +170,6 @@ struct MenuScannerView: View {
                                 showAlert = true
                             }
                         }
-                        loadSelectedRestaurant() // Load previously saved restaurant
                         
                         locationManager.getLocationOnce { location in
                             if let location = location {
@@ -275,7 +291,6 @@ struct MenuScannerView: View {
                     try JSONDecoder().decode(RestaurantResponse.self, from: data)
                 DispatchQueue.main.async {
                     self.restaurants = decodedResponse.places ?? []
-                    loadSelectedRestaurant()
                 }
             } catch {
                 print("Error decoding JSON: \(error)")
@@ -363,25 +378,7 @@ struct MenuScannerView: View {
         }
         task.resume()
     }
-
-    func saveSelectedRestaurant() {
-        guard let restaurant = selectedRestaurant, let id = restaurant.id else {
-            UserDefaults.standard.removeObject(forKey: "selectedRestaurantId")
-            return
-        }
-        UserDefaults.standard.set(id, forKey: "selectedRestaurantId")
     }
-
-    func loadSelectedRestaurant() {
-        guard let restaurantId = UserDefaults.standard.string(forKey: "selectedRestaurantId") else {
-            return
-        }
-        if let restaurant = restaurants.first(where: { $0.id == restaurantId }) {
-            selectedRestaurant = restaurant
-            restaurantData.restaurant_id = restaurantId
-        }
-    }
-}
 
 // Response struct to handle "places" key
 struct RestaurantResponse: Codable {
