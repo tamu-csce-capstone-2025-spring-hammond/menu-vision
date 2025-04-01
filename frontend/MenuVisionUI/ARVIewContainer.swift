@@ -477,7 +477,6 @@ struct ARViewContainer: UIViewRepresentable {
                 }
                 
             }
-            
            
         }
         
