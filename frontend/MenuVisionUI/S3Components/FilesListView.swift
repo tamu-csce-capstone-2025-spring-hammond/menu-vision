@@ -29,7 +29,7 @@ struct FilesListView: View {
                 Button("Download Files") {
                     Task {
                         let keys = await fetchModelKeysFromAPI()
-                        await downloadMultipleFiles(keys: keys)
+                        await asyncDownload(keys: keys)
 //                        await downloadAllFiles()
                     }
                 }
@@ -42,27 +42,36 @@ struct FilesListView: View {
                 .padding()
             }
             .navigationTitle("Files in Documents")
+            .onAppear {
+                Task {
+                    await loadFiles()
+                }
+            }
             .onChange(of: restaurantData.restaurant_id) { newID in
                 if !newID.isEmpty && !hasFetchedModels {
                     Task {
+                        await loadFiles()
+                        removeAllFiles()
                         let keys = await fetchModelKeysFromAPI()
-                        await downloadMultipleFiles(keys: keys)
+                        await asyncDownload(keys: keys)
+                        await loadFiles()
                         hasFetchedModels = true
                     }
                 }
             }
+
         }
     }
     
     // This function first runs s3testing() then reloads the file list from the Documents directory.
     func loadFiles() async {
-        //        await s3testing()
         let fileManager = FileManager.default
         if let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
             do {
-                // Retrieve list of files in the documents directory
                 let files = try fileManager.contentsOfDirectory(atPath: documentsDirectory.path)
-                self.fileNames = files
+                await MainActor.run {
+                    self.fileNames = files
+                }
             } catch {
                 print("Error loading files: \(error.localizedDescription)")
             }
@@ -136,7 +145,7 @@ struct FilesListView: View {
         return []
     }
     
-    func downloadMultipleFiles(keys: [String]) async {
+    func asyncDownload(keys: [String]) async {
         do {
             let env = ProcessInfo.processInfo.environment
             let credentials = AWSCredentialIdentity(
@@ -175,59 +184,11 @@ struct FilesListView: View {
                 }
             }
             
-            await loadFiles() // Refresh UI file list
+            await loadFiles()
         } catch {
             print("Error setting up AWS download: \(error)")
         }
     }
-    
-    func downloadAllFiles() async {
-        do {
-            let env = ProcessInfo.processInfo.environment
-            let credentials = AWSCredentialIdentity(
-                accessKey: env["AWS_ACCESS_KEY"] ?? "NULL",
-                secret: env["AWS_SECRET_KEY"] ?? "NULL"
-            )
-            let identityResolver = try StaticAWSCredentialIdentityResolver(credentials)
-            
-            let s3Configuration = try await S3Client.S3ClientConfiguration(
-                awsCredentialIdentityResolver: identityResolver,
-                region: "us-east-1"
-            )
-            let s3Client = S3Client(config: s3Configuration)
-            let serviceHandler = ServiceHandler(client: s3Client)
-            
-            guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-                print("Could not find documents directory")
-                return
-            }
-            
-            let keys = try await serviceHandler.listBucketFiles(bucket: "usdz-store-test")
-            
-            try await withTaskGroup(of: Void.self) { group in
-                for key in keys {
-                    group.addTask {
-                        do {
-                            print("⬇️ Downloading: \(key)")
-                            try await serviceHandler.downloadFile(
-                                bucket: "usdz-store-test",
-                                key: key,
-                                to: documentsDirectory.path
-                            )
-                            print("Finished: \(key)")
-                        } catch {
-                            print("Error downloading \(key): \(error)")
-                        }
-                    }
-                }
-            }
-            
-            await loadFiles() // Refresh UI
-        } catch {
-            print("Error setting up Download All: \(error)")
-        }
-    }
-    
     
     // s3testing() is responsible for the S3 operations.
     func s3testing(modelPath: URL) async {
@@ -272,12 +233,5 @@ struct FilesListView: View {
             print("Error occurred in s3testing: \(error)")
         }
         
-    }
-}
-    
-
-struct FilesListView_Previews: PreviewProvider {
-    static var previews: some View {
-        FilesListView()
     }
 }

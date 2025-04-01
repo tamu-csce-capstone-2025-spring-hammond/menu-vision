@@ -25,12 +25,14 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var isLoggedIn = false
+    @EnvironmentObject var restaurantData: RestaurantData
 
     var body: some View {
         Group {
             if isLoggedIn {
                 // When logged in, show HomeView
                 HomeView()
+                    .environmentObject(restaurantData)
                     .transition(.opacity)
                     .animation(.default, value: isLoggedIn)
             } else {
