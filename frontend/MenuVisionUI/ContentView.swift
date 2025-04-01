@@ -24,7 +24,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var isLoggedIn = false
+    @State private var isLoggedIn = true
     @EnvironmentObject var restaurantData: RestaurantData
 
     var body: some View {
