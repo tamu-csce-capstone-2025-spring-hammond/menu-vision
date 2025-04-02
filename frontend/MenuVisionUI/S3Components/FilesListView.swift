@@ -14,9 +14,6 @@ import AWSSDKIdentity
 
 struct FilesListView: View {
     @State private var fileNames: [String] = []
-    @EnvironmentObject var restaurantData: RestaurantData
-    @State private var hasFetchedModels = false
-    @State private var lastRestaurantID: String = ""
     
     var body: some View {
         NavigationView {
