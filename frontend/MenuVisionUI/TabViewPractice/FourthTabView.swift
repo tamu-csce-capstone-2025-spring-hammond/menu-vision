@@ -25,6 +25,7 @@ struct MenuScannerView: View {
     @State private var apiResponse: String = ""
     @State private var shouldNavigateToResult = false
     @State private var shouldNavigateToFilesListView = false
+    @State private var lastSelectedRestaurantID: String?
 
     var body: some View {
         NavigationStack {
@@ -32,17 +33,6 @@ struct MenuScannerView: View {
                 NavigationLink(destination: FilesListView().environmentObject(restaurantData), isActive: $shouldNavigateToFilesListView) {
                     EmptyView()
                 }
-                .onChange(of: selectedRestaurant) { newValue in
-                    if let id = newValue?.id {
-                        restaurantData.restaurant_id = id
-                        Task {
-                            await ModelFileManager.shared.clearAndDownloadFiles(for: id)
-                        }
-                        shouldNavigateToFilesListView = true
-                    }
-                }
-
-
                 if capturedImage == nil {
                     GeometryReader { geometry in
                         ZStack(alignment: .bottom) {
@@ -119,7 +109,7 @@ struct MenuScannerView: View {
                                 Spacer()
 
                                 Button(action: {
-                                    guard !isProcessing, selectedRestaurant != nil else { return }
+                                    guard !isProcessing else { return }
                                     isProcessing = true
                                     camera.capturePhoto { image in
                                         if let image = image {
@@ -138,14 +128,24 @@ struct MenuScannerView: View {
                                         Circle()
                                             .fill(.white)
                                             .frame(width: 75, height: 75)
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color.gray.opacity(selectedRestaurant == nil ? 0.6 : 0), lineWidth: 2)
+                                            )
 
                                         if isProcessing {
                                             ProgressView()
                                                 .progressViewStyle(CircularProgressViewStyle(tint: .blue))
                                                 .scaleEffect(1.3)
+                                        } else {
+                                            Image(systemName: "camera.fill")
+                                                .font(.title)
+                                                .foregroundColor(.black.opacity(selectedRestaurant == nil ? 0.3 : 1))
                                         }
                                     }
                                 }
+                                .disabled(selectedRestaurant == nil || isProcessing)
+                                .opacity(selectedRestaurant == nil ? 0.4 : 1)
                                 .padding(.bottom, 30)
                             }
                             .padding(.horizontal)
@@ -200,6 +200,15 @@ struct MenuScannerView: View {
                     .onChange(of: locationManager.authorizationStatus) { newStatus in
                         showingLocationAlert = (newStatus == .denied || newStatus == .restricted)
                     }
+                    .task(id: selectedRestaurant?.id) {
+                        guard let id = selectedRestaurant?.id, id != lastSelectedRestaurantID else { return }
+                        lastSelectedRestaurantID = id
+                        restaurantData.restaurant_id = id
+                        print("Triggering download for restaurant: \(id)")
+                        await ModelFileManager.shared.clearAndDownloadFiles(for: id)
+//                        shouldNavigateToFilesListView = true
+                    }
+
 
                 } else {
                     VStack {
