@@ -9,9 +9,10 @@ import SwiftUI
 
 @main
 struct MenuVisionUIApp: App {
+    @StateObject private var restaurantData = RestaurantData()
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView().environmentObject(restaurantData)
         }
     }
 }
