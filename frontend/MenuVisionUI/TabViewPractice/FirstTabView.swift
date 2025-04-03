@@ -54,12 +54,15 @@ struct FirstTabView: View {
                 VStack {
                     HStack {
                         
-                        Button(action: nothing){
+                        Button(action: nothing) {
                             BackIcon()
-                                .background(Color.orange300)
+                                .accentColor(.black)
+                                .padding(.horizontal, 10)
+                                .frame(minWidth: 30, minHeight: 30)
                         }
-                        .cornerRadius(6)
+                        .background(Color.orange300.cornerRadius(7))
                         .padding(.leading, 16)
+                        
                         
                         
                         Spacer()
