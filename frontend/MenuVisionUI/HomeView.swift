@@ -2,7 +2,6 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var selection = 2
-    @EnvironmentObject var restaurantData: RestaurantData
 
     var body: some View {
         TabView {

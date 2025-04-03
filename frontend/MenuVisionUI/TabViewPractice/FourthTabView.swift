@@ -12,6 +12,7 @@ import CoreLocation
 
 struct MenuScannerView: View {
     @EnvironmentObject var restaurantData: RestaurantData
+    @EnvironmentObject var dishMapping: DishMapping
     @StateObject private var camera = CameraManager()
     @State private var showAlert = false
     @State private var alertMessage = ""
@@ -95,7 +96,7 @@ struct MenuScannerView: View {
                                                 .padding(.horizontal)
                                             }
                                             .scrollIndicators(.visible)
-                                            .frame(maxHeight: UIScreen.main.bounds.height * 1)
+                                            .frame(maxHeight: .infinity)
 
                                         }
                                         .padding()
@@ -201,14 +202,18 @@ struct MenuScannerView: View {
                         showingLocationAlert = (newStatus == .denied || newStatus == .restricted)
                     }
                     .task(id: selectedRestaurant?.id) {
-                        guard let id = selectedRestaurant?.id, id != lastSelectedRestaurantID else { return }
-                        lastSelectedRestaurantID = id
-                        restaurantData.restaurant_id = id
-                        print("Triggering download for restaurant: \(id)")
-                        await ModelFileManager.shared.clearAndDownloadFiles(for: id)
-//                        shouldNavigateToFilesListView = true
+                        if let id = selectedRestaurant?.id,
+                           id != lastSelectedRestaurantID {
+//                            id ="ChIJ92rcyJWDRoYRotK6QCjsFf8"
+                            lastSelectedRestaurantID = id
+                            restaurantData.restaurant_id = id
+                            print("Triggering download for restaurant: \(id)")
+                            let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id)
+                            dishMapping.clear()
+                            dishMapping.setModels(models)
+//                            shouldNavigateToFilesListView = true
+                        }
                     }
-
 
                 } else {
                     VStack {

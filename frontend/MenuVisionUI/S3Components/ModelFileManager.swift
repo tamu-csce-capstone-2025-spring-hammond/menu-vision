@@ -15,15 +15,18 @@ class ModelFileManager {
 
     private init() {}
 
-    func clearAndDownloadFiles(for restaurantID: String) async {
+    func clearAndDownloadFiles(for restaurantID: String) async -> [DishData] {
         print("Clearing and downloading for restaurant: \(restaurantID)")
         await removeAllFiles()
-        let keys = await fetchModelKeysFromAPI(restaurantID: restaurantID)
+
+        let (keys, models) = await fetchModelKeysAndModelsFromAPI(restaurantID: restaurantID)
         if keys.isEmpty {
             print("No models found for restaurant \(restaurantID)")
-            return
+            return []
         }
+
         await asyncDownload(keys: keys)
+        return models
     }
 
     func removeAllFiles() async {
@@ -41,32 +44,29 @@ class ModelFileManager {
         }
     }
 
-    func fetchModelKeysFromAPI(restaurantID: String) async -> [String] {
-        guard !restaurantID.isEmpty,
-              let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/restaurant/\(restaurantID)/models")
-        else {
-            print("Invalid or empty restaurant ID")
-            return []
+    func fetchModelKeysAndModelsFromAPI(restaurantID: String) async -> ([String], [DishData]) {
+        guard let url = URL(string: "http://127.0.0.1:8080/ar/restaurant/\(restaurantID)/models") else {
+            return ([], [])
         }
 
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let models = json["models"] as? [[String: Any]] {
-                return models.compactMap { model in
-                    if let modelID = model["model_id"] as? String,
-                       !modelID.trimmingCharacters(in: .whitespaces).isEmpty {
-                        return "\(modelID).usdz"
-                    }
-                    return nil
-                }
-            }
-        } catch {
-            print("Error fetching/parsing models: \(error)")
-        }
+            let decoder = JSONDecoder()
+            let response = try decoder.decode(DishDataResponse.self, from: data)
 
-        return []
+            let validModels = response.models.filter {
+                !$0.dish_name.isEmpty && !$0.model_id.isEmpty
+            }
+
+            let keys = validModels.map { "\($0.model_id).usdz" }
+            return (keys, validModels)
+
+        } catch {
+            print("Failed to decode model data: \(error)")
+            return ([], [])
+        }
     }
+
 
     func asyncDownload(keys: [String]) async {
         do {
