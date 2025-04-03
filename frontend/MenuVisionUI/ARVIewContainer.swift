@@ -18,6 +18,12 @@ private var grounded: Bool = false;
 
 var modelIndex: Int = 0;
 
+var freestyleMode : Bool = false;
+
+var modelPlaced: Bool = false;
+
+var viewer: ARView!;
+
 private let modelMap: [Int: String] = [
     0: "apple_1",
     1: "avocado_1",
@@ -32,6 +38,12 @@ private let modelMap: [Int: String] = [
     10: "onion_1",
     11: "orange_1"
 ];
+
+func resetScene(){
+    modelPlaced = false;
+    viewer.scene.anchors.removeAll();
+    presentModels.removeAll();
+}
 
 extension simd_float4x4 {
     func toTranslation() -> SIMD3<Float> {
@@ -60,18 +72,39 @@ extension ARView: ARCoachingOverlayViewDelegate {
     }
 }
 
+//for some reason the mod can go negative here so I added the count again to ensure its positive
+func decModel(){
+    modelIndex = (modelIndex - 1 + modelMap.count) % modelMap.count;
+}
+
 func incModel(){
-    modelIndex = (modelIndex + 1) % modelMap.count;
+    modelIndex = (modelIndex + 1 + modelMap.count) % modelMap.count;
 }
 
 class ARViewManager: ObservableObject {
-
+    
     func changeModel(index: Int) {
         modelIndex = index;
+        
+        if (!freestyleMode){
+            swapModel();
+        }
     }
-
+    
+    func decrementModel() {
+        decModel();
+        
+        if (!freestyleMode){
+            swapModel();
+        }
+    }
+    
     func incrementModel() {
         incModel();
+        
+        if (!freestyleMode){
+            swapModel();
+        }
     }
     
     func currentIndex() -> Int {
@@ -86,6 +119,13 @@ class ARViewManager: ObservableObject {
     func getModelMap() -> [Int: String] {
         return modelMap;
     }
+    
+    func modeSwitch() {
+        freestyleMode.toggle();
+        
+        resetScene();
+    }
+    
 }
 
 
@@ -96,6 +136,8 @@ struct ARViewContainer: UIViewRepresentable {
     func makeUIView(context: Context) -> ARView {
         
         let arView = ARView(frame: .zero);
+        
+        viewer = arView;
         
         // Setup AR session with occlusion
         let config = ARWorldTrackingConfiguration();
@@ -228,9 +270,23 @@ struct ARViewContainer: UIViewRepresentable {
                 print("Hand tracking failed: \(error)")
             }
         }
+        
+        @objc func handleSwipe(_ gesture: UISwipeGestureRecognizer) {
+            
+            //toggle models upon swipe
+            
+            
+            
+        }
 
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let arView = arView else { return }
+            
+            //only do this if in freestyle mode after the first time
+            
+            if (!freestyleMode && modelPlaced){
+                return;
+            }
             
             //function takes in a tap and figures out what to do
             print("Tapped at:", gesture.location(in: arView));
@@ -336,12 +392,13 @@ struct ARViewContainer: UIViewRepresentable {
                     print("Hit detected at:", result.worldTransform.toTranslation())
                     //render the model at the detected anchor point
                     placeModel(from: result, in: arView);
+                    
+                    modelPlaced = true;
                 } else {
                     print("No surface detected");
                 }
             }
             
-           
         }
         
         @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
@@ -361,56 +418,82 @@ struct ARViewContainer: UIViewRepresentable {
                     presentModels.enumerated().forEach { i, pm in
                         if (pm.model.position == tappedModel.position){
                             
+                            if (!freestyleMode){
+                                //when its not freestyle mode i'll just let this be like a do over mode in case theres a bug with where the anchor was placed or something
+                                resetScene()
+                                return;
+                            }
+                            
                             //if already labelled then remove the label
                                                         
                             print("Deleting model", pm.model.name);
                             
+                            let oldPosition = pm.model.position;
+                            let oldAnchorPosition = pm.anchor.position;
+                            
                             pm.anchor.removeFromParent()
                             
                             presentModels.remove(at:i);
-                                                        
+                            
+                            //add smoke then remove it once its done
+                            /*var smoke = ParticleEmitterComponent()
+                            smoke.emitterShape = .sphere
+                            smoke.emitterShapeSize = [1,1,1] * 0.005
+
+                            smoke.mainEmitter.birthRate = 2000 //amount of particles spawned per frame
+                            smoke.mainEmitter.size = 0.1 //size of each particle
+                            smoke.mainEmitter.lifeSpan = 0.6 //how long each particle will stay active before disappearing
+                            
+                            smoke.mainEmitter.color = .evolving(start: .single(.lightGray),
+                                                                end: .single(.darkGray));
+                            
+                            var emissionDuration = 0.3;
+                                
+                            //how long the particles will be emitted
+                            smoke.timing = .once(warmUp: 0.01, emit: ParticleEmitterComponent.Timing.VariableDuration(duration:emissionDuration));
+                            
+                            let particleEntity = Entity()
+                            particleEntity.components.set(smoke);
+                            
+                            particleEntity.position = oldPosition;
+
+                            let smokeAnchor = AnchorEntity();
+                            
+                            smokeAnchor.position = oldAnchorPosition;
+                            
+                            smokeAnchor.addChild(particleEntity);
+                            
+                            arView.scene.addAnchor(smokeAnchor);
+                            
+                            //remove after smoke is done
+                            DispatchQueue.main.asyncAfter(deadline: .now() + emissionDuration + smoke.mainEmitter.lifeSpan) { [weak self] in
+                                arView.scene.removeAnchor(smokeAnchor)
+                            }*/
+
+                                                                
                         }
                     }
                                     
                 }
                 
             }
-            
            
         }
         
         func placeModel(from raycastResult: ARRaycastResult, in arView: ARView) {
             do {
                 //set up light
-                let light = DirectionalLight();
-                light.light.intensity = 1000;
-                light.isEnabled = true;
-                
-                let lightAnch = AnchorEntity(world: SIMD3(0.0, 0.0, 0.0));
-                lightAnch.addChild(light);
-                arView.scene.addAnchor(lightAnch);
-                
-                guard let modelName = modelMap[modelIndex] else {
-                    print("Error: model name is not to be found!");
-                    return;
+                if (!modelPlaced){
+                    let light = DirectionalLight();
+                    light.light.intensity = 1000;
+                    light.isEnabled = true;
+                    
+                    let lightAnch = AnchorEntity(world: SIMD3(0.0, 0.0, 0.0));
+                    lightAnch.addChild(light);
+                    arView.scene.addAnchor(lightAnch);
                 }
-                
-                //set up a model entity by loading in the usdz file and setting position to be slightly above ground
-                let model = try ModelEntity.loadModel(named: modelName);
-                model.position = SIMD3(0.0, 0.7, 0.0);
-                model.scale = [1.0, 1.0, 1.0];
                                 
-                //set up rigid body and collision components
-                
-                let mealPhysicsMaterial = PhysicsMaterialResource.generate(friction: 0.5, restitution: 0.5); //make material with low resitution so it doesnt bounce around
-                
-                let rigidBody: PhysicsBodyComponent = .init(massProperties: .default, material: mealPhysicsMaterial, mode: .dynamic );
-                
-                model.generateCollisionShapes(recursive: true); //generate a convex hull collision component for the model
-                                
-                model.components.set(rigidBody);
-                
-                model.physicsMotion = .init();
+                var model = createModel();
                 
                 //take in raycast result to set anchor and attach the model to this anchor then add anchor to scene
                 #if !XCODE_RUNNING_FOR_PREVIEWS
@@ -452,8 +535,8 @@ struct ARViewContainer: UIViewRepresentable {
                 //how long the particles will be emitted
                 particles.timing = .once(warmUp: 0.01, emit: ParticleEmitterComponent.Timing.VariableDuration(duration:0.5));
 
-                
                 model.components.set(particles);
+                
                 arView.scene.addAnchor(anchor);
                 
                 arView.installGestures(.translation, for: model);
@@ -467,6 +550,86 @@ struct ARViewContainer: UIViewRepresentable {
                 print("Error loading model: \(error)");
             }
         }
+        
+        
 
     }
+}
+
+func swapModel(){
+    
+    //can only be done after a model has been placed in the past and an anchor exists
+    if (!modelPlaced){
+        return;
+    }
+    
+    let oldModel = presentModels[0].model;
+    
+    presentModels[0].anchor.removeChild(presentModels[0].model);
+    
+    var model = createModel();
+    
+    model.position = oldModel.position;
+    
+    //add smoke
+    var smoke = ParticleEmitterComponent()
+    smoke.emitterShape = .sphere
+    smoke.emitterShapeSize = [1,1,1] * 0.005
+
+    smoke.mainEmitter.birthRate = 2000 //amount of particles spawned per frame
+    smoke.mainEmitter.size = 0.1 //size of each particle
+    smoke.mainEmitter.lifeSpan = 0.6 //how long each particle will stay active before disappearing
+    
+    smoke.mainEmitter.color = .evolving(start: .single(.lightGray),
+                                        end: .single(.white));
+        
+    //how long the particles will be emitted
+    smoke.timing = .once(warmUp: 0.01, emit: ParticleEmitterComponent.Timing.VariableDuration(duration:0.3));
+
+    model.components.set(smoke);
+    
+    presentModels[0].anchor.addChild(model);
+    
+    presentModels[0].model = model;
+    
+    viewer.installGestures(.translation, for: model);
+    
+}
+
+func createModel() -> ModelEntity{
+    
+    do{
+        
+        guard let modelName = modelMap[modelIndex] else {
+            print("Error: model name is not to be found!");
+            return ModelEntity();
+        }
+        
+        //set up a model entity by loading in the usdz file and setting position to be slightly above ground
+        let model = try ModelEntity.loadModel(named: modelName);
+        
+        model.position = SIMD3(0.0, 0.7, 0.0);
+        
+        model.scale = [1.0, 1.0, 1.0];
+                        
+        //set up rigid body and collision components
+        
+        let mealPhysicsMaterial = PhysicsMaterialResource.generate(friction: 0.5, restitution: 0.5); //make material with low resitution so it doesnt bounce around
+        
+        let rigidBody: PhysicsBodyComponent = .init(massProperties: .default, material: mealPhysicsMaterial, mode: .dynamic );
+        
+        model.generateCollisionShapes(recursive: true); //generate a convex hull collision component for the model
+                        
+        model.components.set(rigidBody);
+        
+        model.physicsMotion = .init();
+        
+        return model;
+        
+    } catch {
+        print("Error loading model: \(error)");
+    }
+    
+    return ModelEntity();
+    
 }
