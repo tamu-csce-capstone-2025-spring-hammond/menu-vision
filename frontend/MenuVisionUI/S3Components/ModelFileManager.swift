@@ -112,7 +112,7 @@ class ModelFileManager {
         if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
             do {
                 let files = try fileManager.contentsOfDirectory(at: documentsURL, includingPropertiesForKeys: nil)
-                print("Files in Documents directory:")
+                print("\nFiles in Documents directory:")
                 for file in files {
                     print("- \(file.lastPathComponent)")
                 }

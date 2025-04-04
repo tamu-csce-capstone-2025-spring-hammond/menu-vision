@@ -19,7 +19,7 @@ class DishMapping: ObservableObject {
 
         self.modelsByDishName = newMapping
 
-        print("DishMapping updated. Models by dish name:")
+        print("DishMapping updated:")
         for (dish, models) in modelsByDishName {
             print("\(dish): \(models.count) model(s)")
             for model in models {
