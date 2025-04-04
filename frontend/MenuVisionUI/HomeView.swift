@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct HomeView: View {
-
     @State private var selection = 1
     @EnvironmentObject var restaurantData: RestaurantData
 

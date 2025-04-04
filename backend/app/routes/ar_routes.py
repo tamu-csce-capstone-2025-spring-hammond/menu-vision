@@ -22,11 +22,15 @@ def ar_models(restaurant_id):
         for dish in restaurant.dishes:
             for model in dish.ar_models:
                 all_models.append({
+                    "dish_id": model.dish_id,
+                    "dish_name": dish.dish_name,
+                    "description": dish.description,
+                    "ingredients": dish.ingredients,
+                    "price": dish.price,
+                    "nutritional_info": dish.nutritional_info,
+                    "allergens": dish.allergens,
                     "model_id": model.model_id,
                     "model_rating": model.model_rating,
-                    "dish_id": model.dish_id,
-                    "uploaded_by": model.uploaded_by,
-                    "uploaded_at": model.uploaded_at.strftime("%Y-%m-%d %H:%M:%S")
                 })
 
         return jsonify({
@@ -203,3 +207,5 @@ def update_model(model_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+
