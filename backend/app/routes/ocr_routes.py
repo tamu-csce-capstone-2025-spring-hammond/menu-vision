@@ -60,7 +60,6 @@ def extract_menu(user_id):
 
         model = genai.GenerativeModel('gemini-1.5-flash-8b')
 
-        # Example of the JSON structure
         example_json = {
             "menu": {
                 "APPETIZERS": [
@@ -77,9 +76,10 @@ def extract_menu(user_id):
         }
 
         prompt = (
-            "You are an AI assistant that extracts structured menu details "
-            "from images. Extract ALL relevant details from the menu image "
-            "in strict JSON format, matching the schema as closely as possible.\n"
+            "You are an AI assistant that extracts structured menu details from images of menu."
+            "It is of the highest priority that you preserve exact spelling and formatting from the image."
+            "Extract ALL relevant details from the menu image in strict JSON format, matching the schema exactly.\n"
+            f"Here's an example of the desired JSON structure:\n{json.dumps(example_json, indent=2)}\n\n"
             "It is CRUCIAL to extract every menu category and all items within each category.\n"
             "NOTE: The 'dietary_info' field must always be a list. If there's nothing, return an empty list []."
             "IMPORTANT: The `price` must always be inside the `sizes` list as a dictionary with both `size` and `price` keys."
@@ -90,9 +90,8 @@ def extract_menu(user_id):
             "Ensure dish names are exactly as written, and sizes include "
             "weight (oz, g, lb) or volume (fl oz, ml) if specified.\n"
             "Output MUST be valid JSON. If a field is not present in the image, "
-            "its value should be 'null' if nullable, or an empty list/string if appropriate.\n"
-            "Preserve exact spelling and formatting from the image.\n\n"
-            f"Here's an example of the desired JSON structure:\n{json.dumps(example_json, indent=2)}\n\n"
+            "its value should be 'null' if nullable, or an empty list/string when appropriate.\n"
+            "Do NOT hallucinate. Only output JSON. Do NOT explain or include text outside the JSON structure."
             "Now, extract the menu details from the given image."
         )
         
@@ -113,8 +112,6 @@ def extract_menu(user_id):
         try:
             json_string = response.text.strip()
             structured_data = json.loads(json_string)
-
-            # Validate the output against the Pydantic model
             Menu.model_validate(structured_data)
 
         except json.JSONDecodeError as e:
@@ -123,6 +120,7 @@ def extract_menu(user_id):
                 'success': False,
                 'error': f'Failed to decode JSON: {e}'
             }), 500
+        
         except ValidationError as e:
             print(f"Pydantic Validation Error: {e}\nData: {structured_data}")
             return jsonify({
@@ -133,10 +131,8 @@ def extract_menu(user_id):
         restrictions = ', '.join(user.food_restrictions) if user.food_restrictions else "None"
         preferences = ', '.join(user.food_preferences) if user.food_preferences else "None"
 
-        print(restrictions, '\n',preferences)
-
         recommendation_prompt = f"""
-        You are a helpful food assistant recommending 3 dishes to a customer based on their allergies and food preferences.
+        You are a helpful food assistant recommending 3 dishes to a customer based on their user profile.
 
         User profile:
         - Age: {user.age}
@@ -144,10 +140,10 @@ def extract_menu(user_id):
         - Preferences: {preferences}
 
         Your strict instructions:
-        1. ONLY recommend dishes that completely avoid the user's allergens and dietary restrictions.
+        1. Top Priority: Recommend ONLY dishes that fully avoid the user's allergens and dietary restrictions. If a dish commonly contains a restricted ingredient (e.g., dairy in gelato), exclude it—even if not explicitly listed.
         2. Favor dishes that explicitly match the user's cuisine or dietary preferences (e.g., Chinese, Korean, Vegan). DO NOT make assumptions. If no dish matches preferences, pick the safest and most neutral options.
         3. Do NOT say a dish matches a cuisine preference unless the connection is explicitly clear.
-        4. Do NOT fabricate reasons (e.g., do not say espresso is “Asian cuisine”).
+        4. Do NOT fabricate or hallucinate non-existent reasons for recommendation (e.g., do not say espresso is “Asian cuisine”).
         5. Rank the dishes by relevance and provide a match score from 1 to 100%.
         6. Ignore dish categories entirely.
 
