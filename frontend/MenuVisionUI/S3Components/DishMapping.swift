@@ -26,6 +26,5 @@ class DishMapping: ObservableObject {
                 print("- model_id: \(model.model_id), dish_id: \(model.dish_id)")
             }
         }
-        print(modelsByDishName)
     }
 }
