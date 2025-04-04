@@ -6,7 +6,7 @@ import json
 import os
 from pydantic import BaseModel, Field, RootModel, ValidationError
 from typing import List, Optional, Dict, Union
-from app.routes.general_routes import get_nearby_restaurants
+from app.models import User
 
 ocr_bp = Blueprint("ocr", __name__)
 
@@ -43,8 +43,12 @@ class Menu(BaseModel):
 def ocr_home():
     return jsonify({"message": "OCR API Home"})
 
-@ocr_bp.route("/extract-menu", methods=["POST"])
-def extract_menu():
+@ocr_bp.route("/extract-menu/<int:user_id>", methods=["POST"])
+def extract_menu(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
     if "image" not in request.files:
         return jsonify({"error": "No image uploaded"}), 400
 
@@ -77,6 +81,7 @@ def extract_menu():
             "from images. Extract ALL relevant details from the menu image "
             "in strict JSON format, matching the schema as closely as possible.\n"
             "It is CRUCIAL to extract every menu category and all items within each category.\n"
+            "NOTE: The 'dietary_info' field must always be a list. If there's nothing, return an empty list []."
             "IMPORTANT: The `price` must always be inside the `sizes` list as a dictionary with both `size` and `price` keys."
             "If the size is not specified, use a default value like `Regular`"
             "DO NOT place the `price` as a top-level field in the menu item."
@@ -124,8 +129,61 @@ def extract_menu():
                 'success': False,
                 'error': f'Data validation failed: {e}'
             }), 400
+        
+        restrictions = ', '.join(user.food_restrictions) if user.food_restrictions else "None"
+        preferences = ', '.join(user.food_preferences) if user.food_preferences else "None"
 
-        return jsonify(structured_data)
+        print(restrictions, '\n',preferences)
+
+        recommendation_prompt = f"""
+        You are a helpful food assistant recommending 3 dishes to a customer based on their allergies and food preferences.
+
+        User profile:
+        - Age: {user.age}
+        - Allergens and dietary restrictions: {restrictions}
+        - Preferences: {preferences}
+
+        Your strict instructions:
+        1. ONLY recommend dishes that completely avoid the user's allergens and dietary restrictions.
+        2. Favor dishes that explicitly match the user's cuisine or dietary preferences (e.g., Chinese, Korean, Vegan). DO NOT make assumptions. If no dish matches preferences, pick the safest and most neutral options.
+        3. Do NOT say a dish matches a cuisine preference unless the connection is explicitly clear.
+        4. Do NOT fabricate reasons (e.g., do not say espresso is “Asian cuisine”).
+        5. Rank the dishes by relevance and provide a match score from 1 to 100%.
+        6. Ignore dish categories entirely.
+
+        Return ONLY valid JSON in this format:
+        {{
+        "recommendations": [
+            {{
+            "name": "<Dish Name>",
+            "match_score": "<Match Score from 1 to 100>",
+            "reason": "<Why this dish suits the user based on their profile>"
+            }},
+            ...
+        ]
+        }}
+
+        Menu:
+        {json.dumps(structured_data['menu'], indent=2)}
+        """
+
+        recommendation_response = model.generate_content(
+            [recommendation_prompt],
+            generation_config=genai.types.GenerationConfig(
+                response_mime_type="application/json"
+            ),
+        )
+
+        try:
+            recommendation_json = json.loads(recommendation_response.text.strip())
+        except json.JSONDecodeError as e:
+            print("Recommendation JSON error:", e)
+            recommendation_json = {"recommendations": []}
+
+        return jsonify({
+            "menu": structured_data["menu"],
+            "recommendations": recommendation_json.get("recommendations", [])
+        })
 
     except Exception as e:
         print(f"Error calling Gemini API: {e}")
