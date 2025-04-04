@@ -107,4 +107,19 @@ class ModelFileManager {
             print("Error configuring AWS: \(error)")
         }
     }
+    
+    func listAllFilesInDocumentsDirectory() {
+        let fileManager = FileManager.default
+        if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+            do {
+                let files = try fileManager.contentsOfDirectory(at: documentsURL, includingPropertiesForKeys: nil)
+                print("Files in Documents directory:")
+                for file in files {
+                    print("- \(file.lastPathComponent)")
+                }
+            } catch {
+                print("Failed to list files: \(error.localizedDescription)")
+            }
+        }
+    }
 }

@@ -204,14 +204,13 @@ struct MenuScannerView: View {
                     .task(id: selectedRestaurant?.id) {
                         if let id = selectedRestaurant?.id,
                            id != lastSelectedRestaurantID {
-//                            id ="ChIJ92rcyJWDRoYRotK6QCjsFf8"
                             lastSelectedRestaurantID = id
                             restaurantData.restaurant_id = id
                             print("Triggering download for restaurant: \(id)")
                             let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id)
-                            dishMapping.clear()
                             dishMapping.setModels(models)
 //                            shouldNavigateToFilesListView = true
+//                            ModelFileManager.shared.listAllFilesInDocumentsDirectory()
                         }
                     }
 
