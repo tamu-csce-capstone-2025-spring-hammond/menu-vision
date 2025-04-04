@@ -10,9 +10,12 @@ import SwiftUI
 @main
 struct MenuVisionUIApp: App {
     @StateObject private var restaurantData = RestaurantData()
+    @StateObject private var dishMapping = DishMapping()
     var body: some Scene {
         WindowGroup {
-            ContentView().environmentObject(restaurantData)
+            ContentView()
+                .environmentObject(restaurantData)
+                .environmentObject(dishMapping)
         }
     }
 }
