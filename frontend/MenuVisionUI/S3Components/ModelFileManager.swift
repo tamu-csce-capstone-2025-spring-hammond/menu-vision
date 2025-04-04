@@ -21,7 +21,6 @@ class ModelFileManager {
 
         let (keys, models) = await fetchModelKeysAndModelsFromAPI(restaurantID: restaurantID)
         if keys.isEmpty {
-            print("No models found for restaurant \(restaurantID)")
             return []
         }
 
@@ -62,7 +61,7 @@ class ModelFileManager {
             return (keys, validModels)
 
         } catch {
-            print("Failed to decode model data: \(error)")
+            print("No model data found for restaurant: \(restaurantID)")
             return ([], [])
         }
     }
