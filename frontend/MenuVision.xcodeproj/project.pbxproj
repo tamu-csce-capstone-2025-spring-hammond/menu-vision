@@ -8,6 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		22A0B9462D90F49F00FC38D4 /* AWSS3 in Frameworks */ = {isa = PBXBuildFile; productRef = 22A0B9452D90F49F00FC38D4 /* AWSS3 */; };
+		22D5D6E82DA1D50C00F6A040 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 22D5D6E72DA1D50B00F6A040 /* GoogleService-Info.plist */; };
+		22D5D6EB2DA1D5D900F6A040 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 22D5D6EA2DA1D5D900F6A040 /* FirebaseAnalytics */; };
+		22D5D6ED2DA1D5D900F6A040 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 22D5D6EC2DA1D5D900F6A040 /* FirebaseAuth */; };
+		22D5D6EF2DA1D5D900F6A040 /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 22D5D6EE2DA1D5D900F6A040 /* FirebaseAuthCombine-Community */; };
+		22D5D6F12DA1D78A00F6A040 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 22D5D6F02DA1D78A00F6A040 /* FirebaseCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,6 +33,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		22D5D6E72DA1D50B00F6A040 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		22E59CC12D6FA92C00D6C4B5 /* MenuVision.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MenuVision.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		22E59CD22D6FA92D00D6C4B5 /* MenuVisionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MenuVisionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		22E59CDC2D6FA92D00D6C4B5 /* MenuVisionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MenuVisionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -56,7 +62,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				22D5D6EB2DA1D5D900F6A040 /* FirebaseAnalytics in Frameworks */,
+				22D5D6F12DA1D78A00F6A040 /* FirebaseCore in Frameworks */,
+				22D5D6ED2DA1D5D900F6A040 /* FirebaseAuth in Frameworks */,
 				22A0B9462D90F49F00FC38D4 /* AWSS3 in Frameworks */,
+				22D5D6EF2DA1D5D900F6A040 /* FirebaseAuthCombine-Community in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -80,6 +90,7 @@
 		22E59CB82D6FA92C00D6C4B5 = {
 			isa = PBXGroup;
 			children = (
+				22D5D6E72DA1D50B00F6A040 /* GoogleService-Info.plist */,
 				22E59CC32D6FA92C00D6C4B5 /* MenuVisionUI */,
 				22E59CD52D6FA92D00D6C4B5 /* MenuVisionUITests */,
 				22E59CDF2D6FA92D00D6C4B5 /* MenuVisionUIUITests */,
@@ -118,6 +129,10 @@
 			name = MenuVision;
 			packageProductDependencies = (
 				22A0B9452D90F49F00FC38D4 /* AWSS3 */,
+				22D5D6EA2DA1D5D900F6A040 /* FirebaseAnalytics */,
+				22D5D6EC2DA1D5D900F6A040 /* FirebaseAuth */,
+				22D5D6EE2DA1D5D900F6A040 /* FirebaseAuthCombine-Community */,
+				22D5D6F02DA1D78A00F6A040 /* FirebaseCore */,
 			);
 			productName = MenuVisionUI;
 			productReference = 22E59CC12D6FA92C00D6C4B5 /* MenuVision.app */;
@@ -203,6 +218,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				22A0B9442D90F49F00FC38D4 /* XCRemoteSwiftPackageReference "aws-sdk-swift" */,
+				22D5D6E92DA1D5D900F6A040 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 22E59CC22D6FA92C00D6C4B5 /* Products */;
@@ -221,6 +237,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				22D5D6E82DA1D50C00F6A040 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -402,7 +419,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"MenuVisionUI/Preview Content\"";
-				DEVELOPMENT_TEAM = 35V6Z2DFK2;
+				DEVELOPMENT_TEAM = 8A6L2RN8GW;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
@@ -426,7 +443,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.anil.MenuVisionUI2212;
+				PRODUCT_BUNDLE_IDENTIFIER = com.SamuelZhou.MenuVisionUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -447,7 +464,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"MenuVisionUI/Preview Content\"";
-				DEVELOPMENT_TEAM = 35V6Z2DFK2;
+				DEVELOPMENT_TEAM = 8A6L2RN8GW;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
@@ -471,7 +488,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.anil.MenuVisionUI2212;
+				PRODUCT_BUNDLE_IDENTIFIER = com.SamuelZhou.MenuVisionUI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -618,6 +635,14 @@
 				minimumVersion = 1.2.43;
 			};
 		};
+		22D5D6E92DA1D5D900F6A040 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.11.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -625,6 +650,26 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 22A0B9442D90F49F00FC38D4 /* XCRemoteSwiftPackageReference "aws-sdk-swift" */;
 			productName = AWSS3;
+		};
+		22D5D6EA2DA1D5D900F6A040 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 22D5D6E92DA1D5D900F6A040 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		22D5D6EC2DA1D5D900F6A040 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 22D5D6E92DA1D5D900F6A040 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		22D5D6EE2DA1D5D900F6A040 /* FirebaseAuthCombine-Community */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 22D5D6E92DA1D5D900F6A040 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = "FirebaseAuthCombine-Community";
+		};
+		22D5D6F02DA1D78A00F6A040 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 22D5D6E92DA1D5D900F6A040 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

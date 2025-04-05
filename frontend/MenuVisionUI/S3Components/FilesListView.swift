@@ -14,7 +14,6 @@ import AWSSDKIdentity
 
 struct FilesListView: View {
     @State private var fileNames: [String] = []
-    
     var body: some View {
         NavigationView {
             VStack {
@@ -29,7 +28,7 @@ struct FilesListView: View {
                 .padding()
                 Button("download Files") {
                     Task {
-//                        await s3testing()
+                        await s3testing( modelPath: URL(string: "")!)
                     }
                 }
                 .padding()
@@ -89,7 +88,7 @@ struct FilesListView: View {
     func s3testing(modelPath: URL) async {
         
         do {
-//            let transferUtility = AWSS3TransferUtility.default()
+            //            let transferUtility = AWSS3TransferUtility.default()
             // Setup AWS credentials (replace with your own or use a secure method).
             let env = ProcessInfo.processInfo.environment
             let credentials = AWSCredentialIdentity(
@@ -107,26 +106,31 @@ struct FilesListView: View {
             
             // Instantiate ServiceHandler with the S3 client.
             let serviceHandler = ServiceHandler(client: s3Client)
-           
+            
             // List buckets (example call).
             let buckets = try await serviceHandler.listBuckets()
             print("Buckets available:", buckets)
             // Download a file from S3 to the Documents directory.
-//            let fileManager = FileManager.default
-//            if let documentsDirectoryURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
-//                let documentsDirectoryPath = documentsDirectoryURL.path
-//                try await serviceHandler.downloadFile(bucket: "usdz-store-test", key: "pancakes.usdz", to: documentsDirectoryPath)
-//            }
+            let fileManager = FileManager.default
+            if let documentsDirectoryURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+                let documentsDirectoryPath = documentsDirectoryURL.path
+                try await serviceHandler.downloadFile(bucket: "usdz-store-test", key: "texgen_0.png", to: documentsDirectoryPath)
+            }
+        } catch {
+            print("Error occurred in s3testing: \(error)")
+            //
+        }
 //            // testing: upload
 //            if let fileURL = Bundle.main.url(forResource: "apple_1", withExtension: "usdz") {                try await serviceHandler.uploadFile(bucket: "usdz-store-test", key: "apple_1.usdz", file: fileURL.path)
 //            } else {
 //                print("File not found.")
 //            }
-            let uuid = UUID().uuidString
-            try await serviceHandler.uploadFile(bucket: "usdz-store-test", key: "\(uuid).usdz", file: modelPath.path)
-        } catch {
-            print("Error occurred in s3testing: \(error)")
-        }
+//            let uuid = UUID().uuidString
+//            try await serviceHandler.uploadFile(bucket: "usdz-store-test", key: "\(uuid).usdz", file: modelPath.path)
+//        } catch {
+//            print("Error occurred in s3testing: \(error)")
+//        }
+            
         
     }
     
