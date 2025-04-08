@@ -44,7 +44,7 @@ class ModelFileManager {
     }
 
     func fetchModelKeysAndModelsFromAPI(restaurantID: String) async -> ([String], [DishData]) {
-        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/\(restaurantID)/models") else {
+        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/restaurant/\(restaurantID)/models") else {
             return ([], [])
         }
 
