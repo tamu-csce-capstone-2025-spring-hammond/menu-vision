@@ -34,6 +34,8 @@ class ARModel(db.Model):
     dish_id = db.Column(db.Integer, db.ForeignKey("dish_items.dish_id"), nullable=False)
     uploaded_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    up_votes = db.Column(db.Integer, default=0)
+    down_votes = db.Column(db.Integer, default=0)
 
     reports = db.relationship("ModelReport", backref="model", lazy=True)
 
