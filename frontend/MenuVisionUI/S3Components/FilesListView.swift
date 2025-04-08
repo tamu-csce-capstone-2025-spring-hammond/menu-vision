@@ -50,7 +50,7 @@ struct FilesListView: View {
     }
     
     // s3testing() is responsible for the S3 operations.
-    func s3testing(modelPath: URL) async {
+    func s3testing(modelPath: URL, identificationNumber: String) async {
         
         do {
             //            let transferUtility = AWSS3TransferUtility.default()
@@ -86,9 +86,9 @@ struct FilesListView: View {
             //            } else {
             //                print("File not found.")
             //            }
-            let uuid = UUID().uuidString
+//            let uuid = UUID().uuidString
             let fileExtension = (modelPath.path as NSString).pathExtension
-            let key = "\(uuid).\(fileExtension)"
+            let key = "\(identificationNumber).\(fileExtension)"
             try await serviceHandler.uploadFile(bucket: "usdz-store-test", key: key, file: modelPath.path)
         } catch {
             print("Error occurred in s3testing: \(error)")
