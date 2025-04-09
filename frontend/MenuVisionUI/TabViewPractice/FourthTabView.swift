@@ -253,6 +253,7 @@ struct MenuScannerView: View {
                             
                             print("\nAttempting download for restaurant: \(id)")
                             
+                            //I use these for starting the ar view
                             dishMapping.setStartedDownloading();
                             dishMapping.setStartedLoading();
                             
@@ -264,6 +265,7 @@ struct MenuScannerView: View {
                                 //ModelFileManager.shared.listAllFilesInDocumentsDirectory()
                             }
                             
+                            //set finished loading is called in the arview container
                             dishMapping.setFinishedDownloading();
                         }
                     }

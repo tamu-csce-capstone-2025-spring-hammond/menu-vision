@@ -150,15 +150,21 @@ struct FirstTabView: View {
                                 
                                 documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first;
                                 
+                                //I know this is cooked forgive me
+                                
                                 pollForLoadingCompletion();
                                 
-                                refreshUI.toggle();
+                                refreshUI.toggle(); //once model map is loaded into refresh the view by toggling this variable
                                 
                             }
                         }
                     }
             }
             else{
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                    .scaleEffect(1.3)
+
                 Text("Loading models...")
             }
             
