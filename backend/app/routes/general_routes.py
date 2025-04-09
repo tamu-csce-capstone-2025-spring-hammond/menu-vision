@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 import requests
 import os
+from app.models import Key
 
 general_bp = Blueprint("general", __name__)
 
@@ -41,3 +42,21 @@ def get_nearby_restaurants(longitude=None, latitude=None):
     
     response = requests.post(url, headers=headers, json=data)
     return jsonify(response.json())
+
+@general_bp.route("/keys", methods=["GET"])
+def get_aws_credentials():
+    try:
+        # Query the database for the AWS credentials
+        access_key = Key.query.filter_by(name="AWS_ACCESS_KEY").first()
+        secret_key = Key.query.filter_by(name="AWS_SECRET_KEY").first()
+        
+        if not access_key or not secret_key:
+            return jsonify({"error": "AWS credentials not found in the database"}), 404
+        
+        # Return the keys in the response
+        return jsonify({
+            "AWS_ACCESS_KEY": access_key.value,
+            "AWS_SECRET_KEY": secret_key.value
+        })
+    except Exception as e:
+        return jsonify({"error": f"Failed to retrieve AWS credentials: {str(e)}"}), 500
