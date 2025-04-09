@@ -9,6 +9,10 @@ import Foundation
 
 class DishMapping: ObservableObject {
     @Published var modelsByDishName: [String: [DishData]] = [:]
+    
+    @Published var finishedDownloading: Bool = false;
+    
+    @Published var finishedLoading: Bool = false;
 
     func setModels(_ models: [DishData]) {
         var newMapping: [String: [DishData]] = [:]
@@ -26,5 +30,33 @@ class DishMapping: ObservableObject {
                 print("- model_id: \(model.model_id), dish_id: \(model.dish_id)")
             }
         }
+    }
+    
+    func getModels() -> [String: [DishData]]{
+        return modelsByDishName;
+    }
+    
+    func setStartedDownloading(){
+        self.finishedDownloading = false;
+    }
+    
+    func setFinishedDownloading(){
+        self.finishedDownloading = true;
+    }
+    
+    func isFinishedDownloading() -> Bool{
+        return finishedDownloading;
+    }
+    
+    func setStartedLoading(){
+        self.finishedLoading = false;
+    }
+    
+    func setFinishedLoading(){
+        self.finishedLoading = true;
+    }
+    
+    func isFinishedLoading() -> Bool{
+        return finishedLoading;
     }
 }
