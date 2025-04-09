@@ -26,7 +26,7 @@ struct HomeView: View {
                     Label("Profile", systemImage: "person")
                 }
                 .tag(2)
-
+            
         }
         .accentColor(.orange300)
         /*.gesture(

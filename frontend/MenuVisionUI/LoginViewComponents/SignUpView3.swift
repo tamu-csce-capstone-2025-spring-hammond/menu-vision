@@ -19,6 +19,14 @@ struct SignUpView3: View {
     @State private var agreedToTerms: Bool = false
     @Environment(\.presentationMode) var presentationMode
     @State private var navigateToRoot = false
+    
+    // Add state variables for validation
+    @State private var passwordsMatch: Bool = true
+    @State private var showPasswordMismatchAlert: Bool = false
+    
+    // Add state variables for successful signup notification
+    @State private var showSignupSuccessAlert: Bool = false
+    @State private var signupSuccessMessage: String = ""
 
     private let orangeHighlight = Color(red: 254/255, green: 215/255, blue: 170/255)
     private let orangeButton = Color(red: 253/255, green: 186/255, blue: 116/255)
@@ -81,9 +89,28 @@ struct SignUpView3: View {
                     InputField(title: "Age", text: $age, placeholder: "e.g. 14")
                     InputField(title: "Email Address", text: $email, placeholder: "name@email.com", keyboardType: .emailAddress)
                     PasswordField(title: "Password", password: $password, placeholder: "Create a password")
-                    PasswordField(title: "", password: $confirmPassword, placeholder: "Confirm password")
+                    
+                    // Add validation message for confirm password field
+                    VStack(alignment: .leading, spacing: 4) {
+                        PasswordField(title: "", password: $confirmPassword, placeholder: "Confirm password")
+                        
+                        if !passwordsMatch {
+                            Text("Passwords do not match")
+                                .font(.system(size: 12))
+                                .foregroundColor(.red)
+                                .padding(.leading, 2)
+                        }
+                    }
                 }
                 .padding(.top, 22)
+                
+                // Check password match whenever either password field changes
+                .onChange(of: password) { _ in
+                    validatePasswords()
+                }
+                .onChange(of: confirmPassword) { _ in
+                    validatePasswords()
+                }
 
                 CheckboxField(
                     isChecked: $agreedToTerms,
@@ -92,6 +119,12 @@ struct SignUpView3: View {
                 .padding(.top, 55)
 
                 Button(action: {
+                    // First, validate the passwords match
+                    if !validatePasswords() {
+                        showPasswordMismatchAlert = true
+                        return
+                    }
+                    
                     // Store values in shared signUpData
                     signUpData.first_name = first_name
                     signUpData.last_name = last_name
@@ -100,15 +133,6 @@ struct SignUpView3: View {
                     signUpData.password = password
 
                     sendSignUpData()
-
-                    // Simulate dismiss to root after sending
-                    navigateToRoot = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                           let rootViewController = windowScene.windows.first?.rootViewController {
-                            findNavigationController(from: rootViewController)?.popToRootViewController(animated: true)
-                        }
-                    }
                 }) {
                     Text("Sign Up")
                         .font(.system(size: 12, weight: .semibold))
@@ -130,6 +154,35 @@ struct SignUpView3: View {
         .navigationBarBackButtonHidden(true)
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+        .alert("Passwords Don't Match", isPresented: $showPasswordMismatchAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Please make sure your passwords match.")
+        }
+        .alert("Account Created", isPresented: $showSignupSuccessAlert) {
+            Button("OK", role: .cancel) {
+                // Navigate to root after dismissing the success alert
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootViewController = windowScene.windows.first?.rootViewController {
+                    findNavigationController(from: rootViewController)?.popToRootViewController(animated: true)
+                }
+            }
+        } message: {
+            Text(signupSuccessMessage)
+        }
+    }
+    
+    // Function to validate that passwords match
+    private func validatePasswords() -> Bool {
+        if password.isEmpty && confirmPassword.isEmpty {
+            // Both empty, don't show error yet
+            passwordsMatch = true
+            return false
+        }
+        
+        let match = password == confirmPassword
+        passwordsMatch = match
+        return match
     }
 
     private func sendSignUpData() {
@@ -180,8 +233,20 @@ struct SignUpView3: View {
                         if let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                            let message = response["message"] as? String {
                             print("Signup success: \(message)")
+                            
+                            // Show success notification
+                            if let userId = response["user_id"] as? Int {
+                                signupSuccessMessage = "Account successfully created for \(first_name) \(last_name)! Your user ID is: \(userId)"
+                            } else {
+                                signupSuccessMessage = "Your account has been successfully created!"
+                            }
+                            showSignupSuccessAlert = true
                         } else {
                             print("Signup response missing message")
+                            
+                            // Generic success message if response doesn't contain specifics
+                            signupSuccessMessage = "Your account has been created successfully!"
+                            showSignupSuccessAlert = true
                         }
                     case .failure(let error):
                         print("Signup request failed: \(error.localizedDescription)")
