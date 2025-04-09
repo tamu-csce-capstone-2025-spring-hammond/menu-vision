@@ -12,6 +12,8 @@ struct FirstTabView: View {
     @State private var modelIndex: Int = 0;
     @State private var freestyleMode: Bool = false;
     
+    @State private var showReportModal: Bool = false;
+    
     @State var refreshUI: Bool = false;
     
     @EnvironmentObject var dishMapping: DishMapping;
@@ -96,6 +98,30 @@ struct FirstTabView: View {
                         
                                     
                         Spacer()
+                        
+                        HStack {
+                                Button(action: {
+                                    nothing();
+                                }) {
+                                    Image(systemName: "info.circle")
+                                        .padding(8)
+                                        .background(Color.black.opacity(0.6))
+                                        .clipShape(Circle())
+                                }
+
+                                Spacer()
+
+                                Button(action: {
+                                    showReportModal = true;
+                                }) {
+                                    Image(systemName: "flag")
+                                        .padding(8)
+                                        .background(Color.black.opacity(0.6))
+                                        .clipShape(Circle())
+                                }
+                            }
+                            .padding(.horizontal, 16)
+
                                                                         
                             ScrollView(.horizontal) {
                                 LazyHStack(spacing: 0) {
@@ -184,6 +210,30 @@ struct FirstTabView: View {
                         }
                     }
                 }
+        .sheet(isPresented: $showReportModal) {
+            VStack(spacing: 20) {
+                Text("Report Content")
+                    .font(.headline)
+
+                Text("Are you sure you want to report this item?")
+                    .multilineTextAlignment(.center)
+                    .padding()
+
+                Button("Submit Report") {
+                    // handle report logic here
+                    showReportModal = false
+                }
+                .padding()
+                .background(Color.red)
+                .foregroundColor(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                Button("Cancel") {
+                    showReportModal = false
+                }
+            }
+            .padding()
+        }
 
         
     }
