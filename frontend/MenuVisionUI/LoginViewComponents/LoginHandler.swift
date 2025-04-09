@@ -67,7 +67,7 @@ class LoginHandler {
     
     func fetchAWSCredentials() {
         API.shared.request(
-            endpoint: "general/aws-credentials",
+            endpoint: "general/keys",
             method: "GET"
         ) { result in
             switch result {
