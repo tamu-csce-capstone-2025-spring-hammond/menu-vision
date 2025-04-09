@@ -67,21 +67,12 @@ struct FirstTabView: View {
                         )
                     
                     VStack {
+                        
                         HStack {
+                                                        
+                            //Spacer()
                             
-                            Button(action: nothing) {
-                                BackIcon()
-                                    .accentColor(.black)
-                                    .padding(.horizontal, 10)
-                                    .frame(minWidth: 30, minHeight: 30)
-                            }
-                            .background(Color.orange300.cornerRadius(7))
-                            .padding(.leading, 16)
-                            
-                            
-                            Spacer()
-                            
-                            Text("\(viewManager.getCurrentModelName())")
+                            /*Text("\(viewManager.getCurrentModelName())")
                                 .foregroundColor(.white)
                                 .padding(.leading, 16)
                             
@@ -99,7 +90,7 @@ struct FirstTabView: View {
                                 }
                                 .onChange(of: freestyleMode) {
                                     viewManager.modeSwitch();
-                            }
+                            }*/
 
                         }
                         
@@ -169,6 +160,31 @@ struct FirstTabView: View {
             }
             
         }
+        .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    
+                    ToolbarItem(placement: .topBarLeading) {
+                        Text(viewManager.getCurrentModelName())
+                            .foregroundColor(.white)
+                            .padding(.leading, 20);
+                    }
+                    
+                    
+                    ToolbarItem(placement: .topBarTrailing) {
+                        HStack {
+                            Toggle("", isOn: $freestyleMode)
+                                .toggleStyle(SwitchToggleStyle())
+                                .frame(width: 50)
+                            
+                            Text("Freestyle")
+                                .foregroundColor(Color.orange300)
+                        }
+                        .onChange(of: freestyleMode) {
+                            viewManager.modeSwitch()
+                        }
+                    }
+                }
+
         
     }
 }
