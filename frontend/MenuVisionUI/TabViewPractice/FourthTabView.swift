@@ -27,7 +27,7 @@ struct MenuScannerView: View {
     @State private var shouldNavigateToResult = false
     @State private var shouldNavigateToFilesListView = false
     @State private var lastSelectedRestaurantID: String?
-
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -51,18 +51,20 @@ struct MenuScannerView: View {
                                 Group {
                                     if let displayName = selectedRestaurant?.displayName?.text {
                                         VStack(spacing: 10) {
-                                            Text("Selected: \(displayName)")
+                                            
+                                            Text("\(displayName)")
                                                 .font(.headline)
                                                 .padding()
                                                 .frame(maxWidth: .infinity, alignment: .center)
-                                                .background(Color.green.opacity(0.6))
+                                                .background(Color.orange300.opacity(0.6))
                                                 .cornerRadius(10)
-
-                                            Button("Change Restaurant") {
+                                                
+                                            
+                                            /*Button("Change Restaurant") {
                                                 selectedRestaurant = nil
                                             }
                                             .padding(.bottom)
-                                            .foregroundColor(.red)
+                                            .foregroundColor(.red)*/
                                         }
                                     } else if !restaurants.isEmpty {
                                         VStack(spacing: 16) {
@@ -108,46 +110,87 @@ struct MenuScannerView: View {
                                 }
 
                                 Spacer()
-
-                                Button(action: {
-                                    guard !isProcessing else { return }
-                                    isProcessing = true
-                                    camera.capturePhoto { image in
-                                        if let image = image {
-                                            capturedImage = image
-                                            sendImageToAPI(image: image)
-                                        } else {
-                                            alertMessage = "Failed to capture image"
-                                            showAlert = true
+                                
+                                HStack {
+                                    
+                                    if let displayName = selectedRestaurant?.displayName?.text {
+                                        Button("Change Restaurant") {
+                                            selectedRestaurant = nil
                                         }
-                                        DispatchQueue.main.async {
-                                            isProcessing = false
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 10)
+                                        .background(Color.red)
+                                        .foregroundColor(.white)
+                                        .clipShape(Capsule())
+                                    }
+                                    else{
+                                        Spacer();
+                                    }
+                                    
+                                    Spacer();
+                                    
+                                    Button(action: {
+                                        guard !isProcessing else { return }
+                                        isProcessing = true
+                                        camera.capturePhoto { image in
+                                            if let image = image {
+                                                capturedImage = image
+                                                sendImageToAPI(image: image)
+                                            } else {
+                                                alertMessage = "Failed to capture image"
+                                                showAlert = true
+                                            }
+                                            DispatchQueue.main.async {
+                                                isProcessing = false
+                                            }
+                                        }
+                                    }) {
+                                        ZStack {
+                                            Circle()
+                                                .fill(.white)
+                                                .frame(width: 75, height: 75)
+                                                .overlay(
+                                                    Circle()
+                                                        .stroke(Color.gray.opacity(selectedRestaurant == nil ? 0.6 : 0), lineWidth: 2)
+                                                )
+
+                                            if isProcessing {
+                                                ProgressView()
+                                                    .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                                                    .scaleEffect(1.3)
+                                            } else {
+                                                Image(systemName: "camera.fill")
+                                                    .font(.title)
+                                                    .foregroundColor(.black.opacity(selectedRestaurant == nil ? 0.3 : 1))
+                                            }
                                         }
                                     }
-                                }) {
-                                    ZStack {
-                                        Circle()
-                                            .fill(.white)
-                                            .frame(width: 75, height: 75)
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(Color.gray.opacity(selectedRestaurant == nil ? 0.6 : 0), lineWidth: 2)
-                                            )
-
-                                        if isProcessing {
-                                            ProgressView()
-                                                .progressViewStyle(CircularProgressViewStyle(tint: .blue))
-                                                .scaleEffect(1.3)
-                                        } else {
-                                            Image(systemName: "camera.fill")
-                                                .font(.title)
-                                                .foregroundColor(.black.opacity(selectedRestaurant == nil ? 0.3 : 1))
-                                        }
+                                    .disabled(selectedRestaurant == nil || isProcessing)
+                                    .opacity(selectedRestaurant == nil ? 0.4 : 1)
+                                    .padding(.bottom, 30)
+                                    
+                                    Spacer();
+                                    
+                                    if let displayName = selectedRestaurant?.displayName?.text {
+                                        
+                                            NavigationLink(destination: FirstTabView().environmentObject(dishMapping)){
+                                                Text("View AR Collection")
+                                                    .padding(.horizontal, 12)
+                                                    .padding(.vertical, 10)
+                                                    .background(Color.blue)
+                                                    .foregroundColor(.white)
+                                                    .clipShape(Capsule())
+                                            }
+                                        
+                                        
                                     }
+                                    else{
+                                        Spacer();
+                                    }
+                                    
                                 }
-                                .disabled(selectedRestaurant == nil || isProcessing)
-                                .opacity(selectedRestaurant == nil ? 0.4 : 1)
-                                .padding(.bottom, 30)
+
+                                
                             }
                             .padding(.horizontal)
 
@@ -204,15 +247,26 @@ struct MenuScannerView: View {
                     .task(id: selectedRestaurant?.id) {
                         if let id = selectedRestaurant?.id,
                            id != lastSelectedRestaurantID {
+                            
                             lastSelectedRestaurantID = id
                             restaurantData.restaurant_id = id
+                            
                             print("\nAttempting download for restaurant: \(id)")
+                            
+                            //I use these for starting the ar view
+                            dishMapping.setStartedDownloading();
+                            dishMapping.setStartedLoading();
+                            
                             let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id)
+                            
                             if !models.isEmpty {
                                 dishMapping.setModels(models)
-                                // shouldNavigateToFilesListView = true
-                                // ModelFileManager.shared.listAllFilesInDocumentsDirectory()
+                                //shouldNavigateToFilesListView = true
+                                //ModelFileManager.shared.listAllFilesInDocumentsDirectory()
                             }
+                            
+                            //set finished loading is called in the arview container
+                            dishMapping.setFinishedDownloading();
                         }
                     }
                 } else {
@@ -268,8 +322,10 @@ struct MenuScannerView: View {
 
     func sendImageToAPI(image: UIImage) {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+        
+        let userId = UserDefaults.standard.integer(forKey: "user_id");
 
-        let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ocr/extract-menu")!
+        let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ocr/extract-menu/\(userId)")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         let boundary = UUID().uuidString
