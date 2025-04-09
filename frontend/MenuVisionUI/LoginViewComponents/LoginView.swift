@@ -10,6 +10,10 @@ struct LoginView: View {
     @State private var alertMessage = ""
 
     @Binding var isLoggedIn: Bool
+    
+    // Add app storage to persist user ID
+    @AppStorage("user_id") private var userId: Int = 0
+    @AppStorage("is_logged_in") private var persistentLogin: Bool = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -32,20 +36,6 @@ struct LoginView: View {
                             }
                             .padding(.top, 1)
                             .padding(.bottom, 5)
-
-//                            // Logo and app name in the same row
-//                            HStack(spacing: 2) {
-//                                Image("logo")
-//                                    .resizable()
-//                                    .aspectRatio(contentMode: .fit)
-//                                    .frame(width: 18, height: 18)
-//
-//                                Text("MenuVision")
-//                                    .font(.system(size: 14, weight: .bold))
-//                                    .tracking(-0.5)
-//                                    .foregroundColor(Color.zinc100)
-//                            }
-//                            .padding(.top, 8)
                             
                             // Logo
                             HStack(spacing: 2) {
@@ -78,18 +68,6 @@ struct LoginView: View {
                         VStack(spacing: 0) {
                             // Tab selector
                             HStack(spacing: 0) {
-//                                Text("Log In")
-//                                    .font(.system(size: 14, weight: .medium))
-//                                    .foregroundColor(Color.gray500)
-//                                    .padding(.vertical, 12)
-//                                    .padding(.horizontal, 14)
-//                                    .frame(maxWidth: .infinity)
-//                                    .background(Color.white)
-//                                    .cornerRadius(8)
-//                                    .overlay(
-//                                        RoundedRectangle(cornerRadius: 8)
-//                                            .stroke(Color.gray100, lineWidth: 1)
-//                                    )
                             }
                             .padding(2)
                             .background(Color.slate100)
@@ -216,6 +194,12 @@ struct LoginView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+        .onAppear {
+            // Check if we should auto login
+            if persistentLogin && userId != 0 {
+                isLoggedIn = true
+            }
+        }
     }
 
     private func validateLogin() {
@@ -241,6 +225,18 @@ struct LoginView: View {
                 case .success(let data):
                     if let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                         if let message = response["message"] as? String, message == "Login successful" {
+                            if let userId = response["user_id"] as? Int {
+                                // Store user ID if remember me is checked
+                                if rememberMe {
+                                    self.userId = userId
+                                    self.persistentLogin = true
+                                } else {
+                                    // If not remembering, we still want the ID for this session
+                                    // but we won't persist the login state
+                                    self.userId = userId
+                                    self.persistentLogin = false
+                                }
+                            }
                             isLoggedIn = true
                         } else {
                             alertMessage = response["message"] as? String ?? "Login failed"
@@ -259,6 +255,7 @@ struct LoginView: View {
         }
     }
 }
+
 struct LoginView_Previews: PreviewProvider {
     static var previews: some View {
         LoginView(isLoggedIn: .constant(false))
