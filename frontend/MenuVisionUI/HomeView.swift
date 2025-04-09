@@ -26,6 +26,11 @@ struct HomeView: View {
                     Label("Profile", systemImage: "person")
                 }
                 .tag(2)
+            TestingView()
+                .tabItem {
+                    Label("Profile", systemImage: "person")
+                }
+                .tag(3)
             
         }
         .accentColor(.orange300)

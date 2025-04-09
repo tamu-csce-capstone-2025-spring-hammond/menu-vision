@@ -55,10 +55,12 @@ struct FilesListView: View {
         do {
             //            let transferUtility = AWSS3TransferUtility.default()
             // Setup AWS credentials (replace with your own or use a secure method).
-            let env = ProcessInfo.processInfo.environment
+            let accessKey = UserDefaults.standard.string(forKey: "AWS_ACCESS_KEY")
+            let secretKey = UserDefaults.standard.string(forKey: "AWS_SECRET_KEY")
+                    
             let credentials = AWSCredentialIdentity(
-                accessKey: env["AWS_ACCESS_KEY"] ?? "NULL",
-                secret: env["AWS_SECRET_KEY"] ?? "NULL"
+                accessKey: accessKey ?? "NULL",
+                secret: secretKey ?? "NULL"
             )
             let identityResolver = try StaticAWSCredentialIdentityResolver(credentials)
             
