@@ -24,20 +24,7 @@ var modelPlaced: Bool = false;
 
 var viewer: ARView!;
 
-private let modelMap: [Int: String] = [
-    0: "apple_1",
-    1: "avocado_1",
-    2: "onion_1",
-    3: "orange_1",
-    4: "bottle",
-    5: "avocado_1",
-    6: "onion_1",
-    7: "orange_1",
-    8: "apple_1",
-    9: "avocado_1",
-    10: "onion_1",
-    11: "orange_1"
-];
+private var modelMap: [Int: (String, String)] = [:]
 
 func resetScene(){
     modelPlaced = false;
@@ -113,16 +100,26 @@ class ARViewManager: ObservableObject {
     }
     
     func getCurrentModelName() -> String {
-        return modelMap[modelIndex] ?? "";
+        if let model = modelMap[modelIndex] {
+            let modelName = model.1;
+            return modelName;
+        }
+        else{
+            return "";
+        }
     }
     
-    func getModelMap() -> [Int: String] {
+    func getModelMap() -> [Int: (String, String)] {
         return modelMap;
     }
     
     func modeSwitch() {
         freestyleMode.toggle();
         
+        resetScene();
+    }
+    
+    func reset(){
         resetScene();
     }
     
@@ -133,8 +130,24 @@ struct ARViewContainer: UIViewRepresentable {
     
     @ObservedObject var viewManager: ARViewManager
     
+    @EnvironmentObject var dishMapping: DishMapping
+    
+    //@Binding var setUpComplete: Bool
+    
     func makeUIView(context: Context) -> ARView {
         
+        //fill the model map
+        
+        for (index, dish) in dishMapping.getModels().enumerated() {
+            //note: I am indexing 0 right now for the value here, not sure why the map stores a list of dishdata, need to check it over
+            
+            modelMap[index] = (dish.value[0].model_id, dish.value[0].dish_name);
+        }
+        
+        dishMapping.setFinishedLoading();
+        
+        print("Loaded model map: ", modelMap);
+                
         let arView = ARView(frame: .zero);
         
         viewer = arView;
@@ -319,8 +332,11 @@ struct ARViewContainer: UIViewRepresentable {
                             }
                             else {
                                 //in this case we will add the label text
-                                if let mealName = modelMap[pm.mealID]{
-                                    print(modelMap[pm.mealID]);
+                                if let meal = modelMap[pm.mealID]{
+                                    
+                                    let mealName = meal.1;
+                                    
+                                    //print(modelMap[pm.mealID]);
                                     
                                     //if we want to change label color in the future use this format
                                     //let textColor = SimpleMaterial.Color(red: 0.98, green: 0.67, blue: 0.48, alpha: 0.95);
@@ -600,14 +616,26 @@ func createModel() -> ModelEntity{
     
     do{
         
-        guard let modelName = modelMap[modelIndex] else {
+        guard let mod = modelMap[modelIndex] else {
             print("Error: model name is not to be found!");
             return ModelEntity();
         }
         
-        //set up a model entity by loading in the usdz file and setting position to be slightly above ground
-        let model = try ModelEntity.loadModel(named: modelName);
+        var fileName = mod.0;
         
+        var model : ModelEntity = ModelEntity();
+        
+        //set up a model entity by loading in the usdz file and setting position to be slightly above ground
+        
+        let fileManager = FileManager.default
+        if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+            do {
+                model = try ModelEntity.loadModel(contentsOf: documentsURL.appendingPathComponent(fileName + ".usdz"));
+            } catch {
+                print("Failed to load model: \(error.localizedDescription)")
+            }
+        }
+                
         model.position = SIMD3(0.0, 0.7, 0.0);
         
         model.scale = [1.0, 1.0, 1.0];
