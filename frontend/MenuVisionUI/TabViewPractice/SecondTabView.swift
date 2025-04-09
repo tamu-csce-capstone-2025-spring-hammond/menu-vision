@@ -83,6 +83,9 @@ struct ScanView: View {
     @State private var isProgressing = false
     @State private var quickLookIsPresented = false
     
+    @State private var scanPassCount = 0
+    let requiredScanPasses = 2
+    
     var modelPath: URL? {
         return modelFolderPath?.appending(path: "model.usdz")
     }
@@ -150,7 +153,16 @@ struct ScanView: View {
                newValue {
                 // This time, I've completed one scan pass.
                 // However, Apple recommends that the scan pass should be done three times.
-                session?.finish()
+                scanPassCount += 1
+                print("Completed scan pass \(scanPassCount)")
+
+                if scanPassCount < requiredScanPasses {
+                    // Start a new scan pass so the user can scan again
+                    try? session?.beginNewScanPass()
+                } else {
+                    // Done with all required scan passes
+                    session?.finish()
+                }
             }
         }
         .onChange(of: session?.state) { _, newValue in
