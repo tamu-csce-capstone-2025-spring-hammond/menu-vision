@@ -13,7 +13,6 @@ struct LoginView: View {
     
     // Add app storage to persist user ID
     @AppStorage("user_id") private var userId: Int = 0
-    @AppStorage("is_logged_in") private var persistentLogin: Bool = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -140,8 +139,22 @@ struct LoginView: View {
 
                             // Login button
                             Button(action: {
-                                // Just call the API, don't assume success/failure here
-                                validateLogin()
+                                // Use the LoginHandler to validate login
+                                LoginHandler.shared.validateLogin(
+                                    email: email,
+                                    password: password,
+                                    rememberMe: rememberMe
+                                ) { success, message, userId in
+                                    if success {
+                                        if let userId = userId {
+                                            self.userId = userId
+                                        }
+                                        isLoggedIn = true
+                                    } else if let message = message {
+                                        alertMessage = message
+                                        showingAlert = true
+                                    }
+                                }
                             }) {
                                 Text("Login")
                                     .font(.system(size: 14, weight: .medium))
@@ -196,61 +209,8 @@ struct LoginView: View {
         }
         .onAppear {
             // Check if we should auto login
-            if persistentLogin && userId != 0 {
+            if UserDefaults.standard.bool(forKey: "is_logged_in") && userId != 0 {
                 isLoggedIn = true
-            }
-        }
-    }
-
-    private func validateLogin() {
-        let payload = [
-            "email": email,
-            "password": password
-        ]
-
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
-            alertMessage = "Failed to encode credentials."
-            showingAlert = true
-            return
-        }
-
-        API.shared.request(
-            endpoint: "user/login",
-            method: "POST",
-            body: jsonData,
-            headers: ["Content-Type": "application/json"]
-        ) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let data):
-                    if let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                        if let message = response["message"] as? String, message == "Login successful" {
-                            if let userId = response["user_id"] as? Int {
-                                // Store user ID if remember me is checked
-                                if rememberMe {
-                                    self.userId = userId
-                                    self.persistentLogin = true
-                                } else {
-                                    // If not remembering, we still want the ID for this session
-                                    // but we won't persist the login state
-                                    self.userId = userId
-                                    self.persistentLogin = false
-                                }
-                            }
-                            isLoggedIn = true
-                        } else {
-                            alertMessage = response["message"] as? String ?? "Login failed"
-                            showingAlert = true
-                        }
-                    } else {
-                        alertMessage = "Invalid response format"
-                        showingAlert = true
-                    }
-
-                case .failure(let error):
-                    alertMessage = "Request failed: \(error.localizedDescription)"
-                    showingAlert = true
-                }
             }
         }
     }
