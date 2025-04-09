@@ -322,8 +322,10 @@ struct MenuScannerView: View {
 
     func sendImageToAPI(image: UIImage) {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+        
+        let userId = UserDefaults.standard.integer(forKey: "user_id");
 
-        let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ocr/extract-menu")!
+        let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ocr/extract-menu/\(userId)")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         let boundary = UUID().uuidString
