@@ -99,6 +99,16 @@ class ARViewManager: ObservableObject {
         return modelIndex;
     }
     
+    func getCurrentModelID() -> String {
+        if let model = modelMap[modelIndex] {
+            let modelName = model.0;
+            return modelName;
+        }
+        else{
+            return "";
+        }
+    }
+    
     func getCurrentModelName() -> String {
         if let model = modelMap[modelIndex] {
             let modelName = model.1;
