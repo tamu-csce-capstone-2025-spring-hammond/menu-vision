@@ -132,7 +132,7 @@ def extract_menu(user_id):
         preferences = ', '.join(user.food_preferences) if user.food_preferences else "None"
 
         recommendation_prompt = f"""
-        You are a helpful food assistant recommending 3 dishes to a customer based on their user profile.
+        You are a helpful food assistant recommending 2 dishes to a customer based on their user profile.
 
         User profile:
         - Age: {user.age}
