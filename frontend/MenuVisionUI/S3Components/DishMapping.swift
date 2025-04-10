@@ -23,14 +23,14 @@ class DishMapping: ObservableObject {
 
         self.modelsByDishName = newMapping
 
-        print("DishMapping updated:")
-        for (dish, models) in modelsByDishName {
-            print("\(dish): \(models.count) model(s)")
-            for model in models {
-                print("- model_id: \(model.model_id), dish_id: \(model.dish_id)")
-            }
-        }
-        print(modelsByDishName)
+//        print("DishMapping updated:")
+//        for (dish, models) in modelsByDishName {
+//            print("\(dish): \(models.count) model(s)")
+//            for model in models {
+//                print("- model_id: \(model.model_id), dish_id: \(model.dish_id)")
+//            }
+//        }
+//        print(modelsByDishName)
     }
     
     func getModels() -> [String: [DishData]]{
