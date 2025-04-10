@@ -4,6 +4,7 @@ struct MenuItemRow: View {
     let item: MenuItem
     @State private var showDetail = false
     @State private var navigateToAR = false
+    @State private var fetchedImageURL: URL?
 
     @EnvironmentObject var dishMapping: DishMapping
 
@@ -26,30 +27,7 @@ struct MenuItemRow: View {
                                     .clipped()
                                     .cornerRadius(8)
                             } else {
-                                AsyncImage(
-                                    url: URL(string: "https://loremflickr.com/60/60/\(item.name.replacingOccurrences(of: " ", with: "%20"))"),
-                                    transaction: Transaction(animation: .easeInOut)
-                                ) { phase in
-                                    switch phase {
-                                    case .empty:
-                                        ProgressView()
-                                            .frame(width: 60, height: 60)
-                                    case .success(let image):
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 60, height: 60)
-                                            .clipped()
-                                            .cornerRadius(8)
-                                    case .failure:
-                                        Rectangle()
-                                            .fill(Color.gray.opacity(0.3))
-                                            .frame(width: 60, height: 60)
-                                            .cornerRadius(8)
-                                    @unknown default:
-                                        EmptyView()
-                                    }
-                                }
+                                fallbackRect()
                             }
 
                             Image(systemName: "arkit")
@@ -62,17 +40,37 @@ struct MenuItemRow: View {
                         .frame(width: 60, height: 60)
                     }
                     .buttonStyle(PlainButtonStyle())
-                } else {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 60, height: 60)
-                        .cornerRadius(8)
+                } 
+                else {
+                    ZStack {
+                        if let imageURL = fetchedImageURL {
+                            AsyncImage(url: imageURL, transaction: .init(animation: .easeInOut)) { phase in
+                                switch phase {
+                                case .empty:
+                                    ProgressView().frame(width: 60, height: 60)
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 60, height: 60)
+                                        .clipped()
+                                        .cornerRadius(8)
+                                case .failure:
+                                    fallbackRect()
+                                @unknown default:
+                                    EmptyView()
+                                }
+                            }
+                        } else {
+                            fallbackRect()
+                        }
+                    }
+                    .frame(width: 60, height: 60)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.name)
                         .font(.headline)
-
                     Text(item.description ?? "")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -116,6 +114,18 @@ struct MenuItemRow: View {
         .sheet(isPresented: $showDetail) {
             MenuItemDetailView(item: item)
         }
+        .task {
+            if item.matchedDishData?.isEmpty ?? true && fetchedImageURL == nil {
+                await fetchImageURLFromBackend(for: item.name)
+            }
+        }
+    }
+
+    func fallbackRect() -> some View {
+        Rectangle()
+            .fill(Color.gray.opacity(0.3))
+            .frame(width: 60, height: 60)
+            .cornerRadius(8)
     }
 
     func colorForPrice(_ price: Double) -> Color {
@@ -127,7 +137,6 @@ struct MenuItemRow: View {
     func loadDishThumbnail(modelID: String) -> UIImage? {
         let fileManager = FileManager.default
         let filename = "\(modelID).png"
-
         guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return nil
         }
@@ -138,5 +147,30 @@ struct MenuItemRow: View {
         }
 
         return nil
+    }
+
+    func fetchImageURLFromBackend(for dishName: String) async {
+        let cleanedName = dishName
+            .lowercased()
+            .replacingOccurrences(of: "[^a-z0-9 ]", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespaces)
+        
+        guard let encoded = cleanedName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/get_image?dish_name=\(encoded)") else {
+            return
+        }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let urlString = json["image_url"] as? String,
+               let imageURL = URL(string: urlString) {
+                DispatchQueue.main.async {
+                    self.fetchedImageURL = imageURL
+                }
+            }
+        } catch {
+            print("Failed to fetch image URL for \(dishName): \(error)")
+        }
     }
 }
