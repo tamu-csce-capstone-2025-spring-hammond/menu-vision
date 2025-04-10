@@ -13,6 +13,7 @@ struct FirstTabView: View {
     @State private var freestyleMode: Bool = false;
     
     @State private var showReportModal: Bool = false;
+    @State private var showInformationModal: Bool = false;
     
     @State var refreshUI: Bool = false;
     
@@ -101,7 +102,7 @@ struct FirstTabView: View {
                         
                         HStack {
                                 Button(action: {
-                                    nothing();
+                                    showInformationModal = true;
                                 }) {
                                     Image(systemName: "info.circle")
                                         .padding(8)
@@ -199,6 +200,56 @@ struct FirstTabView: View {
                         }
                     }
                 }
+        .sheet(isPresented: $showInformationModal) {
+            ScrollView{
+                VStack(spacing: 20) {
+                    Text("How to use MenuVision™ AR")
+                        .font(.headline)
+
+                    Text("1. First hover your phone around your surroundings in order to allow MenuVision™ to detect a surface. Once a surface is found, the white overlay on the screen should disappear. (if it never appeared in the first place then you are likely already good to go)")
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    
+                    Text("2. Now tap on your screen at a point on the surface in front of you in order to place the menu item in that spot.")
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    
+                    Text("3. MenuVision™ AR offers two separate modes which can be switched between using the toggle on the top right of the screen. The default mode is casual mode which allows you to quickly swipe between menu items one by one with each one appearing in the same place. In freestyle mode, you can place multiple menu items into your surroundings at the same time in order to compare and contrast. With freestyle mode you must tap the surface to place each item while in casual mode you only need to tap the surface one time.")
+                        .multilineTextAlignment(.center)
+                        .padding()
+
+                    Text("4. The carousel at the bottom allows you to pick the menu item to place. You may either tap the icon on the slider or swipe left or right across the screen to swap between dishes. If a MenuItem is not accurate or contains some other form of issue you can report it to our team using the flag icon above the carousel to the right.")
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    
+                    Text("5. To remove a menu item from the screen, long press the item. In casual mode you will need to tap a surface again to place the next item.")
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    
+                    Text("6. If you would like to move an item to a different spot on the surface, drag it with your finger across the screen.")
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    
+                    Text("7. In freestyle mode, you can tap an item on the screen to see a label that shows the name of the dish.")
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    
+                    Text("8. Please enjoy MenuVision™ AR!")
+                        .multilineTextAlignment(.center)
+                        .padding()
+
+
+
+
+
+                    
+                    Button("Got it!") {
+                        showInformationModal = false
+                    }
+                }
+            }
+            .padding()
+        }
         .sheet(isPresented: $showReportModal) {
             VStack(spacing: 20) {
                 Text("Report Content")
