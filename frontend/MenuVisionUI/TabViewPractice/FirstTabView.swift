@@ -12,6 +12,8 @@ struct FirstTabView: View {
     @State private var modelIndex: Int = 0;
     @State private var freestyleMode: Bool = false;
     
+    @State private var reportText: String = "";
+    
     @State private var showReportModal: Bool = false;
     @State private var showInformationModal: Bool = false;
     
@@ -214,7 +216,7 @@ struct FirstTabView: View {
                         .multilineTextAlignment(.center)
                         .padding()
                     
-                    Text("3. MenuVision™ AR offers two separate modes which can be switched between using the toggle on the top right of the screen. The default mode is casual mode which allows you to quickly swipe between menu items one by one with each one appearing in the same place. In freestyle mode, you can place multiple menu items into your surroundings at the same time in order to compare and contrast. With freestyle mode you must tap the surface to place each item while in casual mode you only need to tap the surface one time.")
+                    Text("3. MenuVision™ AR offers two separate modes which can be switched between using the toggle on the top right of the screen. The default mode is Casual mode which allows you to quickly swipe between menu items one by one with each one appearing in the same place. In Freestyle mode, you can place multiple menu items into your surroundings at the same time in order to compare and contrast. With Freestyle mode you must tap the surface to place each item while in Casual mode you only need to tap the surface one time.")
                         .multilineTextAlignment(.center)
                         .padding()
 
@@ -222,7 +224,7 @@ struct FirstTabView: View {
                         .multilineTextAlignment(.center)
                         .padding()
                     
-                    Text("5. To remove a menu item from the screen, long press the item. In casual mode you will need to tap a surface again to place the next item.")
+                    Text("5. To remove a menu item from the screen, long press the item. In Casual mode, you will need to tap a surface again to place the next item.")
                         .multilineTextAlignment(.center)
                         .padding()
                     
@@ -230,7 +232,7 @@ struct FirstTabView: View {
                         .multilineTextAlignment(.center)
                         .padding()
                     
-                    Text("7. In freestyle mode, you can tap an item on the screen to see a label that shows the name of the dish.")
+                    Text("7. In Freestyle mode, you can tap an item on the screen to see a label that shows the name of the dish.")
                         .multilineTextAlignment(.center)
                         .padding()
                     
@@ -252,12 +254,23 @@ struct FirstTabView: View {
         }
         .sheet(isPresented: $showReportModal) {
             VStack(spacing: 20) {
-                Text("Report Content")
+                Text("Report AR Dish")
                     .font(.headline)
+                    .foregroundColor(Color.orange300)
 
-                Text("Are you sure you want to report this item?")
+                Text("Thank you for helping to keep MenuVision™ pristine!")
                     .multilineTextAlignment(.center)
                     .padding()
+                                
+                Text("Please describe the problem...");
+                
+                TextEditor(text: $reportText)
+                                .frame(height: 150)  // Set a fixed height for the TextEditor
+                                .padding()
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(10)
+                                .border(Color.gray, width: 1)
+
 
                 Button("Submit Report") {
                     // handle report logic here
