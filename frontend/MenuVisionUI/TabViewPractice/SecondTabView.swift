@@ -74,6 +74,51 @@ struct CreateButton: View {
     }
 }
 
+
+struct ScanPreviewView: View {
+    let thumbnail: UIImage
+    let onAccept: () -> Void
+    let onRetake: () -> Void
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Preview Your Scan")
+                .font(.title2)
+                .bold()
+
+            Image(uiImage: thumbnail)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 200, height: 200)
+                .cornerRadius(12)
+                .shadow(radius: 4)
+
+            HStack(spacing: 20) {
+                Button(action: onRetake) {
+                    Text("Retake")
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.red.opacity(0.7))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+
+                Button(action: onAccept) {
+                    Text("Accept")
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.green.opacity(0.8))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+            }
+            .padding(.horizontal)
+        }
+        .padding()
+    }
+}
+
+
 struct ScanView: View {
     
     @State private var session: ObjectCaptureSession?
@@ -85,6 +130,11 @@ struct ScanView: View {
     
     @State private var scanPassCount = 0
     let requiredScanPasses = 2
+    @State private var showScanPassPrompt = false
+    
+    @State private var showScanPreviewPage = false
+    @State private var thumbnailImage: UIImage?
+    @State private var thumbnailURL: URL?
     
     var modelPath: URL? {
         return modelFolderPath?.appending(path: "model.usdz")
@@ -149,18 +199,14 @@ struct ScanView: View {
             
         }
         .onChange(of: session?.userCompletedScanPass) { _, newValue in
-            if let newValue,
-               newValue {
-                // This time, I've completed one scan pass.
-                // However, Apple recommends that the scan pass should be done three times.
+            if let newValue, newValue {
                 scanPassCount += 1
                 print("Completed scan pass \(scanPassCount)")
-
-                if scanPassCount < requiredScanPasses {
-                    // Start a new scan pass so the user can scan again
-                    try? session?.beginNewScanPass()
+                
+                // Only prompt after the first scan pass
+                if scanPassCount == 1 {
+                    showScanPassPrompt = true
                 } else {
-                    // Done with all required scan passes
                     session?.finish()
                 }
             }
@@ -174,6 +220,28 @@ struct ScanView: View {
                 }
             }
         }
+        .sheet(isPresented: $showScanPreviewPage) {
+            if let thumbnailImage, let modelPath {
+                ScanPreviewView(
+                    thumbnail: thumbnailImage,
+                    onAccept: {
+                        showScanPreviewPage = false
+                        quickLookIsPresented = true
+                    },
+                    onRetake: {
+                        showScanPreviewPage = false
+                        scanPassCount = 0
+                        Task {
+                            guard let directory = createNewScanDirectory() else { return }
+                            modelFolderPath = directory.appending(path: "Models/")
+                            imageFolderPath = directory.appending(path: "Images/")
+                            session = ObjectCaptureSession()
+                            session?.start(imagesDirectory: imageFolderPath!)
+                        }
+                    }
+                )
+            }
+        }
         .sheet(isPresented: $quickLookIsPresented) {
             
             if let modelPath {
@@ -181,9 +249,23 @@ struct ScanView: View {
                     guard let directory = createNewScanDirectory()
                     else { return }
                     quickLookIsPresented = false
+                    // need to set number of scans done back to 0
+                    scanPassCount = 0
+                    showScanPassPrompt = false
                     // TODO: Restart ObjectCapture
                 }
             }
+        }
+        .alert("Scan more angles?", isPresented: $showScanPassPrompt) {
+            Button("Yes, continue scan") {
+                try? session?.beginNewScanPass()
+            }
+            Button("No, finish") {
+                session?.finish()
+                
+            }
+        } message: {
+            Text("Would you like to add another scan pass for better 3D quality?")
         }
     }
 }
@@ -242,7 +324,7 @@ extension ScanView {
                 case .processingComplete:
                     isProgressing = false
                     self.photogrammetrySession = nil
-                    quickLookIsPresented = true
+//                    quickLookIsPresented = true
                     // uploading usdz file to s3 bucket
                     let filesListView = FilesListView()
                     let uuid = UUID().uuidString
@@ -280,6 +362,11 @@ extension ScanView {
                 if let error = error {
                     print("Error generating thumbnail: \(error.localizedDescription)")
                 } else if let thumbnail = thumbnail {
+                    
+                    self.thumbnailImage = thumbnail.uiImage
+                    self.thumbnailURL = thumbnailURL
+                    self.showScanPreviewPage = true
+                    
                     print("Thumbnail generated successfully!")
 
                     // save thumbnail in app's document directory (sandbox)
