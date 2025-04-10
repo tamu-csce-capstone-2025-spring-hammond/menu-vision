@@ -4,13 +4,13 @@ struct MenuItemRow: View {
     let item: MenuItem
     @State private var showDetail = false
     @State private var navigateToAR = false
-    @State private var fetchedImageURL: URL?
 
     @EnvironmentObject var dishMapping: DishMapping
 
     var body: some View {
         VStack {
             HStack(alignment: .top, spacing: 12) {
+                // Check if the item has matched dish data
                 if let model = item.matchedDishData?.first {
                     let modelID = model.model_id
                     let localImage = loadDishThumbnail(modelID: modelID)
@@ -40,29 +40,25 @@ struct MenuItemRow: View {
                         .frame(width: 60, height: 60)
                     }
                     .buttonStyle(PlainButtonStyle())
-                } 
-                else {
+                } else {
+                    // If no matched model, use the default image URL
                     ZStack {
-                        if let imageURL = fetchedImageURL {
-                            AsyncImage(url: imageURL, transaction: .init(animation: .easeInOut)) { phase in
-                                switch phase {
-                                case .empty:
-                                    ProgressView().frame(width: 60, height: 60)
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 60, height: 60)
-                                        .clipped()
-                                        .cornerRadius(8)
-                                case .failure:
-                                    fallbackRect()
-                                @unknown default:
-                                    EmptyView()
-                                }
+                        AsyncImage(url: URL(string: "https://static.vecteezy.com/system/resources/previews/022/059/000/non_2x/no-image-available-icon-vector.jpg")) { phase in
+                            switch phase {
+                            case .empty:
+                                ProgressView().frame(width: 60, height: 60)
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 60, height: 60)
+                                    .clipped()
+                                    .cornerRadius(8)
+                            case .failure:
+                                fallbackRect()
+                            @unknown default:
+                                fallbackRect()
                             }
-                        } else {
-                            fallbackRect()
                         }
                     }
                     .frame(width: 60, height: 60)
@@ -114,11 +110,6 @@ struct MenuItemRow: View {
         .sheet(isPresented: $showDetail) {
             MenuItemDetailView(item: item)
         }
-        .task {
-            if item.matchedDishData?.isEmpty ?? true && fetchedImageURL == nil {
-                await fetchImageURLFromBackend(for: item.name)
-            }
-        }
     }
 
     func fallbackRect() -> some View {
@@ -147,30 +138,5 @@ struct MenuItemRow: View {
         }
 
         return nil
-    }
-
-    func fetchImageURLFromBackend(for dishName: String) async {
-        let cleanedName = dishName
-            .lowercased()
-            .replacingOccurrences(of: "[^a-z0-9 ]", with: "", options: .regularExpression)
-            .trimmingCharacters(in: .whitespaces)
-        
-        guard let encoded = cleanedName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/get_image?dish_name=\(encoded)") else {
-            return
-        }
-
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let urlString = json["image_url"] as? String,
-               let imageURL = URL(string: urlString) {
-                DispatchQueue.main.async {
-                    self.fetchedImageURL = imageURL
-                }
-            }
-        } catch {
-            print("Failed to fetch image URL for \(dishName): \(error)")
-        }
     }
 }
