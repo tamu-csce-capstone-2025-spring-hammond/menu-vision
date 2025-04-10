@@ -4,7 +4,7 @@ struct MenuItemRow: View {
     let item: MenuItem
     @State private var showDetail = false
     
-    @EnvironmentObject var dishMapping: DishMapping;
+    @EnvironmentObject var dishMapping: DishMapping
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -20,10 +20,12 @@ struct MenuItemRow: View {
                 Text(item.description ?? "")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                
-                NavigationLink(destination: FirstTabView().environmentObject(dishMapping)) {
+
+                if let models = item.matchedDishData, !models.isEmpty {
+                    NavigationLink(destination: FirstTabView().environmentObject(dishMapping)) {
                         Image(systemName: "arkit")
                             .foregroundColor(.blue)
+                    }
                 }
             }
 
@@ -49,7 +51,6 @@ struct MenuItemRow: View {
                         .foregroundColor(.gray)
                         .font(.system(size: 12))
                 }
-                
             }
         }
         .padding(.vertical, 8)
