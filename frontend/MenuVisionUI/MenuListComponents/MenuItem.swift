@@ -33,7 +33,7 @@ struct MenuItem: Codable, Identifiable {
     let calories: String?
     let popularity: String?
     let addons: [Addon]?
-    
+
     var matchedDishData: [DishData]? = nil
 
     enum CodingKeys: String, CodingKey {

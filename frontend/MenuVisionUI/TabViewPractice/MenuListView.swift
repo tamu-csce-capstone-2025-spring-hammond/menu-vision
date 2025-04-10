@@ -8,26 +8,32 @@ struct MenuListView: View {
     var body: some View {
         List {
             ForEach(parsedMenu) { section in
-                Section(header: Text(section.name).font(.title3)) {
-                    ForEach(section.items) { item in
-                        if let matchedDishData = dishMapping.modelsByDishName[item.name],
-                           let verified = matchedDishData.first {
-                            // Use verified DishData to override OCR MenuItem
-                            let overriddenItem = MenuItem(
-                                name: verified.dish_name,
-                                description: verified.description,
-                                sizes: item.sizes, // You can parse verified.price if needed
-                                availability: item.availability,
-                                spiciness: item.spiciness,
-                                allergens: verified.allergens.components(separatedBy: ", "),
-                                dietary_info: item.dietary_info ?? [],
-                                calories: verified.nutritional_info,
-                                popularity: item.popularity,
-                                addons: item.addons ?? []
-                            )
-                            MenuItemRow(item: overriddenItem)
-                        } else {
-                            // Fallback to original OCR item
+                // Filter section items that are displayable
+                let displayableItems = section.items.compactMap { item -> MenuItem? in
+                    if let matched = dishMapping.modelsByDishName[item.name] {
+                        // Override with verified data
+                        let firstMatch = matched.first!
+                        return MenuItem(
+                            name: firstMatch.dish_name,
+                            description: firstMatch.description,
+                            sizes: item.sizes,
+                            availability: item.availability,
+                            spiciness: item.spiciness,
+                            allergens: firstMatch.allergens.components(separatedBy: ", "),
+                            dietary_info: item.dietary_info ?? [],
+                            calories: firstMatch.nutritional_info,
+                            popularity: item.popularity,
+                            addons: item.addons ?? [],
+                            matchedDishData: matched
+                        )
+                    } else {
+                        return item // Use OCR data if no match
+                    }
+                }
+
+                if !displayableItems.isEmpty {
+                    Section(header: Text(section.name).font(.title3)) {
+                        ForEach(displayableItems) { item in
                             MenuItemRow(item: item)
                         }
                     }
@@ -46,7 +52,6 @@ struct MenuListView: View {
         do {
             if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                let menuDict = jsonObject["menu"] as? [String: Any] {
-
                 var orderedSections: [MenuSection] = []
                 let decoder = JSONDecoder()
 
@@ -59,7 +64,6 @@ struct MenuListView: View {
                 DispatchQueue.main.async {
                     self.parsedMenu = orderedSections
                 }
-
             } else {
                 print("JSON structure invalid")
             }
