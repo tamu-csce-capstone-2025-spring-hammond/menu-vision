@@ -50,15 +50,17 @@ struct FilesListView: View {
     }
     
     // s3testing() is responsible for the S3 operations.
-    func s3testing(modelPath: URL) async {
+    func s3testing(modelPath: URL, identificationNumber: String) async {
         
         do {
             //            let transferUtility = AWSS3TransferUtility.default()
             // Setup AWS credentials (replace with your own or use a secure method).
-            let env = ProcessInfo.processInfo.environment
+            let accessKey = UserDefaults.standard.string(forKey: "AWS_ACCESS_KEY")
+            let secretKey = UserDefaults.standard.string(forKey: "AWS_SECRET_KEY")
+                    
             let credentials = AWSCredentialIdentity(
-                accessKey: env["AWS_ACCESS_KEY"] ?? "NULL",
-                secret: env["AWS_SECRET_KEY"] ?? "NULL"
+                accessKey: accessKey ?? "NULL",
+                secret: secretKey ?? "NULL"
             )
             let identityResolver = try StaticAWSCredentialIdentityResolver(credentials)
             
@@ -86,9 +88,9 @@ struct FilesListView: View {
             //            } else {
             //                print("File not found.")
             //            }
-            let uuid = UUID().uuidString
+//            let uuid = UUID().uuidString
             let fileExtension = (modelPath.path as NSString).pathExtension
-            let key = "\(uuid).\(fileExtension)"
+            let key = "\(identificationNumber).\(fileExtension)"
             try await serviceHandler.uploadFile(bucket: "usdz-store-test", key: key, file: modelPath.path)
         } catch {
             print("Error occurred in s3testing: \(error)")

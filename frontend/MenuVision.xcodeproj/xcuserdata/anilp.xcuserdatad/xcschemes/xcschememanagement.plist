@@ -4,7 +4,7 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>MenuVision.xcscheme_^#shared#^_</key>
+		<key>MenuVision.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
@@ -13,6 +13,24 @@
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>22E59CC02D6FA92C00D6C4B5</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>22E59CD12D6FA92D00D6C4B5</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>22E59CDB2D6FA92D00D6C4B5</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

@@ -14,8 +14,19 @@ struct SignUpView2: View {
     @State private var navigateToSignUpView3 = false
 
     private let cuisines = [
-        "Chinese", "French", "Greek", "Indian",
-        "Italian", "Japanese", "Korean", "Vietnamese"
+        "American",
+        "Chinese",
+        "French",
+        "Greek",
+        "Indian",
+        "Italian",
+        "Japanese",
+        "Korean",
+        "Mexican",
+        "Middle Eastern",
+        "Spanish",
+        "Thai",
+        "Vietnamese"
     ]
 
     private let orangeHighlight = Color(red: 254/255, green: 215/255, blue: 170/255)
