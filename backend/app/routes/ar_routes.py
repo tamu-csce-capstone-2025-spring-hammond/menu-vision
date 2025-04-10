@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 from app.models import Restaurant, DishItem, ARModel
 from app.database import db
+from datetime import datetime
+from math import log
 from duckduckgo_search import DDGS
 
 ar_bp = Blueprint("ar", __name__)
@@ -40,24 +42,33 @@ def ar_models(restaurant_id):
         all_models = []
         for dish in restaurant.dishes:
             for model in dish.ar_models:
-                all_models.append({
-                    "dish_id": model.dish_id,
-                    "dish_name": dish.dish_name,
-                    "description": dish.description,
-                    "ingredients": dish.ingredients,
-                    "price": dish.price,
-                    "nutritional_info": dish.nutritional_info,
-                    "allergens": dish.allergens,
-                    "model_id": model.model_id,
-                    "model_rating": model.model_rating,
-                })
+                all_models.append(
+                    {
+                        "dish_id": model.dish_id,
+                        "dish_name": dish.dish_name,
+                        "description": dish.description,
+                        "ingredients": dish.ingredients,
+                        "price": dish.price,
+                        "nutritional_info": dish.nutritional_info,
+                        "allergens": dish.allergens,
+                        "model_id": model.model_id,
+                        "model_rating": model.model_rating,
+                        "up_votes": model.up_votes,
+                        "down_votes": model.down_votes,
+                        "uploaded_at": model.uploaded_at.isoformat()
+                        if model.uploaded_at
+                        else None,
+                    }
+                )
 
-        return jsonify({
-            "restaurant_id": restaurant.restaurant_id,
-            "name": restaurant.name,
-            "created_at": restaurant.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-            "models": all_models
-        })
+        return jsonify(
+            {
+                "restaurant_id": restaurant.restaurant_id,
+                "name": restaurant.name,
+                "created_at": restaurant.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                "models": all_models,
+            }
+        )
 
     except Exception as e:
         return jsonify({"message": "Error fetching restaurant or models", "error": str(e)}), 500
@@ -142,7 +153,11 @@ def add_dish_with_model():
         new_model = ARModel(
             model_id=model_id,
             dish_id=new_dish.dish_id,
-            uploaded_by=uploaded_by
+            uploaded_by=uploaded_by,
+            up_votes=0,
+            down_votes=0,
+            uploaded_at=datetime.now(),
+            model_rating=hot(0, 0, datetime.now())
         )
         db.session.add(new_model)
         db.session.commit()
@@ -171,9 +186,12 @@ def add_model_to_dish(dish_id):
 
         new_model = ARModel(
             model_id=model_id,
-            model_rating=0,
+            model_rating=hot(0, 0, datetime.now()),
             dish_id=dish_id,
-            uploaded_by=uploaded_by
+            uploaded_by=uploaded_by,
+            up_votes=0,
+            down_votes=0,
+            uploaded_at=datetime.now(),
         )
         db.session.add(new_model)
         db.session.commit()
@@ -203,28 +221,72 @@ def delete_model(model_id):
         return jsonify({"error": str(e)}), 500
 
 
-# update model rating
-@ar_bp.route("/model/<string:model_id>", methods=["PUT"])
-def update_model(model_id):
-    try:
-        data = request.get_json()
+def hot(ups, downs, date):
+    # Calculate net score
+    net_score = ups - downs
+    
+    # Calculate time score (decreasing with age)
+    days_old = (datetime.now() - date).days + 1
+    time_score = 1000 / days_old  # Higher for newer items
+    
+    # Weighted average (90% votes, 10% time)
+    VOTE_WEIGHT = 0.9
+    TIME_WEIGHT = 0.1
+    
+    return (net_score * VOTE_WEIGHT * 100) + (time_score * TIME_WEIGHT)
 
+
+# upvote a model
+@ar_bp.route("/model/<string:model_id>/upvote", methods=["POST"])
+def upvote_model(model_id):
+    try:
         model = ARModel.query.get(model_id)
         if not model:
             return jsonify({"message": "Model not found"}), 404
 
-        if "model_rating" in data:
-            model.model_rating = data["model_rating"]
+        model.up_votes += 1
+        model.model_rating = hot(model.up_votes, model.down_votes, model.uploaded_at)
 
         db.session.commit()
 
-        return jsonify({
-            "message": "Model updated successfully",
-            "model_rating": model.model_rating,
-        }), 200
+        return jsonify(
+            {
+                "message": "Model upvoted successfully",
+                "model_id": model.model_id,
+                "model_rating": model.model_rating,
+                "up_votes": model.up_votes,
+                "down_votes": model.down_votes,
+            }
+        ), 200
 
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
 
+# downvote a model
+@ar_bp.route("/model/<string:model_id>/downvote", methods=["POST"])
+def downvote_model(model_id):
+    try:
+        model = ARModel.query.get(model_id)
+        if not model:
+            return jsonify({"message": "Model not found"}), 404
+
+        model.down_votes += 1
+        model.model_rating = hot(model.up_votes, model.down_votes, model.uploaded_at)
+
+        db.session.commit()
+
+        return jsonify(
+            {
+                "message": "Model downvoted successfully",
+                "model_id": model.model_id,
+                "model_rating": model.model_rating,
+                "up_votes": model.up_votes,
+                "down_votes": model.down_votes,
+            }
+        ), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
