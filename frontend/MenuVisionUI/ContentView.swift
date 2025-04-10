@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
+  
     @AppStorage("is_logged_in") private var persistentLogin: Bool = false
     @State private var isLoggedIn: Bool = false
 

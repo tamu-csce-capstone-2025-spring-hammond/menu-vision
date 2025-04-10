@@ -1,8 +1,13 @@
 import SwiftUI
 
 struct HomeView: View {
+
     @State private var selection = 1
     @EnvironmentObject var restaurantData: RestaurantData
+    
+    init() {
+            UITabBar.appearance().backgroundColor = UIColor.black.withAlphaComponent(0.8)
+        }
 
     var body: some View {
         TabView(selection: $selection) {
@@ -21,7 +26,7 @@ struct HomeView: View {
             }
             .tag(1)
 
-            FirstTabView()
+            SettingsView()
                 .tabItem {
                     Label("Profile", systemImage: "person")
                 }

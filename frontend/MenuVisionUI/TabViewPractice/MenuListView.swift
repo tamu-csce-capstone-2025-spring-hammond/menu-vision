@@ -3,13 +3,39 @@ import SwiftUI
 struct MenuListView: View {
     let response: String
     @State private var parsedMenu: [MenuSection] = []
+    @EnvironmentObject var dishMapping: DishMapping
 
     var body: some View {
         List {
             ForEach(parsedMenu) { section in
-                Section(header: Text(section.name).font(.title3)) {
-                    ForEach(section.items) { item in
-                        MenuItemRow(item: item)
+                // Filter section items that are displayable
+                let displayableItems = section.items.compactMap { item -> MenuItem? in
+                    if let matched = dishMapping.modelsByDishName[item.name] {
+                        // Override with verified data
+                        let firstMatch = matched.first!
+                        return MenuItem(
+                            name: firstMatch.dish_name,
+                            description: firstMatch.description,
+                            sizes: item.sizes,
+                            availability: item.availability,
+                            spiciness: item.spiciness,
+                            allergens: firstMatch.allergens.components(separatedBy: ", "),
+                            dietary_info: item.dietary_info ?? [],
+                            calories: firstMatch.nutritional_info,
+                            popularity: item.popularity,
+                            addons: item.addons ?? [],
+                            matchedDishData: matched
+                        )
+                    } else {
+                        return item // Use OCR data if no match
+                    }
+                }
+
+                if !displayableItems.isEmpty {
+                    Section(header: Text(section.name).font(.title3)) {
+                        ForEach(displayableItems) { item in
+                            MenuItemRow(item: item)
+                        }
                     }
                 }
             }
@@ -24,10 +50,8 @@ struct MenuListView: View {
         guard let data = response.data(using: .utf8) else { return }
 
         do {
-            // Use raw JSON parsing to preserve order
             if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                let menuDict = jsonObject["menu"] as? [String: Any] {
-
                 var orderedSections: [MenuSection] = []
                 let decoder = JSONDecoder()
 
@@ -40,7 +64,6 @@ struct MenuListView: View {
                 DispatchQueue.main.async {
                     self.parsedMenu = orderedSections
                 }
-
             } else {
                 print("JSON structure invalid")
             }
