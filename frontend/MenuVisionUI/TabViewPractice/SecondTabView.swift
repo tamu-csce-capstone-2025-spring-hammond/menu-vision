@@ -74,54 +74,12 @@ struct CreateButton: View {
     }
 }
 
-
-//struct ScanPreviewView: View {
-//    let thumbnail: UIImage
-//    let onAccept: () -> Void
-//    let onRetake: () -> Void
-//
-//    var body: some View {
-//        VStack(spacing: 20) {
-//            Text("Preview Your Scan")
-//                .font(.title2)
-//                .bold()
-//
-//            Image(uiImage: thumbnail)
-//                .resizable()
-//                .aspectRatio(contentMode: .fit)
-//                .frame(width: 200, height: 200)
-//                .cornerRadius(12)
-//                .shadow(radius: 4)
-//
-//            HStack(spacing: 20) {
-//                Button(action: onRetake) {
-//                    Text("Retake")
-//                        .padding()
-//                        .frame(maxWidth: .infinity)
-//                        .background(Color.red.opacity(0.7))
-//                        .foregroundColor(.white)
-//                        .cornerRadius(10)
-//                }
-//
-//                Button(action: onAccept) {
-//                    Text("Accept")
-//                        .padding()
-//                        .frame(maxWidth: .infinity)
-//                        .background(Color.green.opacity(0.8))
-//                        .foregroundColor(.white)
-//                        .cornerRadius(10)
-//                }
-//            }
-//            .padding(.horizontal)
-//        }
-//        .padding()
-//    }
-//}
 struct ScanPreviewView: View {
     let thumbnail: UIImage
     let onAccept: () -> Void
     let onRetake: () -> Void
-    let onAssignModel: () -> Void
+//    let onAssignModel: () -> Void
+    let onAssignModel: () async -> Void
 
     var body: some View {
         VStack(spacing: 20) {
@@ -144,8 +102,13 @@ struct ScanPreviewView: View {
                 Button("Preview", action: onAccept)
                     .buttonStyle(.borderedProminent)
 
-                Button("Assign to Dish", action: onAssignModel)
-                    .buttonStyle(.bordered)
+//                Button("Accept", action: onAssignModel)
+//                    .buttonStyle(.bordered)
+                Button("Assign") {
+                    Task {
+                        await onAssignModel()
+                    }
+                }
             }
         }
         .padding()
@@ -172,6 +135,7 @@ struct ScanView: View {
     
     @State private var showModelAssignmentView = false
     @State private var uploadedModelId: String = ""
+    @State private var uuid: String = ""
     
     var modelPath: URL? {
         return modelFolderPath?.appending(path: "model.usdz")
@@ -297,6 +261,19 @@ struct ScanView: View {
                     onAssignModel: {
                         showScanPreviewPage = false
                         showModelAssignmentView = true
+                        // only once the model is accepted do we want to save to s3 buckets
+                        let filesListView = FilesListView()
+//                        uuid = UUID().uuidString
+                        await filesListView.s3testing(modelPath: modelPath, identificationNumber: uuid)
+                        // lowkey unsafe line below
+                        if let url = thumbnailURL {
+                            await filesListView.s3testing(modelPath: url, identificationNumber: uuid)
+                        } else {
+                            print("Error: thumbnailURL is nil")
+                            // Handle the error or show a UI alert
+                        }
+//                        await filesListView.s3testing(modelPath: thumbnailURL, identificationNumber: uuid)
+                        
                     }
                 )
             }
@@ -400,9 +377,9 @@ extension ScanView {
                     self.photogrammetrySession = nil
 //                    quickLookIsPresented = true
                     // uploading usdz file to s3 bucket
-                    let filesListView = FilesListView()
-                    let uuid = UUID().uuidString
-                    await filesListView.s3testing(modelPath: modelPath, identificationNumber: uuid)
+//                    let filesListView = FilesListView()
+                    uuid = UUID().uuidString
+//                    await filesListView.s3testing(modelPath: modelPath, identificationNumber: uuid)
                     
                     generateThumbnailRepresentations(modelURL: modelPath, identificationNumber: uuid)
                 default:
@@ -438,7 +415,7 @@ extension ScanView {
                 } else if let thumbnail = thumbnail {
                     
                     self.thumbnailImage = thumbnail.uiImage
-                    self.thumbnailURL = thumbnailURL
+//                    self.thumbnailURL = thumbnailURL
                     self.showScanPreviewPage = true
                     
                     self.uploadedModelId = identificationNumber
@@ -454,11 +431,13 @@ extension ScanView {
                             try imageData.write(to: thumbnailURL)
                             print("Thumbnail saved at \(thumbnailURL)")
                             
+                            self.thumbnailURL = thumbnailURL
+                            
                             // upload to s3 (maybe fix code not to instantiate FilesListView twice)
-                            let filesListView = FilesListView()
-                            Task {
-                                await filesListView.s3testing(modelPath: thumbnailURL, identificationNumber: identificationNumber)
-                            }
+//                            let filesListView = FilesListView()
+//                            Task {
+//                                await filesListView.s3testing(modelPath: thumbnailURL, identificationNumber: identificationNumber)
+//                            }
                         } catch {
                             print("Failed to save thumbnail: \(error)")
                         }
