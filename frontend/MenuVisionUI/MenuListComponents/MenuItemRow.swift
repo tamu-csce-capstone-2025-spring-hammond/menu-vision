@@ -10,23 +10,54 @@ struct MenuItemRow: View {
     var body: some View {
         VStack {
             HStack(alignment: .top, spacing: 12) {
-                if let models = item.matchedDishData, !models.isEmpty {
-                    // ✅ Image with AR icon overlay + tap to open AR
+                if let model = item.matchedDishData?.first {
+                    let modelID = model.model_id
+                    let localImage = loadDishThumbnail(modelID: modelID)
+
                     Button(action: {
                         navigateToAR = true
                     }) {
-                        ZStack(alignment: .topLeading) {
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(width: 60, height: 60)
-                                .cornerRadius(8)
+                        ZStack(alignment: .topTrailing) {
+                            if let image = localImage {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 60, height: 60)
+                                    .clipped()
+                                    .cornerRadius(8)
+                            } else {
+                                AsyncImage(
+                                    url: URL(string: "https://loremflickr.com/60/60/\(item.name.replacingOccurrences(of: " ", with: "%20"))"),
+                                    transaction: Transaction(animation: .easeInOut)
+                                ) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        ProgressView()
+                                            .frame(width: 60, height: 60)
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 60, height: 60)
+                                            .clipped()
+                                            .cornerRadius(8)
+                                    case .failure:
+                                        Rectangle()
+                                            .fill(Color.gray.opacity(0.3))
+                                            .frame(width: 60, height: 60)
+                                            .cornerRadius(8)
+                                    @unknown default:
+                                        EmptyView()
+                                    }
+                                }
+                            }
 
                             Image(systemName: "arkit")
                                 .foregroundColor(.white)
                                 .padding(6)
                                 .background(Color.blue)
                                 .clipShape(Circle())
-                                .offset(x: -6, y: -6)
+                                .offset(x: 5, y: -6)
                         }
                         .frame(width: 60, height: 60)
                     }
@@ -73,7 +104,6 @@ struct MenuItemRow: View {
             }
             .padding(.vertical, 8)
 
-            // ✅ Hidden NavigationLink for AR
             NavigationLink(
                 destination: FirstTabView().environmentObject(dishMapping),
                 isActive: $navigateToAR
@@ -92,5 +122,21 @@ struct MenuItemRow: View {
         if price == 0 { return .red }
         else if price < 10 { return .yellow }
         else { return .gray }
+    }
+
+    func loadDishThumbnail(modelID: String) -> UIImage? {
+        let fileManager = FileManager.default
+        let filename = "\(modelID).png"
+
+        guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return nil
+        }
+
+        let fileURL = documentsURL.appendingPathComponent(filename)
+        if fileManager.fileExists(atPath: fileURL.path) {
+            return UIImage(contentsOfFile: fileURL.path)
+        }
+
+        return nil
     }
 }
