@@ -4,9 +4,9 @@ struct MenuItemRow: View {
     let item: MenuItem
     @State private var showDetail = false
     @State private var navigateToAR = false
-    @State private var fetchedImageURL: URL?
-
     @EnvironmentObject var dishMapping: DishMapping
+    let isRecommended: Bool
+    let isSpicy: Bool
 
     var body: some View {
         VStack {
@@ -40,29 +40,25 @@ struct MenuItemRow: View {
                         .frame(width: 60, height: 60)
                     }
                     .buttonStyle(PlainButtonStyle())
-                } 
-                else {
+                } else {
+                    // If no matched model, use the default image URL
                     ZStack {
-                        if let imageURL = fetchedImageURL {
-                            AsyncImage(url: imageURL, transaction: .init(animation: .easeInOut)) { phase in
-                                switch phase {
-                                case .empty:
-                                    ProgressView().frame(width: 60, height: 60)
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 60, height: 60)
-                                        .clipped()
-                                        .cornerRadius(8)
-                                case .failure:
-                                    fallbackRect()
-                                @unknown default:
-                                    EmptyView()
-                                }
+                        AsyncImage(url: URL(string: "https://static.vecteezy.com/system/resources/previews/022/059/000/non_2x/no-image-available-icon-vector.jpg")) { phase in
+                            switch phase {
+                            case .empty:
+                                ProgressView().frame(width: 60, height: 60)
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 60, height: 60)
+                                    .clipped()
+                                    .cornerRadius(8)
+                            case .failure:
+                                fallbackRect()
+                            @unknown default:
+                                fallbackRect()
                             }
-                        } else {
-                            fallbackRect()
                         }
                     }
                     .frame(width: 60, height: 60)
@@ -79,13 +75,24 @@ struct MenuItemRow: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 6) {
-                    Text(String(format: "$%.2f", item.sizes.first?.price ?? 0.0))
+                    let sortedPrices = item.sizes.compactMap { $0.price }.sorted()
+                    let priceString = sortedPrices.map { String(format: "$%.2f", $0) }.joined(separator: " / ")
+
+                    Text(priceString)
                         .font(.subheadline)
 
                     HStack(spacing: 8) {
-                        Circle()
-                            .fill(colorForPrice(item.sizes.first?.price ?? 0))
-                            .frame(width: 12, height: 12)
+                        if let allergens = item.allergens, !allergens.isEmpty {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.yellow)
+                                .frame(width: 16, height: 16)
+                        }
+                        
+                        if isSpicy {
+                            Image(systemName: "flame.fill")
+                                .foregroundColor(.red)
+                                .frame(width: 16, height: 16)
+                        }
 
                         Button(action: {
                             showDetail = true
@@ -102,6 +109,18 @@ struct MenuItemRow: View {
             }
             .padding(.vertical, 8)
 
+            if isRecommended {
+                HStack {
+                    Text("Recommended")
+                        .font(.caption)
+                        .padding(4)
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(5)
+                }
+                .padding(.top, 5)
+            }
+
             NavigationLink(
                 destination: FirstTabView().environmentObject(dishMapping),
                 isActive: $navigateToAR
@@ -114,11 +133,6 @@ struct MenuItemRow: View {
         .sheet(isPresented: $showDetail) {
             MenuItemDetailView(item: item)
         }
-        .task {
-            if item.matchedDishData?.isEmpty ?? true && fetchedImageURL == nil {
-                await fetchImageURLFromBackend(for: item.name)
-            }
-        }
     }
 
     func fallbackRect() -> some View {
@@ -126,12 +140,6 @@ struct MenuItemRow: View {
             .fill(Color.gray.opacity(0.3))
             .frame(width: 60, height: 60)
             .cornerRadius(8)
-    }
-
-    func colorForPrice(_ price: Double) -> Color {
-        if price == 0 { return .red }
-        else if price < 10 { return .yellow }
-        else { return .gray }
     }
 
     func loadDishThumbnail(modelID: String) -> UIImage? {
@@ -147,30 +155,5 @@ struct MenuItemRow: View {
         }
 
         return nil
-    }
-
-    func fetchImageURLFromBackend(for dishName: String) async {
-        let cleanedName = dishName
-            .lowercased()
-            .replacingOccurrences(of: "[^a-z0-9 ]", with: "", options: .regularExpression)
-            .trimmingCharacters(in: .whitespaces)
-        
-        guard let encoded = cleanedName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/get_image?dish_name=\(encoded)") else {
-            return
-        }
-
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let urlString = json["image_url"] as? String,
-               let imageURL = URL(string: urlString) {
-                DispatchQueue.main.async {
-                    self.fetchedImageURL = imageURL
-                }
-            }
-        } catch {
-            print("Failed to fetch image URL for \(dishName): \(error)")
-        }
     }
 }
