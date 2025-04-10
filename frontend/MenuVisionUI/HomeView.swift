@@ -26,7 +26,7 @@ struct HomeView: View {
             }
             .tag(1)
 
-            ThirdTabView()
+            SettingsView()
                 .tabItem {
                     Label("Profile", systemImage: "person")
                 }
