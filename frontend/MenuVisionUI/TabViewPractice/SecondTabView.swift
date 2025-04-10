@@ -75,10 +75,53 @@ struct CreateButton: View {
 }
 
 
+//struct ScanPreviewView: View {
+//    let thumbnail: UIImage
+//    let onAccept: () -> Void
+//    let onRetake: () -> Void
+//
+//    var body: some View {
+//        VStack(spacing: 20) {
+//            Text("Preview Your Scan")
+//                .font(.title2)
+//                .bold()
+//
+//            Image(uiImage: thumbnail)
+//                .resizable()
+//                .aspectRatio(contentMode: .fit)
+//                .frame(width: 200, height: 200)
+//                .cornerRadius(12)
+//                .shadow(radius: 4)
+//
+//            HStack(spacing: 20) {
+//                Button(action: onRetake) {
+//                    Text("Retake")
+//                        .padding()
+//                        .frame(maxWidth: .infinity)
+//                        .background(Color.red.opacity(0.7))
+//                        .foregroundColor(.white)
+//                        .cornerRadius(10)
+//                }
+//
+//                Button(action: onAccept) {
+//                    Text("Accept")
+//                        .padding()
+//                        .frame(maxWidth: .infinity)
+//                        .background(Color.green.opacity(0.8))
+//                        .foregroundColor(.white)
+//                        .cornerRadius(10)
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//        .padding()
+//    }
+//}
 struct ScanPreviewView: View {
     let thumbnail: UIImage
     let onAccept: () -> Void
     let onRetake: () -> Void
+    let onAssignModel: () -> Void
 
     var body: some View {
         VStack(spacing: 20) {
@@ -93,26 +136,17 @@ struct ScanPreviewView: View {
                 .cornerRadius(12)
                 .shadow(radius: 4)
 
-            HStack(spacing: 20) {
-                Button(action: onRetake) {
-                    Text("Retake")
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.red.opacity(0.7))
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
+            HStack(spacing: 12) {
+                Button("Retake", action: onRetake)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
 
-                Button(action: onAccept) {
-                    Text("Accept")
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.green.opacity(0.8))
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
+                Button("Preview", action: onAccept)
+                    .buttonStyle(.borderedProminent)
+
+                Button("Assign to Dish", action: onAssignModel)
+                    .buttonStyle(.bordered)
             }
-            .padding(.horizontal)
         }
         .padding()
     }
@@ -135,6 +169,9 @@ struct ScanView: View {
     @State private var showScanPreviewPage = false
     @State private var thumbnailImage: UIImage?
     @State private var thumbnailURL: URL?
+    
+    @State private var showModelAssignmentView = false
+    @State private var uploadedModelId: String = ""
     
     var modelPath: URL? {
         return modelFolderPath?.appending(path: "model.usdz")
@@ -222,6 +259,24 @@ struct ScanView: View {
         }
         .sheet(isPresented: $showScanPreviewPage) {
             if let thumbnailImage, let modelPath {
+//                ScanPreviewView(
+//                    thumbnail: thumbnailImage,
+//                    onAccept: {
+//                        showScanPreviewPage = false
+//                        quickLookIsPresented = true
+//                    },
+//                    onRetake: {
+//                        showScanPreviewPage = false
+//                        scanPassCount = 0
+//                        Task {
+//                            guard let directory = createNewScanDirectory() else { return }
+//                            modelFolderPath = directory.appending(path: "Models/")
+//                            imageFolderPath = directory.appending(path: "Images/")
+//                            session = ObjectCaptureSession()
+//                            session?.start(imagesDirectory: imageFolderPath!)
+//                        }
+//                    }
+//                )
                 ScanPreviewView(
                     thumbnail: thumbnailImage,
                     onAccept: {
@@ -238,21 +293,40 @@ struct ScanView: View {
                             session = ObjectCaptureSession()
                             session?.start(imagesDirectory: imageFolderPath!)
                         }
+                    },
+                    onAssignModel: {
+                        showScanPreviewPage = false
+                        showModelAssignmentView = true
                     }
                 )
             }
         }
+        .fullScreenCover(isPresented: $showModelAssignmentView) {
+            ModelAssignmentView(
+                restaurantId: "ChIJ92rcyJWDRoYRotK6QCjsFf8",
+                modelId: uploadedModelId,
+                uploadedBy: "1"  // Replace with actual user ID if needed
+            )
+        }
+//        .sheet(isPresented: $quickLookIsPresented) {
+//            
+//            if let modelPath {
+//                ARQuickLookView(modelFile: modelPath) {
+//                    guard let directory = createNewScanDirectory()
+//                    else { return }
+//                    quickLookIsPresented = false
+//                    // need to set number of scans done back to 0
+//                    scanPassCount = 0
+//                    showScanPassPrompt = false
+//                    // TODO: Restart ObjectCapture
+//                }
+//            }
+//        }
         .sheet(isPresented: $quickLookIsPresented) {
-            
             if let modelPath {
                 ARQuickLookView(modelFile: modelPath) {
-                    guard let directory = createNewScanDirectory()
-                    else { return }
                     quickLookIsPresented = false
-                    // need to set number of scans done back to 0
-                    scanPassCount = 0
-                    showScanPassPrompt = false
-                    // TODO: Restart ObjectCapture
+                    showScanPreviewPage = true
                 }
             }
         }
@@ -366,6 +440,8 @@ extension ScanView {
                     self.thumbnailImage = thumbnail.uiImage
                     self.thumbnailURL = thumbnailURL
                     self.showScanPreviewPage = true
+                    
+                    self.uploadedModelId = identificationNumber
                     
                     print("Thumbnail generated successfully!")
 
