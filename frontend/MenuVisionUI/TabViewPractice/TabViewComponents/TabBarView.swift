@@ -2,9 +2,8 @@
 //  TabBarView.swift
 //  MenuVision
 //
-//  Created by Albert Yin on 4/8/25.
+//  Created by Albert Yin on 4/3/25.
 //
-
 import SwiftUI
 
 struct TabBarView: View {
@@ -59,10 +58,6 @@ struct TabBarItem: View {
     }
 }
 
-struct TabBarView_Previews: PreviewProvider {
-    static var previews: some View {
-        TabBarView()
-            .previewLayout(.sizeThatFits)
-            .background(Color.white)
-    }
+#Preview {
+    TabBarView()
 }
