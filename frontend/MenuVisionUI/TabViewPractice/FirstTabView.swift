@@ -132,28 +132,17 @@ struct FirstTabView: View {
                                                 viewManager.changeModel(index: id);
                                                 modelIndex = id;
                                                 
+                                                print("The val: ", value.0);
+
                                             })
                                         {
                                             
-                                            if let documentsURL = documentsURL {
-                                                let imagePath = documentsURL.appendingPathComponent(value.1 + ".png").path
-                                                if let uiImage = UIImage(contentsOfFile: imagePath) {
-                                                    Image(uiImage: uiImage)
-                                                        .resizable()
-                                                        .scaledToFit()
-                                                        .frame(width: 70, height: 70)
-                                                        .background(modelIndex == id ? Color(hex: "ff3f00").opacity(0.5) : Color(hex: "73edad").opacity(0.4))
-                                                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                        .scrollTransition(.interactive, axis: .horizontal) { effect, phase in
-                                                            effect.scaleEffect(phase.isIdentity ? 1.0 : 0.95)
-                                                        }
-                                                } else {
-                                                    Text("Image not found")
-                                                        .frame(width: 70, height: 70)
-                                                        .background(modelIndex == id ? Color(hex: "ff3f00").opacity(0.5) : Color(hex: "73edad").opacity(0.4))
-                                                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                }
-                                            }
+                                            ModelThumbnail(
+                                                        id: id,
+                                                        filename: value.0,
+                                                        documentsURL: documentsURL,
+                                                        isSelected: modelIndex == id
+                                                    )
                                         }
                                         .foregroundColor(Color.init(hex: "73edad"))
                                         .padding(5)
@@ -244,5 +233,42 @@ struct FirstTabView: View {
 }
 
 
+struct ModelThumbnail: View {
+    var id: Int
+    var filename: String
+    var documentsURL: URL?
+    var isSelected: Bool
 
+    var body: some View {
+        
+        let imagePath = documentsURL?.appendingPathComponent(filename + ".png").path ?? ""
+        if let uiImage = UIImage(contentsOfFile: imagePath) {
+            ZStack {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 70, height: 70)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+
+                if isSelected {
+                    Color.orange
+                        .opacity(0.5)
+                        .blur(radius: 5)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                }
+            }
+            .background(
+                isSelected ? Color(hex: "ff3f00").opacity(0.5) : Color(hex: "73edad").opacity(0.4)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .scrollTransition(.interactive, axis: .horizontal) { effect, phase in
+                effect.scaleEffect(phase.isIdentity ? 1.0 : 0.95)
+            }
+            } else {
+            Text("Image not found")
+                .frame(width: 70, height: 70)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+        }
+    }
+}
 
