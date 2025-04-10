@@ -6,6 +6,7 @@ struct MenuItemRow: View {
     @State private var navigateToAR = false
     @EnvironmentObject var dishMapping: DishMapping
     let isRecommended: Bool
+    let isSpicy: Bool
 
     var body: some View {
         VStack {
@@ -84,6 +85,12 @@ struct MenuItemRow: View {
                         if let allergens = item.allergens, !allergens.isEmpty {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundColor(.yellow)
+                                .frame(width: 16, height: 16)
+                        }
+                        
+                        if isSpicy {
+                            Image(systemName: "flame.fill")
+                                .foregroundColor(.red)
                                 .frame(width: 16, height: 16)
                         }
 

@@ -3,7 +3,7 @@ import SwiftUI
 struct MenuListView: View {
     let response: String
     @State private var parsedMenu: [MenuSection] = []
-    @State private var parsedRecommendations: [String] = [] // Store recommended dish names
+    @State private var parsedRecommendations: [String] = []
     @EnvironmentObject var dishMapping: DishMapping
 
     var body: some View {
@@ -33,8 +33,8 @@ struct MenuListView: View {
                 if !displayableItems.isEmpty {
                     Section(header: Text(section.name).font(.title3)) {
                         ForEach(displayableItems) { item in
-                            let isRecommended = parsedRecommendations.contains(item.name) // Check if item is recommended
-                            MenuItemRow(item: item, isRecommended: isRecommended) // Pass the recommendation flag
+                            let isRecommended = parsedRecommendations.contains(item.name)
+                            MenuItemRow(item: item, isRecommended: isRecommended, isSpicy: item.spiciness != nil && !item.spiciness!.isEmpty)
                         }
                     }
                 }
@@ -69,6 +69,7 @@ struct MenuListView: View {
                     self.parsedMenu = orderedSections
                     self.parsedRecommendations = recommendedDishNames
                 }
+                print(parsedRecommendations)
             } else {
                 print("JSON structure invalid")
             }
