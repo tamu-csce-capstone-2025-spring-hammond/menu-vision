@@ -193,15 +193,6 @@ struct MenuScannerView: View {
                                 
                             }
                             .padding(.horizontal)
-
-                            if !apiResponse.isEmpty {
-                                Text("API Response: \(apiResponse)")
-                                    .padding(8)
-                                    .background(Color.black.opacity(0.75))
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                                    .padding(.top, 30)
-                            }
                         }
                     }
                     .onAppear {
