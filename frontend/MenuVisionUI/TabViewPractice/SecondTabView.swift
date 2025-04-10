@@ -92,7 +92,7 @@ struct ScanView: View {
         ZStack(alignment: .bottom) {
             
             if (!ObjectCaptureSession.isSupported){
-                Text("Your device is not supported peasant");
+                Text("Your device does not support AR scanning");
             }
             
             if let session {
