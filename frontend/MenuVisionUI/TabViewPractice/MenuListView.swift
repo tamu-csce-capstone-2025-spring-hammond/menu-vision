@@ -3,13 +3,33 @@ import SwiftUI
 struct MenuListView: View {
     let response: String
     @State private var parsedMenu: [MenuSection] = []
+    @EnvironmentObject var dishMapping: DishMapping
 
     var body: some View {
         List {
             ForEach(parsedMenu) { section in
                 Section(header: Text(section.name).font(.title3)) {
                     ForEach(section.items) { item in
-                        MenuItemRow(item: item)
+                        if let matchedDishData = dishMapping.modelsByDishName[item.name],
+                           let verified = matchedDishData.first {
+                            // Use verified DishData to override OCR MenuItem
+                            let overriddenItem = MenuItem(
+                                name: verified.dish_name,
+                                description: verified.description,
+                                sizes: item.sizes, // You can parse verified.price if needed
+                                availability: item.availability,
+                                spiciness: item.spiciness,
+                                allergens: verified.allergens.components(separatedBy: ", "),
+                                dietary_info: item.dietary_info ?? [],
+                                calories: verified.nutritional_info,
+                                popularity: item.popularity,
+                                addons: item.addons ?? []
+                            )
+                            MenuItemRow(item: overriddenItem)
+                        } else {
+                            // Fallback to original OCR item
+                            MenuItemRow(item: item)
+                        }
                     }
                 }
             }
@@ -24,7 +44,6 @@ struct MenuListView: View {
         guard let data = response.data(using: .utf8) else { return }
 
         do {
-            // Use raw JSON parsing to preserve order
             if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                let menuDict = jsonObject["menu"] as? [String: Any] {
 
