@@ -48,6 +48,10 @@ struct MenuListView: View {
 
     func decodeAPIResponse() {
         guard let data = response.data(using: .utf8) else { return }
+        
+        if let jsonString = String(data: data, encoding: .utf8) {
+                print("Received Data: \(jsonString)") // Print the entire received data
+        }
 
         do {
             if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
