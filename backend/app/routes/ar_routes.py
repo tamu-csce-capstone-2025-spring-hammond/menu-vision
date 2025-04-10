@@ -3,6 +3,7 @@ from app.models import Restaurant, DishItem, ARModel
 from app.database import db
 from datetime import datetime
 from math import log
+from duckduckgo_search import DDGS
 
 ar_bp = Blueprint("ar", __name__)
 
@@ -10,6 +11,24 @@ ar_bp = Blueprint("ar", __name__)
 def ar_home():
     return jsonify({"message": "AR API Home"})
 
+def fetch_duckduckgo_image(query):
+    with DDGS() as ddgs:
+        results = ddgs.images(query, max_results=1)
+        if results:
+            return results[0]['image']
+    return None
+
+@ar_bp.route("/get_image", methods=["GET"])
+def get_image():
+    dish_name = request.args.get("dish_name")
+    if not dish_name:
+        return jsonify({"error": "Dish name is required"}), 400
+
+    image_url = fetch_duckduckgo_image(dish_name)
+    if image_url:
+        return jsonify({"dish_name": dish_name, "image_url": image_url})
+    else:
+        return jsonify({"error": "Image not found"}), 404
 
 # get all models for a restaurant
 @ar_bp.route("/restaurant/<string:restaurant_id>/models", methods=["GET"])

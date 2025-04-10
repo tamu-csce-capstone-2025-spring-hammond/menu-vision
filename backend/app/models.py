@@ -66,3 +66,9 @@ class User(db.Model):
 
     uploaded_models = db.relationship("ARModel", backref="uploader", lazy=True)
     reports = db.relationship("ModelReport", backref="reporter", lazy=True)
+
+class Key(db.Model):
+    __tablename__ = "keys"
+
+    name = db.Column(db.String, primary_key=True)
+    value = db.Column(db.String, nullable=False)
