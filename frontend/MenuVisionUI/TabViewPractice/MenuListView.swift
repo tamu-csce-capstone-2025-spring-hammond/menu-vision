@@ -3,15 +3,14 @@ import SwiftUI
 struct MenuListView: View {
     let response: String
     @State private var parsedMenu: [MenuSection] = []
+    @State private var parsedRecommendations: [String] = [] // Store recommended dish names
     @EnvironmentObject var dishMapping: DishMapping
 
     var body: some View {
         List {
             ForEach(parsedMenu) { section in
-                // Filter section items that are displayable
                 let displayableItems = section.items.compactMap { item -> MenuItem? in
                     if let matched = dishMapping.modelsByDishName[item.name] {
-                        // Override with verified data
                         let firstMatch = matched.first!
                         return MenuItem(
                             name: firstMatch.dish_name,
@@ -27,14 +26,15 @@ struct MenuListView: View {
                             matchedDishData: matched
                         )
                     } else {
-                        return item // Use OCR data if no match
+                        return item
                     }
                 }
 
                 if !displayableItems.isEmpty {
                     Section(header: Text(section.name).font(.title3)) {
                         ForEach(displayableItems) { item in
-                            MenuItemRow(item: item)
+                            let isRecommended = parsedRecommendations.contains(item.name) // Check if item is recommended
+                            MenuItemRow(item: item, isRecommended: isRecommended) // Pass the recommendation flag
                         }
                     }
                 }
@@ -51,7 +51,9 @@ struct MenuListView: View {
 
         do {
             if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let menuDict = jsonObject["menu"] as? [String: Any] {
+               let menuDict = jsonObject["menu"] as? [String: Any],
+               let recommendations = jsonObject["recommendations"] as? [[String: Any]] {
+
                 var orderedSections: [MenuSection] = []
                 let decoder = JSONDecoder()
 
@@ -61,8 +63,11 @@ struct MenuListView: View {
                     orderedSections.append(MenuSection(name: key, items: items))
                 }
 
+                let recommendedDishNames = recommendations.map { $0["name"] as? String ?? "" }
+
                 DispatchQueue.main.async {
                     self.parsedMenu = orderedSections
+                    self.parsedRecommendations = recommendedDishNames
                 }
             } else {
                 print("JSON structure invalid")
