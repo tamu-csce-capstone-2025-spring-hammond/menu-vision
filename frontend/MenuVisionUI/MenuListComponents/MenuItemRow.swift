@@ -75,12 +75,16 @@ struct MenuItemRow: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 6) {
-                    Text(String(format: "$%.2f", item.sizes.first?.price ?? 0.0))
+                    // Display sorted prices
+                    let sortedPrices = item.sizes.compactMap { $0.price }.sorted()
+                    let priceString = sortedPrices.map { String(format: "$%.2f", $0) }.joined(separator: " / ")
+
+                    Text(priceString)
                         .font(.subheadline)
 
                     HStack(spacing: 8) {
                         Circle()
-                            .fill(colorForPrice(item.sizes.first?.price ?? 0))
+                            .fill(colorForPrice(sortedPrices.first ?? 0))
                             .frame(width: 12, height: 12)
 
                         Button(action: {
