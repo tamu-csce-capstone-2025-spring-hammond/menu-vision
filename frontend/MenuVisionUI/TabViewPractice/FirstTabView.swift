@@ -205,7 +205,7 @@ struct FirstTabView: View {
         .sheet(isPresented: $showInformationModal) {
             ScrollView{
                 VStack(spacing: 20) {
-                    Text("How to use MenuVision™ AR")
+                    Text("How To Use MenuVision™ AR")
                         .font(.headline)
 
                     Text("1. First hover your phone around your surroundings in order to allow MenuVision™ to detect a surface. Once a surface is found, the white overlay on the screen should disappear. (if it never appeared in the first place then you are likely already good to go)")
