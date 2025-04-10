@@ -65,8 +65,19 @@ struct MenuItemRow: View {
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(item.name)
-                        .font(.headline)
+                    HStack {
+                        Text(item.name)
+                            .font(.headline)
+                        if isRecommended {
+                            Text("Rec")
+                                .font(.caption)
+                                .padding(4)
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(5)
+                        }
+                    }
+
                     Text(item.description ?? "")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -108,18 +119,6 @@ struct MenuItemRow: View {
                 }
             }
             .padding(.vertical, 8)
-
-            if isRecommended {
-                HStack {
-                    Text("Recommended")
-                        .font(.caption)
-                        .padding(4)
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(5)
-                }
-                .padding(.top, 5)
-            }
 
             NavigationLink(
                 destination: FirstTabView().environmentObject(dishMapping),

@@ -249,7 +249,7 @@ struct MenuScannerView: View {
                            id != lastSelectedRestaurantID {
                             
                             lastSelectedRestaurantID = id
-                            restaurantData.restaurant_id = "ChIJ92rcyJWDRoYRotK6QCjsFf8"
+                            restaurantData.restaurant_id = id
                             
                             print("\nAttempting download for restaurant: \(id)")
                             
@@ -257,7 +257,7 @@ struct MenuScannerView: View {
                             dishMapping.setStartedDownloading();
                             dishMapping.setStartedLoading();
                             
-                            let models = await ModelFileManager.shared.clearAndDownloadFiles(for: "ChIJ92rcyJWDRoYRotK6QCjsFf8")
+                            let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id)
                             
                             if !models.isEmpty {
                                 dishMapping.setModels(models)
@@ -311,8 +311,15 @@ struct MenuScannerView: View {
 
             do {
                 let decodedResponse = try JSONDecoder().decode(RestaurantResponse.self, from: data)
+                
+                let capstoneCafe = Restaurant(
+                    id: "ChIJ92rcyJWDRoYRotK6QCjsFf8",
+                    placeId: "ChIJ92rcyJWDRoYRotK6QCjsFf8",
+                    displayName: DisplayName(text: "Capstone Cafe", languageCode: "en")
+                )
+                
                 DispatchQueue.main.async {
-                    self.restaurants = decodedResponse.places ?? []
+                    self.restaurants = [capstoneCafe] + (decodedResponse.places ?? [])
                 }
             } catch {
                 print("Error decoding JSON: \(error)")
