@@ -4,13 +4,12 @@ struct MenuItemRow: View {
     let item: MenuItem
     @State private var showDetail = false
     @State private var navigateToAR = false
-
     @EnvironmentObject var dishMapping: DishMapping
+    let isRecommended: Bool
 
     var body: some View {
         VStack {
             HStack(alignment: .top, spacing: 12) {
-                // Check if the item has matched dish data
                 if let model = item.matchedDishData?.first {
                     let modelID = model.model_id
                     let localImage = loadDishThumbnail(modelID: modelID)
@@ -75,7 +74,6 @@ struct MenuItemRow: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 6) {
-                    // Display sorted prices
                     let sortedPrices = item.sizes.compactMap { $0.price }.sorted()
                     let priceString = sortedPrices.map { String(format: "$%.2f", $0) }.joined(separator: " / ")
 
@@ -83,9 +81,11 @@ struct MenuItemRow: View {
                         .font(.subheadline)
 
                     HStack(spacing: 8) {
-                        Circle()
-                            .fill(colorForPrice(sortedPrices.first ?? 0))
-                            .frame(width: 12, height: 12)
+                        if let allergens = item.allergens, !allergens.isEmpty {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.yellow)
+                                .frame(width: 16, height: 16)
+                        }
 
                         Button(action: {
                             showDetail = true
@@ -101,6 +101,18 @@ struct MenuItemRow: View {
                 }
             }
             .padding(.vertical, 8)
+
+            if isRecommended {
+                HStack {
+                    Text("Recommended")
+                        .font(.caption)
+                        .padding(4)
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(5)
+                }
+                .padding(.top, 5)
+            }
 
             NavigationLink(
                 destination: FirstTabView().environmentObject(dishMapping),
@@ -121,12 +133,6 @@ struct MenuItemRow: View {
             .fill(Color.gray.opacity(0.3))
             .frame(width: 60, height: 60)
             .cornerRadius(8)
-    }
-
-    func colorForPrice(_ price: Double) -> Color {
-        if price == 0 { return .red }
-        else if price < 10 { return .yellow }
-        else { return .gray }
     }
 
     func loadDishThumbnail(modelID: String) -> UIImage? {
