@@ -100,6 +100,18 @@ class ModelFileManager {
                             print("Error downloading \(key): \(error)")
                         }
                     }
+                    
+                    let pngKey = key.replacingOccurrences(of: ".usdz", with: ".png")
+                    group.addTask {
+                        do {
+                            print("Downloading: \(pngKey)")
+                            try await serviceHandler.downloadFile(bucket: "usdz-store-test", key: pngKey, to: documentsDir.path)
+                            print("Finished: \(pngKey)")
+                        } catch {
+                            print("Error downloading \(pngKey): \(error)")
+                        }
+                    }
+
                 }
             }
         } catch {
