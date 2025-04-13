@@ -11,13 +11,13 @@ struct ContentView: View {
             if vm.isLoggedIn {
                 // When logged in, show HomeView
                 HomeView()
-//                    .transition(.opacity)
-//                    .animation(.default, value: vm.isLoggedIn)
+                    .transition(.opacity)
+                    .animation(.default, value: vm.isLoggedIn)
             } else {
                 // When not logged in, show SignUpAndInView with binding to isLoggedIn
                 SignUpAndInView()
-//                    .transition(.opacity)
-//                    .animation(.default, value: vm.isLoggedIn)
+                    .transition(.opacity)
+                    .animation(.default, value: vm.isLoggedIn)
             }
         }
         // Check persistent login on app launch
