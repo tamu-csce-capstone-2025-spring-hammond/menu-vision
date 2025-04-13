@@ -2,14 +2,18 @@ import SwiftUI
 
 struct LoginView: View {
     @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var vm: UserStateViewModel
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var isPasswordVisible: Bool = false
     @State private var rememberMe: Bool = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
+    @Environment(\.dismiss) var dismiss
 
-    @Binding var isLoggedIn: Bool
+
+    
+//    @Binding var isLoggedIn: Bool
     
     // Add app storage to persist user ID
     @AppStorage("user_id") private var userId: Int = 0
@@ -149,7 +153,8 @@ struct LoginView: View {
                                         if let userId = userId {
                                             self.userId = userId
                                         }
-                                        isLoggedIn = true
+                                        vm.isLoggedIn = true
+                                        dismiss()
                                     } else if let message = message {
                                         alertMessage = message
                                         showingAlert = true
@@ -210,14 +215,14 @@ struct LoginView: View {
         .onAppear {
             // Check if we should auto login
             if UserDefaults.standard.bool(forKey: "is_logged_in") && userId != 0 {
-                isLoggedIn = true
+                vm.isLoggedIn = true
             }
         }
     }
 }
 
-struct LoginView_Previews: PreviewProvider {
-    static var previews: some View {
-        LoginView(isLoggedIn: .constant(false))
-    }
-}
+//struct LoginView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        LoginView(isLoggedIn: .constant(false))
+//    }
+//}
