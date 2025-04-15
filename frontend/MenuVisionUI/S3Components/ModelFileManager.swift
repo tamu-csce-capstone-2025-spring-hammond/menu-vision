@@ -69,10 +69,12 @@ class ModelFileManager {
 
     func asyncDownload(keys: [String]) async {
         do {
-            let env = ProcessInfo.processInfo.environment
+            let accessKey = UserDefaults.standard.string(forKey: "AWS_ACCESS_KEY")
+            let secretKey = UserDefaults.standard.string(forKey: "AWS_SECRET_KEY")
+                    
             let credentials = AWSCredentialIdentity(
-                accessKey: env["AWS_ACCESS_KEY"] ?? "NULL",
-                secret: env["AWS_SECRET_KEY"] ?? "NULL"
+                accessKey: accessKey ?? "NULL",
+                secret: secretKey ?? "NULL"
             )
             let identityResolver = try StaticAWSCredentialIdentityResolver(credentials)
 
@@ -100,6 +102,18 @@ class ModelFileManager {
                             print("Error downloading \(key): \(error)")
                         }
                     }
+                    
+                    let pngKey = key.replacingOccurrences(of: ".usdz", with: ".png")
+                    group.addTask {
+                        do {
+                            print("Downloading: \(pngKey)")
+                            try await serviceHandler.downloadFile(bucket: "usdz-store-test", key: pngKey, to: documentsDir.path)
+                            print("Finished: \(pngKey)")
+                        } catch {
+                            print("Error downloading \(pngKey): \(error)")
+                        }
+                    }
+
                 }
             }
         } catch {

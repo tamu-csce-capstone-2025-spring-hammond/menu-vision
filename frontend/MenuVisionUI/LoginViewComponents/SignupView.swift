@@ -14,14 +14,23 @@ struct SignUpView: View {
     @State private var navigateToSignUpView2 = false
 
     let dietaryOptions = [
-        "Dairy Allergy",
-        "Gluten Free",
+        "Vegetarian",
+        "Vegan",
+        "Pescatarian",
+        "Gluten-Free",
+        "Dairy-Free",
+        "Nut-Free",
+        "Soy-Free",
+        "Egg-Free",
+        "Lactose Intolerant",
         "Halal",
         "Kosher",
-        "Lactose Intolerant",
         "No Beef",
         "No Pork",
-        "No Red Meat"
+        "No Red Meat",
+        "Low Carb",
+        "Low Sugar",
+        "Low Sodium"
     ]
 
     var body: some View {

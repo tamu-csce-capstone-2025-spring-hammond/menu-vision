@@ -11,11 +11,17 @@ import SwiftUI
 struct MenuVisionUIApp: App {
     @StateObject private var restaurantData = RestaurantData()
     @StateObject private var dishMapping = DishMapping()
+    @StateObject private var userStateViewModel = UserStateViewModel()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NavigationStack {
+                ContentView()
+            }
+            
                 .environmentObject(restaurantData)
                 .environmentObject(dishMapping)
+                .environmentObject(userStateViewModel)
         }
     }
 }

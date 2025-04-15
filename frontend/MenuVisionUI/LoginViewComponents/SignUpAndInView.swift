@@ -9,12 +9,14 @@ import SwiftUI
 
 struct SignUpAndInView: View {
     @State private var navigationPath = NavigationPath()
-    @Binding var isLoggedIn: Bool
+//    @Binding var isLoggedIn: Bool
+    @EnvironmentObject var vm: UserStateViewModel
+
 
     // Initialize with a default value for preview
-    init(isLoggedIn: Binding<Bool> = .constant(false)) {
-        self._isLoggedIn = isLoggedIn
-    }
+//    init(isLoggedIn: Binding<Bool> = .constant(false)) {
+//        self._isLoggedIn = isLoggedIn
+//    }
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -107,14 +109,14 @@ struct SignUpAndInView: View {
                 case "signup":
                     SignUpView(signUpData: SignUpData())
                 case "login":
-                    LoginView(isLoggedIn: $isLoggedIn)
+                    LoginView()
                 default:
                     EmptyView()
                 }
             }
             .navigationBarHidden(true)
         }
-        .fullScreenCover(isPresented: $isLoggedIn) {
+        .fullScreenCover(isPresented: $vm.isLoggedIn) {
             HomeView()
         }
     }
