@@ -2,9 +2,9 @@ import SwiftUI
 
 struct ContentView: View {
   
-    @AppStorage("is_logged_in") private var persistentLogin: Bool = true
+    @AppStorage("is_logged_in") private var persistentLogin: Bool = false
     @EnvironmentObject var vm: UserStateViewModel
-    @State private var isLoggedIn: Bool = true
+    @State private var isLoggedIn: Bool = false
 
     var body: some View {
         Group {
