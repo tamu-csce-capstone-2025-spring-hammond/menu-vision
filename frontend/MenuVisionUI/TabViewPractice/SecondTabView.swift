@@ -173,6 +173,8 @@ struct ScanView: View {
     @State private var showModelAssignmentView = false
     @State private var uploadedModelId: String = ""
     
+    @EnvironmentObject var restaurantData: RestaurantData
+    
     var modelPath: URL? {
         return modelFolderPath?.appending(path: "model.usdz")
     }
@@ -259,24 +261,6 @@ struct ScanView: View {
         }
         .sheet(isPresented: $showScanPreviewPage) {
             if let thumbnailImage, let modelPath {
-//                ScanPreviewView(
-//                    thumbnail: thumbnailImage,
-//                    onAccept: {
-//                        showScanPreviewPage = false
-//                        quickLookIsPresented = true
-//                    },
-//                    onRetake: {
-//                        showScanPreviewPage = false
-//                        scanPassCount = 0
-//                        Task {
-//                            guard let directory = createNewScanDirectory() else { return }
-//                            modelFolderPath = directory.appending(path: "Models/")
-//                            imageFolderPath = directory.appending(path: "Images/")
-//                            session = ObjectCaptureSession()
-//                            session?.start(imagesDirectory: imageFolderPath!)
-//                        }
-//                    }
-//                )
                 ScanPreviewView(
                     thumbnail: thumbnailImage,
                     onAccept: {
@@ -303,9 +287,9 @@ struct ScanView: View {
         }
         .fullScreenCover(isPresented: $showModelAssignmentView) {
             ModelAssignmentView(
-                restaurantId: "ChIJ92rcyJWDRoYRotK6QCjsFf8",
+                restaurantId: restaurantData.restaurant_id,
                 modelId: uploadedModelId,
-                uploadedBy: "1"  // Replace with actual user ID if needed
+                uploadedBy: String(UserDefaults.standard.integer(forKey: "user_id"))
             )
         }
 //        .sheet(isPresented: $quickLookIsPresented) {
@@ -345,7 +329,6 @@ struct ScanView: View {
 }
 
 extension ScanView {
-    
     func createNewScanDirectory() -> URL? {
         guard let capturesFolder = getRootScansFolder()
         else { return nil }
@@ -398,7 +381,6 @@ extension ScanView {
                 case .processingComplete:
                     isProgressing = false
                     self.photogrammetrySession = nil
-//                    quickLookIsPresented = true
                     // uploading usdz file to s3 bucket
                     let filesListView = FilesListView()
                     let uuid = UUID().uuidString
@@ -417,11 +399,6 @@ extension ScanView {
     
     // generate thumbnail
     func generateThumbnailRepresentations(modelURL: URL, identificationNumber: String) {
-//        guard let modelURL = Bundle.main.url(forResource: "onion_1", withExtension: "usdz") else {
-//            print("Model file not found in bundle")
-//            return
-//        }
-        
         let size = CGSize(width: 100, height: 100)
         let scale = UIScreen.main.scale
         
@@ -467,6 +444,4 @@ extension ScanView {
             }
         }
     }
-
-    
 }
