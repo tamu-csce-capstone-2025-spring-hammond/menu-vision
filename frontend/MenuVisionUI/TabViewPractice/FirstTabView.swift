@@ -2,10 +2,6 @@ import SwiftUI
 import RealityKit
 import ARKit
 
-func nothing(){
-    
-}
-
 struct FirstTabView: View {
     
     @StateObject private var viewManager = ARViewManager();
@@ -29,6 +25,46 @@ struct FirstTabView: View {
                 pollForLoadingCompletion();
             }
         }
+    }
+    
+    private func callVoteAPI(endpoint: String, modelId: String, userId: Int) {
+        // Construct the URL with blueprint prefix, modelId, endpoint, and userId in the path
+        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/model/\(modelId)/\(endpoint)/\(userId)") else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        // No need to set Content-Type or body as modelId is in the URL
+        // request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        // let body: [String: Any] = ["model_id": modelId]
+        // request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error calling \(endpoint): \(error)")
+                return
+            }
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else {
+                print("Error with the response, unexpected status code: \(String(describing: response))")
+                return
+            }
+            // Optionally handle the response data
+            print("\(endpoint) successful for model: \(modelId)")
+        }.resume()
+    }
+
+    private func voteAction(endpoint: String) {
+        let modelId = viewManager.getCurrentModelID()
+        if modelId.isEmpty {
+            print("Could not get current model ID or model ID is empty")
+            return
+        }
+        
+        let userId = UserDefaults.standard.integer(forKey: "user_id")
+        callVoteAPI(endpoint: endpoint, modelId: modelId, userId: userId)
     }
     
     var body: some View {
@@ -102,6 +138,37 @@ struct FirstTabView: View {
                                     
                         Spacer()
                         
+                        // Container for Vote Buttons (aligned right)
+                        HStack {
+                            Spacer() // Pushes vote buttons to the right
+                            VStack(spacing: 15) { // Vote buttons stacked vertically
+                                Button(action: {
+                                    voteAction(endpoint: "upvote")
+                                }) {
+                                    Image(systemName: "arrow.up.circle.fill")
+                                        .resizable()
+                                        .frame(width: 40, height: 40)
+                                        .foregroundColor(.green)
+                                        .background(Color.black.opacity(0.6))
+                                        .clipShape(Circle())
+                                }
+
+                                Button(action: {
+                                    voteAction(endpoint: "downvote")
+                                }) {
+                                    Image(systemName: "arrow.down.circle.fill")
+                                        .resizable()
+                                        .frame(width: 40, height: 40)
+                                        .foregroundColor(.red)
+                                        .background(Color.black.opacity(0.6))
+                                        .clipShape(Circle())
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 16) // Add horizontal padding to align with other buttons
+                        .padding(.bottom, 10) // Add some space below vote buttons
+
+                        // Container for Info/Flag Buttons
                         HStack {
                                 Button(action: {
                                     showInformationModal = true;
@@ -113,7 +180,8 @@ struct FirstTabView: View {
                                 }
 
                                 Spacer()
-
+                                
+                                // Flag Button (no longer grouped with vote buttons)
                                 Button(action: {
                                     showReportModal = true;
                                 }) {
@@ -122,10 +190,49 @@ struct FirstTabView: View {
                                         .background(Color.black.opacity(0.6))
                                         .clipShape(Circle())
                                 }
+                                
+                                /* // REMOVED: Old structure grouping vote/flag
+                                // Group Vote buttons and Flag button vertically
+                                VStack(spacing: 10) { 
+                                    // Upvote/Downvote Buttons stacked vertically
+                                    VStack(spacing: 15) { // Adjust spacing between vertical buttons
+                                        Button(action: {
+                                            voteAction(endpoint: "upvote")
+                                        }) {
+                                            Image(systemName: "arrow.up.circle.fill")
+                                                .resizable()
+                                                .frame(width: 40, height: 40) // Increased size
+                                                .foregroundColor(.green)
+                                                .background(Color.black.opacity(0.6))
+                                                .clipShape(Circle())
+                                        }
+
+                                        Button(action: {
+                                            voteAction(endpoint: "downvote")
+                                        }) {
+                                            Image(systemName: "arrow.down.circle.fill")
+                                                .resizable()
+                                                .frame(width: 40, height: 40) // Increased size
+                                                .foregroundColor(.red)
+                                                .background(Color.black.opacity(0.6))
+                                                .clipShape(Circle())
+                                        }
+                                    }
+                                    
+                                    // Flag Button
+                                    Button(action: {
+                                        showReportModal = true;
+                                    }) {
+                                        Image(systemName: "flag")
+                                            .padding(8)
+                                            .background(Color.black.opacity(0.6))
+                                            .clipShape(Circle())
+                                    }
+                                }
+                                */
                             }
                             .padding(.horizontal, 16)
 
-                                                                        
                             ScrollViewReader { scrollProxy in
                                 ScrollView(.horizontal) {
                                     LazyHStack(spacing: 0) {
