@@ -7,7 +7,6 @@
 import SwiftUI
 
 struct PrefChangeView: View {
-    // State to track selected cuisines
     @State private var selectedCuisines: Set<String> = []
         @Environment(\.presentationMode) var presentationMode
 
@@ -100,6 +99,8 @@ struct PrefChangeView: View {
             .background(Color.white)
             .frame(maxWidth: 480)
             .edgesIgnoringSafeArea(.bottom)
+            .navigationBarBackButtonHidden(true)
+            .navigationBarHidden(true)
         }
 
         private func toggleSelection(_ cuisine: String) {
