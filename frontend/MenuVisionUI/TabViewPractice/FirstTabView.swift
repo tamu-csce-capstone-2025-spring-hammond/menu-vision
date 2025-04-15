@@ -27,9 +27,9 @@ struct FirstTabView: View {
         }
     }
     
-    private func callVoteAPI(endpoint: String, modelId: String) {
-        // Construct the URL with blueprint prefix and modelId in the path
-        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/model/\(modelId)/\(endpoint)") else {
+    private func callVoteAPI(endpoint: String, modelId: String, userId: Int) {
+        // Construct the URL with blueprint prefix, modelId, endpoint, and userId in the path
+        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/model/\(modelId)/\(endpoint)/\(userId)") else {
             print("Invalid URL")
             return
         }
@@ -62,7 +62,9 @@ struct FirstTabView: View {
             print("Could not get current model ID or model ID is empty")
             return
         }
-        callVoteAPI(endpoint: endpoint, modelId: modelId)
+        
+        let userId = UserDefaults.standard.integer(forKey: "user_id")
+        callVoteAPI(endpoint: endpoint, modelId: modelId, userId: userId)
     }
     
     var body: some View {

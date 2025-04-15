@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.models import Restaurant, DishItem, ARModel
+from app.models import Restaurant, DishItem, ARModel, ModelRating
 from app.database import db
 from datetime import datetime
 from math import log
@@ -237,21 +237,44 @@ def hot(ups, downs, date):
 
 
 # upvote a model
-@ar_bp.route("/model/<string:model_id>/upvote", methods=["POST"])
-def upvote_model(model_id):
+@ar_bp.route("/model/<string:model_id>/upvote/<int:user_id>", methods=["POST"])
+def upvote_model(model_id, user_id):
     try:
+        # user_id is now passed directly from the URL
+        current_user_id = user_id
+
         model = ARModel.query.get(model_id)
         if not model:
             return jsonify({"message": "Model not found"}), 404
 
-        model.up_votes += 1
-        model.model_rating = hot(model.up_votes, model.down_votes, model.uploaded_at)
+        existing_rating = ModelRating.query.filter_by(model_id=model_id, user_id=current_user_id).first()
 
+        if existing_rating:
+            if existing_rating.review == "up":
+                return jsonify({"message": "You have already upvoted this model"}), 200
+            else: # Existing rating was 'down', change to 'up'
+                existing_rating.review = "up"
+                model.down_votes -= 1
+                model.up_votes += 1
+                db.session.add(existing_rating) # Add to session to mark for update
+                message = "Vote changed to upvote successfully"
+        else: # No existing rating, create a new one
+            new_rating = ModelRating(
+                model_id=model_id,
+                user_id=current_user_id,
+                review="up"
+            )
+            db.session.add(new_rating)
+            model.up_votes += 1
+            message = "Model upvoted successfully"
+
+        # Recalculate rating and commit
+        model.model_rating = hot(model.up_votes, model.down_votes, model.uploaded_at)
         db.session.commit()
 
         return jsonify(
             {
-                "message": "Model upvoted successfully",
+                "message": message,
                 "model_id": model.model_id,
                 "model_rating": model.model_rating,
                 "up_votes": model.up_votes,
@@ -265,21 +288,44 @@ def upvote_model(model_id):
 
 
 # downvote a model
-@ar_bp.route("/model/<string:model_id>/downvote", methods=["POST"])
-def downvote_model(model_id):
+@ar_bp.route("/model/<string:model_id>/downvote/<int:user_id>", methods=["POST"])
+def downvote_model(model_id, user_id):
     try:
+        # user_id is now passed directly from the URL
+        current_user_id = user_id
+
         model = ARModel.query.get(model_id)
         if not model:
             return jsonify({"message": "Model not found"}), 404
 
-        model.down_votes += 1
-        model.model_rating = hot(model.up_votes, model.down_votes, model.uploaded_at)
+        existing_rating = ModelRating.query.filter_by(model_id=model_id, user_id=current_user_id).first()
 
+        if existing_rating:
+            if existing_rating.review == "down":
+                return jsonify({"message": "You have already downvoted this model"}), 200
+            else: # Existing rating was 'up', change to 'down'
+                existing_rating.review = "down"
+                model.up_votes -= 1
+                model.down_votes += 1
+                db.session.add(existing_rating) # Add to session to mark for update
+                message = "Vote changed to downvote successfully"
+        else: # No existing rating, create a new one
+            new_rating = ModelRating(
+                model_id=model_id,
+                user_id=current_user_id,
+                review="down"
+            )
+            db.session.add(new_rating)
+            model.down_votes += 1
+            message = "Model downvoted successfully"
+
+        # Recalculate rating and commit
+        model.model_rating = hot(model.up_votes, model.down_votes, model.uploaded_at)
         db.session.commit()
 
         return jsonify(
             {
-                "message": "Model downvoted successfully",
+                "message": message,
                 "model_id": model.model_id,
                 "model_rating": model.model_rating,
                 "up_votes": model.up_votes,

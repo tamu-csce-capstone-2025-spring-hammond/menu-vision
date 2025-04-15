@@ -67,6 +67,22 @@ class User(db.Model):
     uploaded_models = db.relationship("ARModel", backref="uploader", lazy=True)
     reports = db.relationship("ModelReport", backref="reporter", lazy=True)
 
+class ModelRating(db.Model):
+    __tablename__ = "model_ratings"
+
+    rating_id = db.Column(db.Integer, primary_key=True)
+    model_id = db.Column(db.String, db.ForeignKey("ar_models.model_id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    review = db.Column(db.String, nullable=False) # "up" or "down"
+    rated_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Define unique constraint for model_id and user_id
+    __table_args__ = (db.UniqueConstraint('model_id', 'user_id', name='uq_model_user_rating'),)
+
+    # Relationships (optional but good practice)
+    model = db.relationship("ARModel", backref="ratings")
+    user = db.relationship("User", backref="ratings")
+
 class Key(db.Model):
     __tablename__ = "keys"
 
