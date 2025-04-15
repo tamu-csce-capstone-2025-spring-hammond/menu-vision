@@ -260,6 +260,10 @@ struct MenuScannerView: View {
                                 dishMapping.setModels(models)
                             }
                             
+                            //sort dishMapping based on rating
+                            
+                            
+                            
                             //set finished loading is called in the arview container
                             dishMapping.setFinishedDownloading();
                         }

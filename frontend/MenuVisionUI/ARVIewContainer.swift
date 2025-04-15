@@ -147,12 +147,10 @@ struct ARViewContainer: UIViewRepresentable {
     func makeUIView(context: Context) -> ARView {
         
         //fill the model map
-        
-        print("LEYKER NATION");
-        
-        for (index, dish) in dishMapping.getModels().enumerated() {
+                
+        for (index, dish) in dishMapping.getModels().sorted(by: { $0.value[0].model_rating > $1.value[0].model_rating }).enumerated() {
             //note: I am indexing 0 right now for the value here, not sure why the map stores a list of dishdata, need to check it over
-            
+                        
             modelMap[index] = (dish.value[0].model_id, dish.value[0].dish_name);
             
             if (dish.value[0].model_id == dishMapping.goToID){
@@ -161,9 +159,7 @@ struct ARViewContainer: UIViewRepresentable {
         }
         
         dishMapping.setFinishedLoading();
-        
-        print("Loaded model map: ", modelMap);
-                
+                        
         let arView = ARView(frame: .zero);
         
         viewer = arView;
