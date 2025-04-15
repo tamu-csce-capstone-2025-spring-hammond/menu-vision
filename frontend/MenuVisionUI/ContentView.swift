@@ -1,25 +1,34 @@
 import SwiftUI
 
 struct ContentView: View {
-
-    @State private var isLoggedIn = false
+  
+    @AppStorage("is_logged_in") private var persistentLogin: Bool = false
+    @EnvironmentObject var vm: UserStateViewModel
+    @State private var isLoggedIn: Bool = false
 
     var body: some View {
         Group {
-            if isLoggedIn {
+            if vm.isLoggedIn {
                 // When logged in, show HomeView
                 HomeView()
                     .transition(.opacity)
-                    .animation(.default, value: isLoggedIn)
+                    .animation(.default, value: vm.isLoggedIn)
             } else {
                 // When not logged in, show SignUpAndInView with binding to isLoggedIn
-                SignUpAndInView(isLoggedIn: $isLoggedIn)
+                SignUpAndInView()
                     .transition(.opacity)
-                    .animation(.default, value: isLoggedIn)
+                    .animation(.default, value: vm.isLoggedIn)
             }
         }
+        // Check persistent login on app launch
+        .onAppear {
+            if persistentLogin == true {
+                vm.isLoggedIn = persistentLogin
+            }
+            
+        }
         // Print statement for debugging
-        .onChange(of: isLoggedIn) { newValue in
+        .onChange(of: vm.isLoggedIn) { newValue in
             print("isLoggedIn changed to: \(newValue)")
         }
     }
@@ -28,4 +37,3 @@ struct ContentView: View {
 #Preview {
     ContentView()
 }
-

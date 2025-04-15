@@ -2,14 +2,21 @@ import SwiftUI
 
 struct LoginView: View {
     @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var vm: UserStateViewModel
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var isPasswordVisible: Bool = false
     @State private var rememberMe: Bool = false
     @State private var showingAlert = false
     @State private var alertMessage = ""
+    @Environment(\.dismiss) var dismiss
 
-    @Binding var isLoggedIn: Bool
+
+    
+//    @Binding var isLoggedIn: Bool
+    
+    // Add app storage to persist user ID
+    @AppStorage("user_id") private var userId: Int = 0
 
     var body: some View {
         GeometryReader { geometry in
@@ -32,20 +39,6 @@ struct LoginView: View {
                             }
                             .padding(.top, 1)
                             .padding(.bottom, 5)
-
-//                            // Logo and app name in the same row
-//                            HStack(spacing: 2) {
-//                                Image("logo")
-//                                    .resizable()
-//                                    .aspectRatio(contentMode: .fit)
-//                                    .frame(width: 18, height: 18)
-//
-//                                Text("MenuVision")
-//                                    .font(.system(size: 14, weight: .bold))
-//                                    .tracking(-0.5)
-//                                    .foregroundColor(Color.zinc100)
-//                            }
-//                            .padding(.top, 8)
                             
                             // Logo
                             HStack(spacing: 2) {
@@ -78,18 +71,6 @@ struct LoginView: View {
                         VStack(spacing: 0) {
                             // Tab selector
                             HStack(spacing: 0) {
-//                                Text("Log In")
-//                                    .font(.system(size: 14, weight: .medium))
-//                                    .foregroundColor(Color.gray500)
-//                                    .padding(.vertical, 12)
-//                                    .padding(.horizontal, 14)
-//                                    .frame(maxWidth: .infinity)
-//                                    .background(Color.white)
-//                                    .cornerRadius(8)
-//                                    .overlay(
-//                                        RoundedRectangle(cornerRadius: 8)
-//                                            .stroke(Color.gray100, lineWidth: 1)
-//                                    )
                             }
                             .padding(2)
                             .background(Color.slate100)
@@ -162,8 +143,23 @@ struct LoginView: View {
 
                             // Login button
                             Button(action: {
-                                // Just call the API, don't assume success/failure here
-                                validateLogin()
+                                // Use the LoginHandler to validate login
+                                LoginHandler.shared.validateLogin(
+                                    email: email,
+                                    password: password,
+                                    rememberMe: rememberMe
+                                ) { success, message, userId in
+                                    if success {
+                                        if let userId = userId {
+                                            self.userId = userId
+                                        }
+                                        vm.isLoggedIn = true
+                                        dismiss()
+                                    } else if let message = message {
+                                        alertMessage = message
+                                        showingAlert = true
+                                    }
+                                }
                             }) {
                                 Text("Login")
                                     .font(.system(size: 14, weight: .medium))
@@ -216,51 +212,17 @@ struct LoginView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
-    }
-
-    private func validateLogin() {
-        let payload = [
-            "email": email,
-            "password": password
-        ]
-
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
-            alertMessage = "Failed to encode credentials."
-            showingAlert = true
-            return
-        }
-
-        API.shared.request(
-            endpoint: "user/login",
-            method: "POST",
-            body: jsonData,
-            headers: ["Content-Type": "application/json"]
-        ) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let data):
-                    if let response = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                        if let message = response["message"] as? String, message == "Login successful" {
-                            isLoggedIn = true
-                        } else {
-                            alertMessage = response["message"] as? String ?? "Login failed"
-                            showingAlert = true
-                        }
-                    } else {
-                        alertMessage = "Invalid response format"
-                        showingAlert = true
-                    }
-
-                case .failure(let error):
-                    alertMessage = "Request failed: \(error.localizedDescription)"
-                    showingAlert = true
-                }
+        .onAppear {
+            // Check if we should auto login
+            if UserDefaults.standard.bool(forKey: "is_logged_in") && userId != 0 {
+                vm.isLoggedIn = true
             }
         }
     }
 }
-struct LoginView_Previews: PreviewProvider {
-    static var previews: some View {
-        LoginView(isLoggedIn: .constant(false))
-    }
-}
+
+//struct LoginView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        LoginView(isLoggedIn: .constant(false))
+//    }
+//}
