@@ -99,6 +99,16 @@ class ARViewManager: ObservableObject {
         return modelIndex;
     }
     
+    func getCurrentModelID() -> String {
+        if let model = modelMap[modelIndex] {
+            let modelName = model.0;
+            return modelName;
+        }
+        else{
+            return "";
+        }
+    }
+    
     func getCurrentModelName() -> String {
         if let model = modelMap[modelIndex] {
             let modelName = model.1;
@@ -138,10 +148,16 @@ struct ARViewContainer: UIViewRepresentable {
         
         //fill the model map
         
+        print("LEYKER NATION");
+        
         for (index, dish) in dishMapping.getModels().enumerated() {
             //note: I am indexing 0 right now for the value here, not sure why the map stores a list of dishdata, need to check it over
             
             modelMap[index] = (dish.value[0].model_id, dish.value[0].dish_name);
+            
+            if (dish.value[0].model_id == dishMapping.goToID){
+                modelIndex = index;
+            }
         }
         
         dishMapping.setFinishedLoading();
@@ -246,6 +262,10 @@ struct ARViewContainer: UIViewRepresentable {
                     }
                 }
            }
+        }
+        
+        func dismantleUIView(_ uiView: ARView, coordinator: Coordinator) {
+            uiView.session.pause()
         }
         
         //take in a frame capture and use computer vision to seek out hand positions and gestures
@@ -566,8 +586,6 @@ struct ARViewContainer: UIViewRepresentable {
                 print("Error loading model: \(error)");
             }
         }
-        
-        
 
     }
 }
