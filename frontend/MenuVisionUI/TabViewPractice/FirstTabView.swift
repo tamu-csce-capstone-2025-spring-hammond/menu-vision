@@ -126,35 +126,44 @@ struct FirstTabView: View {
                             .padding(.horizontal, 16)
 
                                                                         
-                            ScrollView(.horizontal) {
-                                LazyHStack(spacing: 0) {
-                                    ForEach(viewManager.getModelMap().sorted(by: { $0.key < $1.key }), id: \.key) { id, value in
-                                        Button(
-                                            action: {
-                                                print("Selected: \(id)")
-                                                viewManager.changeModel(index: id);
-                                                modelIndex = id;
-                                                
-                                                print("The val: ", value.0);
-
-                                            })
-                                        {
-                                            
-                                            ModelThumbnail(
-                                                        id: id,
-                                                        filename: value.0,
-                                                        documentsURL: documentsURL,
-                                                        isSelected: modelIndex == id
-                                                    )
+                            ScrollViewReader { scrollProxy in
+                                ScrollView(.horizontal) {
+                                    LazyHStack(spacing: 0) {
+                                        ForEach(viewManager.getModelMap().sorted(by: { $0.key < $1.key }), id: \.key) { id, value in
+                                            Button(
+                                                action: {
+                                                    print("Selected: \(id)")
+                                                    viewManager.changeModel(index: id)
+                                                    modelIndex = id
+                                                }) {
+                                                ModelThumbnail(
+                                                    id: id,
+                                                    filename: value.0,
+                                                    documentsURL: documentsURL,
+                                                    isSelected: modelIndex == id
+                                                )
+                                            }
+                                            .foregroundColor(Color.init(hex: "73edad"))
+                                            .padding(5)
+                                            .id(id)
                                         }
-                                        .foregroundColor(Color.init(hex: "73edad"))
-                                        .padding(5)
+                                    }
+                                    .frame(height: 70)
+                                    .background(Color.clear.allowsHitTesting(false))
+                                    .padding()
+                                }
+                                .onAppear {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        scrollProxy.scrollTo(modelIndex, anchor: .center)
                                     }
                                 }
-                                .frame(height: 70)
-                                .background(Color.clear.allowsHitTesting(false))
-                                .padding()
+                                .onChange(of: modelIndex) { newIndex in
+                                    withAnimation {
+                                        scrollProxy.scrollTo(newIndex, anchor: .center)
+                                    }
+                                }
                             }
+
                             .onAppear {
                                                                 
                                 documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first;
