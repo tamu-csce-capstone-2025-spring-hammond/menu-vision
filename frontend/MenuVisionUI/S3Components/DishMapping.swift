@@ -13,7 +13,9 @@ class DishMapping: ObservableObject {
     @Published var finishedDownloading: Bool = false;
     
     @Published var finishedLoading: Bool = false;
-
+    
+    @Published var goToID: String = "";
+    
     func setModels(_ models: [DishData]) {
         var newMapping: [String: [DishData]] = [:]
 
@@ -59,5 +61,13 @@ class DishMapping: ObservableObject {
     
     func isFinishedLoading() -> Bool{
         return finishedLoading;
+    }
+    
+    func setGoTo(id : String){
+        self.goToID = id;
+    }
+    
+    func retrieveGoTo() -> String{
+        return self.goToID;
     }
 }
