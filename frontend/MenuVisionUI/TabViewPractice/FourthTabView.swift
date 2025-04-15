@@ -27,6 +27,7 @@ struct MenuScannerView: View {
     @State private var shouldNavigateToResult = false
     @State private var shouldNavigateToFilesListView = false
     @State private var lastSelectedRestaurantID: String?
+    @State private var isAddingRestaurant = false
     
     var body: some View {
         NavigationStack {
@@ -242,6 +243,11 @@ struct MenuScannerView: View {
                             lastSelectedRestaurantID = id
                             restaurantData.restaurant_id = id
                             
+                            // Add restaurant to database if needed
+                            if let restaurant = selectedRestaurant {
+                                await addRestaurantToDatabase(restaurant: restaurant)
+                            }
+                            
                             print("\nAttempting download for restaurant: \(id)")
                             
                             //I use these for starting the ar view
@@ -252,8 +258,6 @@ struct MenuScannerView: View {
                             
                             if !models.isEmpty {
                                 dishMapping.setModels(models)
-                                //shouldNavigateToFilesListView = true
-                                //ModelFileManager.shared.listAllFilesInDocumentsDirectory()
                             }
                             
                             //set finished loading is called in the arview container
@@ -346,6 +350,37 @@ struct MenuScannerView: View {
                 }
             }
         }.resume()
+    }
+
+    private func addRestaurantToDatabase(restaurant: Restaurant) async {
+        guard let id = restaurant.id, let name = restaurant.displayName?.text else { return }
+        
+        let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/restaurant")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let parameters: [String: Any] = [
+            "restaurant_id": id,
+            "name": name
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 201 {
+                    print("Restaurant added successfully")
+                } else if httpResponse.statusCode == 409 {
+                    print("Restaurant already exists")
+                } else {
+                    print("Error adding restaurant: \(httpResponse.statusCode)")
+                }
+            }
+        } catch {
+            print("Error adding restaurant: \(error)")
+        }
     }
 }
 

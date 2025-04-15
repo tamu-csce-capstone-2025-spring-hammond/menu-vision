@@ -1,461 +1,3 @@
-////
-////  ModelAssignmentView.swift
-////  MenuVision
-////
-////  Created by Spencer Le on 4/9/25.
-////
-//
-////
-////  ModelAssignmentView.swift
-////  MenuVision
-////
-//
-//import SwiftUI
-//import Combine
-//
-//struct DishModel: Identifiable, Hashable, Decodable {
-//    let dish_id: Int
-//    let dish_name: String
-//    let description: String?
-//    let ingredients: String?
-//    let price: String  // String to match API response
-//    let nutritional_info: String?
-//    let allergens: String?
-//    let model_id: String
-//    let model_rating: Int
-//    
-//    var id: Int { dish_id }
-//    
-//    func hash(into hasher: inout Hasher) {
-//        hasher.combine(dish_id)
-//        hasher.combine(model_id)
-//    }
-//    
-//    static func == (lhs: DishModel, rhs: DishModel) -> Bool {
-//        return lhs.dish_id == rhs.dish_id && lhs.model_id == rhs.model_id
-//    }
-//}
-//
-//struct RestaurantModels: Decodable {
-//    let restaurant_id: String
-//    let name: String
-//    let created_at: String
-//    let models: [DishModel]
-//}
-//
-//class ModelAssignmentViewModel: ObservableObject {
-//    @Published var searchText = ""
-//    @Published var dishes: [DishModel] = []
-//    @Published var filteredDishes: [DishModel] = []
-//    @Published var isLoading = false
-//    @Published var errorMessage: String?
-//    @Published var showError = false
-//    @Published var newDishName = ""
-//    @Published var newDishDescription = ""
-//    @Published var newDishIngredients = ""
-//    @Published var newDishPrice = ""
-//    @Published var newDishNutritionalInfo = ""
-//    @Published var newDishAllergens = ""
-//    @Published var showNewDishForm = false
-//    @Published var successMessage: String?
-//    @Published var showSuccess = false
-//    
-//    private var cancellables = Set<AnyCancellable>()
-//    
-//    init() {
-//        $searchText
-//            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
-//            .removeDuplicates()
-//            .sink { [weak self] searchText in
-//                self?.filterDishes(searchText: searchText)
-//            }
-//            .store(in: &cancellables)
-//    }
-//    
-//    func fetchRestaurantModels(restaurantId: String) {
-//        isLoading = true
-//        errorMessage = nil
-//        
-//        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/restaurant/\(restaurantId)/models") else {
-//            self.errorMessage = "Invalid URL"
-//            self.showError = true
-//            self.isLoading = false
-//            return
-//        }
-//        
-//        URLSession.shared.dataTaskPublisher(for: url)
-//            .map { output -> Data in
-//                print("Raw JSON: \(String(data: output.data, encoding: .utf8) ?? "Could not convert to string")")
-//                return output.data
-//            }
-//            .decode(type: RestaurantModels.self, decoder: JSONDecoder())
-//            .receive(on: DispatchQueue.main)
-//            .sink(receiveCompletion: { [weak self] completion in
-//                self?.isLoading = false
-//                
-//                if case .failure(let error) = completion {
-//                    self?.errorMessage = "Decoding error: \(error.localizedDescription)"
-//                    self?.showError = true
-//                    print("Decoding error: \(error)")
-//                }
-//            }, receiveValue: { [weak self] response in
-//                self?.dishes = response.models
-//                self?.filterDishes(searchText: self?.searchText ?? "")
-//            })
-//            .store(in: &cancellables)
-//    }
-//    
-//    private func filterDishes(searchText: String) {
-//        if searchText.isEmpty {
-//            filteredDishes = dishes
-//        } else {
-//            filteredDishes = dishes.filter { dish in
-//                dish.dish_name.lowercased().contains(searchText.lowercased())
-//            }
-//        }
-//    }
-//    
-//    func addModelToExistingDish(dishId: Int, modelId: String, uploadedBy: String) {
-//        isLoading = true
-//        errorMessage = nil
-//        
-//        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/dish/\(dishId)/add_model") else {
-//            self.errorMessage = "Invalid URL"
-//            self.showError = true
-//            self.isLoading = false
-//            return
-//        }
-//        
-//        // Convert uploadedBy to an integer if possible, or use 1 as default
-//        let uploadedById = Int(uploadedBy) ?? 1
-//        
-//        let parameters: [String: Any] = [
-//            "model_id": modelId,
-//            "uploaded_by": uploadedById  // Send as integer
-//        ]
-//        
-//        var request = URLRequest(url: url)
-//        request.httpMethod = "POST"
-//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-//        
-//        do {
-//            request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
-//        } catch {
-//            self.errorMessage = "Failed to encode parameters"
-//            self.showError = true
-//            self.isLoading = false
-//            return
-//        }
-//        
-//        URLSession.shared.dataTaskPublisher(for: request)
-//            .map { output -> Data in
-//                print("Response: \(String(data: output.data, encoding: .utf8) ?? "Could not convert to string")")
-//                return output.data
-//            }
-//            .receive(on: DispatchQueue.main)
-//            .sink(receiveCompletion: { [weak self] completion in
-//                if case .failure(let error) = completion {
-//                    self?.isLoading = false
-//                    self?.errorMessage = error.localizedDescription
-//                    self?.showError = true
-//                }
-//            }, receiveValue: { [weak self] data in
-//                self?.isLoading = false
-//                
-//                // Check if there's an error in the response
-//                if let responseString = String(data: data, encoding: .utf8),
-//                   responseString.contains("error") {
-//                    self?.errorMessage = "API Error: \(responseString)"
-//                    self?.showError = true
-//                } else {
-//                    self?.successMessage = "Model successfully added to dish"
-//                    self?.showSuccess = true
-//                }
-//            })
-//            .store(in: &cancellables)
-//    }
-//    
-//    func addNewDishWithModel(restaurantId: String, modelId: String, uploadedBy: String) {
-//        if newDishPrice.isEmpty {
-//            errorMessage = "Price is required"
-//            showError = true
-//            return
-//        }
-//        
-//        isLoading = true
-//        errorMessage = nil
-//        
-//        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/dish_with_model") else {
-//            self.errorMessage = "Invalid URL"
-//            self.showError = true
-//            self.isLoading = false
-//            return
-//        }
-//        
-//        // Convert uploadedBy to an integer if possible, or use 1 as default
-//        let uploadedById = Int(uploadedBy) ?? 1
-//        
-//        let parameters: [String: Any] = [
-//            "restaurant_id": restaurantId,
-//            "dish_name": newDishName,
-//            "description": newDishDescription,
-//            "ingredients": newDishIngredients,
-//            "price": newDishPrice,  // Send as string
-//            "nutritional_info": newDishNutritionalInfo,
-//            "allergens": newDishAllergens,
-//            "model_id": modelId,
-//            "uploaded_by": uploadedById  // Send as integer
-//        ]
-//        
-//        var request = URLRequest(url: url)
-//        request.httpMethod = "POST"
-//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-//        
-//        do {
-//            request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
-//        } catch {
-//            self.errorMessage = "Failed to encode parameters"
-//            self.showError = true
-//            self.isLoading = false
-//            return
-//        }
-//        
-//        URLSession.shared.dataTaskPublisher(for: request)
-//            .map { output -> Data in
-//                print("Response: \(String(data: output.data, encoding: .utf8) ?? "Could not convert to string")")
-//                return output.data
-//            }
-//            .receive(on: DispatchQueue.main)
-//            .sink(receiveCompletion: { [weak self] completion in
-//                if case .failure(let error) = completion {
-//                    self?.isLoading = false
-//                    self?.errorMessage = error.localizedDescription
-//                    self?.showError = true
-//                }
-//            }, receiveValue: { [weak self] data in
-//                self?.isLoading = false
-//                
-//                // Check if there's an error in the response
-//                if let responseString = String(data: data, encoding: .utf8),
-//                   responseString.contains("error") {
-//                    self?.errorMessage = "API Error: \(responseString)"
-//                    self?.showError = true
-//                } else {
-//                    self?.resetNewDishForm()
-//                    self?.successMessage = "New dish created successfully"
-//                    self?.showSuccess = true
-//                }
-//            })
-//            .store(in: &cancellables)
-//    }
-//    
-//    private func resetNewDishForm() {
-//        newDishName = ""
-//        newDishDescription = ""
-//        newDishIngredients = ""
-//        newDishPrice = ""
-//        newDishNutritionalInfo = ""
-//        newDishAllergens = ""
-//        showNewDishForm = false
-//    }
-//}
-//
-//struct ModelAssignmentView: View {
-//    @StateObject private var viewModel = ModelAssignmentViewModel()
-//    let restaurantId: String
-//    let modelId: String
-//    let uploadedBy: String
-//    
-//    @Environment(\.presentationMode) var presentationMode
-//    
-//    var body: some View {
-//        NavigationView {
-//            ZStack {
-//                VStack {
-//                    // Search bar
-//                    TextField("Search for a dish", text: $viewModel.searchText)
-//                        .padding()
-//                        .background(Color(.systemGray6))
-//                        .cornerRadius(10)
-//                        .padding(.horizontal)
-//                    
-//                    // No results view with option to create new dish
-//                    if viewModel.filteredDishes.isEmpty && !viewModel.searchText.isEmpty {
-//                        VStack(spacing: 20) {
-//                            Text("No dishes found matching '\(viewModel.searchText)'")
-//                                .foregroundColor(.secondary)
-//                            
-//                            Button(action: {
-//                                viewModel.newDishName = viewModel.searchText
-//                                viewModel.showNewDishForm = true
-//                            }) {
-//                                Text("Create new dish: \(viewModel.searchText)")
-//                                    .fontWeight(.semibold)
-//                                    .foregroundColor(.white)
-//                                    .padding()
-//                                    .frame(maxWidth: .infinity)
-//                                    .background(Color.blue)
-//                                    .cornerRadius(10)
-//                            }
-//                            .padding(.horizontal)
-//                        }
-//                        .padding(.top, 30)
-//                    } else {
-//                        // List of dishes
-//                        List(viewModel.filteredDishes) { dish in
-//                            Button(action: {
-//                                viewModel.addModelToExistingDish(
-//                                    dishId: dish.dish_id,
-//                                    modelId: modelId,
-//                                    uploadedBy: uploadedBy
-//                                )
-//                            }) {
-//                                VStack(alignment: .leading, spacing: 4) {
-//                                    Text(dish.dish_name)
-//                                        .font(.headline)
-//                                    
-//                                    if let description = dish.description, !description.isEmpty {
-//                                        Text(description)
-//                                            .font(.subheadline)
-//                                            .foregroundColor(.secondary)
-//                                            .lineLimit(2)
-//                                    }
-//                                    
-//                                    Text("$\(dish.price)")
-//                                        .font(.subheadline)
-//                                        .foregroundColor(.green)
-//                                }
-//                                .padding(.vertical, 4)
-//                            }
-//                        }
-//                    }
-//                    
-//                    // Button to create a new dish
-//                    if viewModel.filteredDishes.isEmpty || viewModel.searchText.isEmpty {
-//                        Button(action: {
-//                            viewModel.showNewDishForm = true
-//                        }) {
-//                            Text("Create New Dish")
-//                                .fontWeight(.semibold)
-//                                .foregroundColor(.white)
-//                                .padding()
-//                                .frame(maxWidth: .infinity)
-//                                .background(Color.blue)
-//                                .cornerRadius(10)
-//                        }
-//                        .padding()
-//                    }
-//                }
-//                
-//                if viewModel.isLoading {
-//                    ProgressView()
-//                        .scaleEffect(1.5)
-//                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                        .background(Color.black.opacity(0.3))
-//                }
-//            }
-//            .navigationTitle("Assign to Dish")
-//            .alert(isPresented: $viewModel.showError) {
-//                Alert(
-//                    title: Text("Error"),
-//                    message: Text(viewModel.errorMessage ?? "An unknown error occurred"),
-//                    dismissButton: .default(Text("OK"))
-//                )
-//            }
-//            .alert(isPresented: $viewModel.showSuccess) {
-//                Alert(
-//                    title: Text("Success"),
-//                    message: Text(viewModel.successMessage ?? "Operation completed successfully"),
-//                    dismissButton: .default(Text("OK")) {
-//                        presentationMode.wrappedValue.dismiss()
-//                    }
-//                )
-//            }
-//            .sheet(isPresented: $viewModel.showNewDishForm) {
-//                NewDishFormView(
-//                    viewModel: viewModel,
-//                    restaurantId: restaurantId,
-//                    modelId: modelId,
-//                    uploadedBy: uploadedBy
-//                )
-//            }
-//            .onAppear {
-//                viewModel.fetchRestaurantModels(restaurantId: restaurantId)
-//            }
-//        }
-//    }
-//}
-//
-//struct NewDishFormView: View {
-//    @ObservedObject var viewModel: ModelAssignmentViewModel
-//    let restaurantId: String
-//    let modelId: String
-//    let uploadedBy: String
-//    
-//    @Environment(\.presentationMode) var presentationMode
-//    
-//    var body: some View {
-//        NavigationView {
-//            Form {
-//                Section(header: Text("Dish Information")) {
-//                    TextField("Dish Name", text: $viewModel.newDishName)
-//                    
-//                    TextField("Description", text: $viewModel.newDishDescription)
-//                        .lineLimit(3)
-//                    
-//                    TextField("Ingredients", text: $viewModel.newDishIngredients)
-//                        .lineLimit(3)
-//                    
-//                    TextField("Price", text: $viewModel.newDishPrice)
-//                        .keyboardType(.decimalPad)
-//                }
-//                
-//                Section(header: Text("Additional Information")) {
-//                    TextField("Nutritional Info", text: $viewModel.newDishNutritionalInfo)
-//                        .lineLimit(3)
-//                    
-//                    TextField("Allergens", text: $viewModel.newDishAllergens)
-//                        .lineLimit(2)
-//                }
-//                
-//                Section {
-//                    Button(action: {
-//                        viewModel.addNewDishWithModel(
-//                            restaurantId: restaurantId,
-//                            modelId: modelId,
-//                            uploadedBy: uploadedBy
-//                        )
-//                        presentationMode.wrappedValue.dismiss()
-//                    }) {
-//                        Text("Create Dish")
-//                            .fontWeight(.semibold)
-//                            .frame(maxWidth: .infinity)
-//                    }
-//                    .disabled(viewModel.newDishName.isEmpty || viewModel.newDishPrice.isEmpty)
-//                }
-//            }
-//            .navigationTitle("New Dish")
-//            .navigationBarItems(
-//                trailing: Button("Cancel") {
-//                    presentationMode.wrappedValue.dismiss()
-//                }
-//            )
-//        }
-//    }
-//}
-//
-//// Usage example:
-////struct ModelAssignmentViewPreview: PreviewProvider {
-////    static var previews: some View {
-////        ModelAssignmentView(
-////            restaurantId: "ChIJ92rcyJWDRoYRotK6QCjsFf8",
-////            modelId: "model456",
-////            uploadedBy: "1"  // Changed to a string that can be converted to an integer
-////        )
-////    }
-////}
-
-
 //
 //  ModelAssignmentView.swift
 //  MenuVision
@@ -466,26 +8,28 @@
 import SwiftUI
 import Combine
 
+// MARK: - Data Models
+
 struct DishModel: Identifiable, Hashable, Decodable {
     let dish_id: Int
     let dish_name: String
     let description: String?
     let ingredients: String?
-    let price: String
+    let price: String // Price comes as String from API, validation handles format
     let nutritional_info: String?
     let allergens: String?
-    let model_id: String
+    let model_id: String // Specific model associated in this context
     let model_rating: Int
 
-    var id: Int { dish_id }
+    var id: Int { dish_id } // Unique based on dish
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(dish_id)
-        hasher.combine(model_id)
     }
 
     static func == (lhs: DishModel, rhs: DishModel) -> Bool {
-        return lhs.dish_id == rhs.dish_id && lhs.model_id == rhs.model_id
+        // Equality based on dish_id for uniqueness in the list
+        return lhs.dish_id == rhs.dish_id
     }
 }
 
@@ -496,132 +40,133 @@ struct RestaurantModels: Decodable {
     let models: [DishModel]
 }
 
+// MARK: - ViewModel
+
 class ModelAssignmentViewModel: ObservableObject {
+    // Published properties for UI state
     @Published var searchText = ""
     @Published var dishes: [DishModel] = []
     @Published var filteredDishes: [DishModel] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var showError = false
+
+    // New Dish Form Properties
     @Published var newDishName = ""
     @Published var newDishDescription = ""
     @Published var newDishIngredients = ""
-    @Published var newDishPrice = ""
+    @Published var newDishPrice = "" {
+        didSet { // Input filtering for price
+            if newDishPrice.isEmpty { return }
+            let filtered = newDishPrice.filter { "0123456789.".contains($0) }
+            if filtered != newDishPrice { newDishPrice = oldValue; return }
+            if newDishPrice.filter({ $0 == "." }).count > 1 { newDishPrice = oldValue }
+        }
+    }
     @Published var newDishNutritionalInfo = ""
     @Published var newDishAllergens = ""
     @Published var showNewDishForm = false
+
+    // Success/Confirmation Alert Properties
     @Published var successMessage: String?
     @Published var showSuccess = false
-
-    // Track whether a confirmation is needed
     @Published var needsConfirmation = false
     @Published var selectedDish: DishModel?
 
-    // Store the modelId and uploadedBy values
+    // Stored context (passed from View)
     var currentModelId: String?
-    var currentUploadedBy: String?
+    var currentUploadedBy: String? // User ID as String
+    var currentRestaurantId: String? // Store restaurantId for potential re-fetch
 
     private var cancellables = Set<AnyCancellable>()
 
     init() {}
 
+    // MARK: - Network Fetching
+
     func fetchRestaurantModels(restaurantId: String) {
+        self.currentRestaurantId = restaurantId // Store for potential later use
         isLoading = true
         errorMessage = nil
 
-        guard let url = URL(
-            string:
-                "https://menu-vision-b202af7ea787.herokuapp.com/ar/restaurant/\(restaurantId)/models"
-        ) else {
-            self.errorMessage = "Invalid URL"
+        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/restaurant/\(restaurantId)/models") else {
+            // Handle invalid URL locally
+            self.errorMessage = "Internal Error: Invalid URL structure."
             self.showError = true
             self.isLoading = false
             return
         }
 
         URLSession.shared.dataTaskPublisher(for: url)
-            .tryMap { output -> Data in
-                guard let response = output.response as? HTTPURLResponse,
-                      (200...299).contains(response.statusCode)
-                else {
-                    throw URLError(.badServerResponse)
+            .tryMap { output -> Data in // Validate HTTP response
+                guard let response = output.response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
+                    let errorDetail = String(data: output.data, encoding: .utf8) ?? "No details"
+                    print("Server Error (\((output.response as? HTTPURLResponse)?.statusCode ?? 0)): \(errorDetail)")
+                    throw URLError(.badServerResponse, userInfo: [NSLocalizedDescriptionKey: "Server error fetching dishes: \(errorDetail)"])
                 }
-                print(
-                    "Raw JSON: \(String(data: output.data, encoding: .utf8) ?? "Could not convert to string")"
-                )
+                print("Raw JSON (Dishes): \(String(data: output.data, encoding: .utf8) ?? "Could not convert")")
                 return output.data
             }
-            .decode(type: RestaurantModels.self, decoder: JSONDecoder())
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    self?.isLoading = false
-
-                    switch completion {
-                    case .finished:
-                        break
-                    case .failure(let error):
-                        if let urlError = error as? URLError {
-                            self?.errorMessage = "Network error: \(urlError.localizedDescription)"
-                        } else {
-                            self?.errorMessage = "Decoding error: \(error.localizedDescription)"
-                        }
-                        self?.showError = true
-                        print("Error: \(error)")
+            .decode(type: RestaurantModels.self, decoder: JSONDecoder()) // Decode the expected structure
+            .receive(on: DispatchQueue.main) // Update UI on main thread
+            .sink(receiveCompletion: { [weak self] completion in
+                self?.isLoading = false
+                if case .failure(let error) = completion {
+                    // Handle specific errors or provide generic message
+                    if let urlError = error as? URLError, urlError.code == .badServerResponse {
+                        self?.errorMessage = urlError.localizedDescription // Show server error detail
+                    } else if error is DecodingError {
+                        self?.errorMessage = "Failed to parse restaurant data. Please try again."
+                        print("Decoding Error: \(error)")
+                    } else {
+                        self?.errorMessage = "Network error fetching dishes: \(error.localizedDescription)"
                     }
-                },
-                receiveValue: { [weak self] response in
-                    // Create a Set to store unique dish names
-                    var uniqueDishNames = Set<String>()
-                    var uniqueDishes: [DishModel] = []
-
-                    // Iterate through the models and only add dishes with unique names
-                    for dish in response.models {
-                        if !uniqueDishNames.contains(dish.dish_name) {
-                            uniqueDishNames.insert(dish.dish_name)
-                            uniqueDishes.append(dish)
-                        }
-                    }
-
-                    // Update the dishes array with the unique dishes
-                    self?.dishes = uniqueDishes
-                    self?.filterDishes(searchText: self?.searchText ?? "")
+                    self?.showError = true
+                    print("Fetch Dishes Error: \(error)")
                 }
-            )
+            }, receiveValue: { [weak self] response in
+                // Process fetched models to display unique dishes
+                var uniqueDishesDict = [Int: DishModel]()
+                for model in response.models {
+                    if uniqueDishesDict[model.dish_id] == nil { // Keep the first instance of each dish
+                        uniqueDishesDict[model.dish_id] = model
+                    }
+                }
+                let uniqueDishes = Array(uniqueDishesDict.values).sorted { $0.dish_name < $1.dish_name }
+                self?.dishes = uniqueDishes
+                self?.filterDishes(searchText: self?.searchText ?? "") // Apply current filter
+            })
             .store(in: &cancellables)
     }
+
+    // MARK: - Filtering
 
     func filterDishes(searchText: String) {
         if searchText.isEmpty {
             filteredDishes = dishes
         } else {
-            filteredDishes = dishes.filter { dish in
-                dish.dish_name.lowercased().contains(searchText.lowercased())
-            }
+            let lowercasedSearchText = searchText.lowercased()
+            filteredDishes = dishes.filter { $0.dish_name.lowercased().contains(lowercasedSearchText) }
         }
     }
 
-    func addModelToExistingDish(dishId: Int, modelId: String, uploadedBy: String) {
-        isLoading = true
-        errorMessage = nil
+    // MARK: - Network Actions (Add Model / Add Dish)
 
-        guard let url = URL(
-            string:
-                "https://menu-vision-b202af7ea787.herokuapp.com/ar/dish/\(dishId)/add_model"
-        ) else {
-            self.errorMessage = "Invalid URL"
+    func addModelToExistingDish(dishId: Int, modelId: String, uploadedBy: String) {
+        // Validate User ID format
+        guard let uploadedById = Int(uploadedBy) else {
+            self.errorMessage = "Invalid User ID format."
             self.showError = true
-            self.isLoading = false
             return
         }
 
-        let uploadedById = Int(uploadedBy) ?? 1
+        guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/dish/\(dishId)/add_model") else {
+            self.errorMessage = "Internal Error: Invalid URL structure for adding model."
+            self.showError = true
+            return
+        }
 
-        let parameters: [String: Any] = [
-            "model_id": modelId,
-            "uploaded_by": uploadedById,
-        ]
-
+        let parameters: [String: Any] = ["model_id": modelId, "uploaded_by": uploadedById]
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -629,69 +174,42 @@ class ModelAssignmentViewModel: ObservableObject {
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
         } catch {
-            self.errorMessage = "Failed to encode parameters"
+            self.errorMessage = "Failed to prepare data for adding model: \(error.localizedDescription)"
             self.showError = true
-            self.isLoading = false
             return
         }
 
-        URLSession.shared.dataTaskPublisher(for: request)
-            .tryMap { output -> Data in
-                guard let response = output.response as? HTTPURLResponse,
-                      (200...299).contains(response.statusCode)
-                else {
-                    throw URLError(.badServerResponse)
-                }
-                print(
-                    "Response: \(String(data: output.data, encoding: .utf8) ?? "Could not convert to string")"
-                )
-                return output.data
-            }
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    self?.isLoading = false
-                    switch completion {
-                    case .finished:
-                        self?.successMessage = "Model successfully added to dish"
-                        self?.showSuccess = true
-                    case .failure(let error):
-                        self?.errorMessage = error.localizedDescription
-                        self?.showError = true
-                    }
-                },
-                receiveValue: { _ in }
-            )
-            .store(in: &cancellables)
+        makeNetworkRequest(request: request, successMessageBase: "Model successfully added")
     }
 
     func addNewDishWithModel(restaurantId: String, modelId: String, uploadedBy: String) {
-        if newDishPrice.isEmpty {
-            errorMessage = "Price is required"
-            showError = true
-            return
-        }
+        // --- Data Validation ---
+        let trimmedDishName = newDishName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPrice = newDishPrice.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        isLoading = true
-        errorMessage = nil
+        // Name check (should be pre-filled, but validate anyway)
+        if trimmedDishName.isEmpty { errorMessage = "Dish Name is missing."; showError = true; return }
+        // Price checks
+        if trimmedPrice.isEmpty || trimmedPrice == "." { errorMessage = "Price is required and must be a valid number."; showError = true; return }
+        guard let priceValue = Double(trimmedPrice), priceValue > 0 else { errorMessage = "Please enter a valid positive price (e.g., 9.99)."; showError = true; return }
+        // User ID check
+        guard let uploadedById = Int(uploadedBy) else { errorMessage = "Invalid User ID format."; showError = true; return }
+        // --- End Validation ---
 
         guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/dish_with_model") else {
-            self.errorMessage = "Invalid URL"
+            self.errorMessage = "Internal Error: Invalid URL structure for creating dish."
             self.showError = true
-            self.isLoading = false
             return
         }
-
-        let uploadedById = Int(uploadedBy) ?? 1
 
         let parameters: [String: Any] = [
             "restaurant_id": restaurantId,
-            "dish_name": newDishName,
-            "description": newDishDescription,
-            "ingredients": newDishIngredients,
-            "price": newDishPrice,
-            "nutritional_info": newDishNutritionalInfo,
-            "allergens": newDishAllergens,
+            "dish_name": trimmedDishName,
+            "description": newDishDescription.trimmingCharacters(in: .whitespacesAndNewlines),
+            "ingredients": newDishIngredients.trimmingCharacters(in: .whitespacesAndNewlines),
+            "price": trimmedPrice, // Send validated string price
+            "nutritional_info": newDishNutritionalInfo.trimmingCharacters(in: .whitespacesAndNewlines),
+            "allergens": newDishAllergens.trimmingCharacters(in: .whitespacesAndNewlines),
             "model_id": modelId,
             "uploaded_by": uploadedById,
         ]
@@ -703,45 +221,74 @@ class ModelAssignmentViewModel: ObservableObject {
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
         } catch {
-            self.errorMessage = "Failed to encode parameters"
+            self.errorMessage = "Failed to prepare data for new dish: \(error.localizedDescription)"
             self.showError = true
-            self.isLoading = false
             return
         }
 
+        makeNetworkRequest(request: request, successMessageBase: "New dish created successfully") { [weak self] success in
+            if success {
+                self?.resetNewDishForm() // Reset form fields on success
+                // Optionally re-fetch dishes after adding a new one
+                if let restId = self?.currentRestaurantId {
+                     self?.fetchRestaurantModels(restaurantId: restId)
+                }
+            }
+        }
+    }
+
+    // MARK: - Helper for Network Requests
+
+    private func makeNetworkRequest(request: URLRequest, successMessageBase: String, completionHandler: ((Bool) -> Void)? = nil) {
+        isLoading = true
+        errorMessage = nil // Clear previous errors
+
         URLSession.shared.dataTaskPublisher(for: request)
             .tryMap { output -> Data in
-                guard let response = output.response as? HTTPURLResponse,
-                      (200...299).contains(response.statusCode)
-                else {
-                    throw URLError(.badServerResponse)
+                guard let response = output.response as? HTTPURLResponse else { throw URLError(.cannotParseResponse) }
+                guard (200...299).contains(response.statusCode) else {
+                    let errorDetail = String(data: output.data, encoding: .utf8) ?? "No details"
+                    print("Server Error (\(response.statusCode)): \(errorDetail)")
+                    var serverMessage = "Server returned status \(response.statusCode)."
+                    if let json = try? JSONSerialization.jsonObject(with: output.data) as? [String: Any], let message = json["message"] as? String ?? json["error"] as? String {
+                        serverMessage += " \(message)"
+                    } else if !errorDetail.isEmpty && errorDetail != "No details" {
+                        serverMessage += " \(errorDetail)"
+                    }
+                    throw URLError(.badServerResponse, userInfo: [NSLocalizedDescriptionKey: serverMessage])
                 }
-                print(
-                    "Response: \(String(data: output.data, encoding: .utf8) ?? "Could not convert to string")"
-                )
+                print("Success Response: \(String(data: output.data, encoding: .utf8) ?? "Could not convert")")
                 return output.data
             }
             .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    self?.isLoading = false
-                    switch completion {
-                    case .finished:
-                        self?.resetNewDishForm()
-                        self?.successMessage = "New dish created successfully"
-                        self?.showSuccess = true
-                    case .failure(let error):
-                        self?.errorMessage = error.localizedDescription
-                        self?.showError = true
-                    }
-                },
-                receiveValue: { _ in }
-            )
+            .sink(receiveCompletion: { [weak self] taskCompletion in
+                self?.isLoading = false
+                switch taskCompletion {
+                case .finished:
+                    // Handled in receiveValue or assumed success if no value needed
+                    break
+                case .failure(let error):
+                    self?.errorMessage = error.localizedDescription // Show specific error
+                    self?.showError = true
+                    completionHandler?(false) // Signal failure
+                }
+            }, receiveValue: { [weak self] data in
+                // Try to parse success message from response, otherwise use default
+                var message = successMessageBase
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let serverMsg = json["message"] as? String {
+                    message = serverMsg
+                }
+                self?.successMessage = message
+                self?.showSuccess = true
+                completionHandler?(true) // Signal success
+            })
             .store(in: &cancellables)
     }
 
+    // MARK: - Form and State Management
+
     private func resetNewDishForm() {
-        newDishName = ""
+        // Don't reset newDishName as it's set when form is shown
         newDishDescription = ""
         newDishIngredients = ""
         newDishPrice = ""
@@ -751,224 +298,267 @@ class ModelAssignmentViewModel: ObservableObject {
     }
 
     func confirmAddModelToDish() {
-        guard let dish = selectedDish,
-              let modelId = currentModelId,
-              let uploadedBy = currentUploadedBy else {
-            // Handle the case where selectedDish, modelId, or uploadedBy is nil
-            errorMessage = "Unable to add model to dish"
+        guard let dish = selectedDish, let modelId = currentModelId, let uploadedBy = currentUploadedBy else {
+            errorMessage = "Internal error: Missing data for adding model."
             showError = true
-            needsConfirmation = false
-            selectedDish = nil
+            resetConfirmationState()
             return
         }
-
-        // Call the function to add model to dish
         addModelToExistingDish(dishId: dish.dish_id, modelId: modelId, uploadedBy: uploadedBy)
-
-        // Reset the state
-        needsConfirmation = false
-        selectedDish = nil
-        currentModelId = nil
-        currentUploadedBy = nil
+        resetConfirmationState()
     }
 
-    func handleDishSelection(dish: DishModel, modelId: String, uploadedBy: String) {
-        // Store the modelId and uploadedBy values
-        currentModelId = modelId
-        currentUploadedBy = uploadedBy
-        
-        needsConfirmation = true
-        selectedDish = dish
+    func handleDishSelection(dish: DishModel) {
+        // Ensure context is available before triggering confirmation
+        guard let modelId = currentModelId, let uploadedBy = currentUploadedBy else {
+             print("Error: Missing modelId or uploadedBy when selecting dish.")
+             errorMessage = "Internal error occurred. Please try again."
+             showError = true
+             return
+        }
+        self.selectedDish = dish
+        self.needsConfirmation = true // Trigger confirmation alert
+    }
+
+    private func resetConfirmationState() {
+        needsConfirmation = false
+        selectedDish = nil
     }
 }
 
+// MARK: - Main View
+
 struct ModelAssignmentView: View {
+    // StateObject for the ViewModel lifecycle tied to this view
     @StateObject private var viewModel = ModelAssignmentViewModel()
+    // Input properties required when creating this view
     let restaurantId: String
-    let modelId: String
-    let uploadedBy: String
+    let modelId: String // The new model being assigned
+    let uploadedBy: String // The user ID (as String) who uploaded the model
 
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
         NavigationView {
-            ZStack {
+            ZStack { // Overlay loading indicator
                 VStack {
-                    // Search bar
-                    TextField("Search for a dish", text: $viewModel.searchText)
-                        .onChange(of: viewModel.searchText) { newValue in
-                            viewModel.filterDishes(searchText: newValue)
-                        }
+                    // Search Bar
+                    TextField("Search for an existing dish", text: $viewModel.searchText)
+                        .onChange(of: viewModel.searchText) { viewModel.filterDishes(searchText: $0) }
                         .padding()
                         .background(Color(.systemGray6))
                         .cornerRadius(10)
                         .padding(.horizontal)
 
-                    // No results view with option to create new dish
+                    // Conditional Content
                     if viewModel.filteredDishes.isEmpty && !viewModel.searchText.isEmpty {
-                        VStack(spacing: 20) {
-                            Text("No dishes found matching '\(viewModel.searchText)'")
-                                .foregroundColor(.secondary)
-
-                            Button(action: {
-                                viewModel.newDishName = viewModel.searchText
-                                viewModel.showNewDishForm = true
-                            }) {
-                                Text("Create new dish: \(viewModel.searchText)")
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white)
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(Color.blue)
-                                    .cornerRadius(10)
-                            }
-                            .padding(.horizontal)
-                        }
-                        .padding(.top, 30)
+                        noResultsView // Show "Create New" option
                     } else {
-                        // List of dishes
-                        List(viewModel.filteredDishes) { dish in
-                            Button(action: {
-                                viewModel.handleDishSelection(dish: dish, modelId: modelId, uploadedBy: uploadedBy)
-                            }) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(dish.dish_name)
-                                        .font(.headline)
-
-                                    if let description = dish.description, !description.isEmpty {
-                                        Text(description)
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                            .lineLimit(2)
-                                    }
-
-                                    Text("$\(dish.price)")
-                                        .font(.subheadline)
-                                        .foregroundColor(.green)
-                                }
-                                .padding(.vertical, 4)
-                            }
-                        }
+                        dishesList // Show list of existing dishes
                     }
-
-                    // Removed the standalone "Create New Dish" button
+                }
+                .navigationTitle("Assign to Dish")
+                .onAppear {
+                    // Pass initial context to ViewModel when view appears
+                    viewModel.currentModelId = modelId
+                    viewModel.currentUploadedBy = uploadedBy
+                    viewModel.fetchRestaurantModels(restaurantId: restaurantId) // Fetch data
+                }
+                // Alerts managed by ViewModel state
+                .alert("Error", isPresented: $viewModel.showError, presenting: viewModel.errorMessage) { message in
+                    Button("OK") {} // Default dismiss button
+                } message: { message in
+                    Text(message) // Display the error message from ViewModel
+                }
+                .alert("Success", isPresented: $viewModel.showSuccess, presenting: viewModel.successMessage) { message in
+                    Button("OK") { presentationMode.wrappedValue.dismiss() } // Dismiss view on success
+                } message: { message in
+                    Text(message) // Display the success message
+                }
+                .alert("Confirm Add Model", isPresented: $viewModel.needsConfirmation, presenting: viewModel.selectedDish) { dish in
+                    Button("Cancel", role: .cancel) {}
+                    Button("Confirm") { viewModel.confirmAddModelToDish() }
+                } message: { dish in
+                    Text("The dish \"\(dish.dish_name)\" may already have AR models. Add this new model to it?")
+                }
+                // Sheet for creating a new dish
+                .sheet(isPresented: $viewModel.showNewDishForm) {
+                    // Pass the *same* ViewModel instance to the sheet
+                    NewDishFormView(
+                        viewModel: viewModel,
+                        restaurantId: restaurantId,
+                        modelId: modelId,
+                        uploadedBy: uploadedBy
+                    )
                 }
 
+                // Loading Indicator Overlay
                 if viewModel.isLoading {
-                    ProgressView()
+                    ProgressView("Loading...") // Added text for clarity
                         .scaleEffect(1.5)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.black.opacity(0.3))
+                        .padding()
+                        .background(.thinMaterial)
+                        .cornerRadius(10)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity) // Center it
+                        .ignoresSafeArea()
                 }
-            }
-            .navigationTitle("Assign to Dish")
-            .alert(isPresented: $viewModel.showError) {
-                Alert(
-                    title: Text("Error"),
-                    message: Text(viewModel.errorMessage ?? "An unknown error occurred"),
-                    dismissButton: .default(Text("OK"))
-                )
-            }
-            .alert(isPresented: $viewModel.showSuccess) {
-                Alert(
-                    title: Text("Success"),
-                    message: Text(viewModel.successMessage ?? "Operation completed successfully"),
-                    dismissButton: .default(Text("OK")) {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                )
-            }
-            .sheet(isPresented: $viewModel.showNewDishForm) {
-                NewDishFormView(
-                    viewModel: viewModel,
-                    restaurantId: restaurantId,
-                    modelId: modelId,
-                    uploadedBy: uploadedBy
-                )
-            }
-            .alert(isPresented: $viewModel.needsConfirmation) {
-                Alert(
-                    title: Text("Confirm Add Model"),
-                    message: Text("The dish \"\(viewModel.selectedDish?.dish_name ?? "")\" already has an AR model. Do you want to add another AR Model to this dish?"),
-                    primaryButton: .destructive(Text("Cancel")),
-                    secondaryButton: .default(
-                        Text("Confirm")
-                    ) {
-                        viewModel.confirmAddModelToDish()
-                    }
-                )
-            }
-            .onAppear {
-                viewModel.fetchRestaurantModels(restaurantId: restaurantId)
             }
         }
     }
+
+    // MARK: Subviews (Extracted for Clarity)
+
+    private var dishesList: some View {
+        List(viewModel.filteredDishes) { dish in
+            Button { viewModel.handleDishSelection(dish: dish) } label: { // Use label for content
+                HStack { // Ensure content fills the row
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(dish.dish_name).font(.headline)
+                        if let desc = dish.description, !desc.isEmpty {
+                            Text(desc).font(.subheadline).foregroundColor(.secondary).lineLimit(2)
+                        }
+                        Text(formatPrice(dish.price)).font(.subheadline).foregroundColor(.green)
+                    }
+                    Spacer() // Push content to leading edge
+                }
+                .contentShape(Rectangle()) // Make entire row tappable
+            }
+            .buttonStyle(PlainButtonStyle()) // Use plain style to avoid default list button appearance
+            .padding(.vertical, 4)
+        }
+        .listStyle(PlainListStyle())
+    }
+
+    private var noResultsView: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Text("No dishes found matching '\(viewModel.searchText)'")
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+
+            Button {
+                viewModel.newDishName = viewModel.searchText // Pre-fill name
+                viewModel.showNewDishForm = true // Show the form sheet
+            } label: {
+                Text("Create new dish: \(viewModel.searchText)")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+            .padding(.horizontal)
+            Spacer()
+        }
+        .padding(.top, 30)
+    }
+
+    // Helper to format price string (consider using NumberFormatter for locale)
+    private func formatPrice(_ priceString: String) -> String {
+        guard let priceDouble = Double(priceString) else { return "$\(priceString)" } // Fallback
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        // formatter.locale = Locale.current // Optional: Use user's locale
+        return formatter.string(from: NSNumber(value: priceDouble)) ?? String(format: "$%.2f", priceDouble)
+    }
 }
 
+// MARK: - New Dish Form View
+
 struct NewDishFormView: View {
-    @ObservedObject var viewModel: ModelAssignmentViewModel
+    @ObservedObject var viewModel: ModelAssignmentViewModel // Use shared ViewModel
     let restaurantId: String
     let modelId: String
-    let uploadedBy: String
+    let uploadedBy: String // User ID as String
 
     @Environment(\.presentationMode) var presentationMode
+
+    // Helper for required price label
+    private var priceLabel: Text { Text("Price ") + Text("*").foregroundColor(.red) }
 
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Dish Information")) {
-                    TextField("Dish Name", text: $viewModel.newDishName)
+                Section("Dish Information") { // Use String directly for header
+                    // Dish Name (Non-Editable Display)
+                    HStack {
+                        Text("Dish Name") // Label
+                        Spacer()
+                        Text(viewModel.newDishName) // Display value
+                            .foregroundColor(.gray) // Indicate non-editable
+                            .multilineTextAlignment(.trailing)
+                    }
 
-                    TextField("Description", text: $viewModel.newDishDescription)
-                        .lineLimit(3)
+                    // Other Fields (Editable)
+                    TextField("Description (Optional)", text: $viewModel.newDishDescription, axis: .vertical) // Use axis for multi-line
+                        .lineLimit(3...5) // Allow 3 to 5 lines
 
-                    TextField("Ingredients", text: $viewModel.newDishIngredients)
-                        .lineLimit(3)
+                    TextField("Ingredients (Optional)", text: $viewModel.newDishIngredients, axis: .vertical)
+                        .lineLimit(3...5)
 
-                    TextField("Price", text: $viewModel.newDishPrice)
-                        .keyboardType(.decimalPad)
+                    // Price Field (Numeric Input)
+                    HStack { // Use HStack for alignment if needed, or keep simple TextField
+                         priceLabel // Use the computed label
+                         Spacer()
+                         TextField("e.g., 9.99", text: $viewModel.newDishPrice)
+                             .keyboardType(.decimalPad)
+                             .multilineTextAlignment(.trailing) // Align input right
+                    }
                 }
 
-                Section(header: Text("Additional Information")) {
-                    TextField("Nutritional Info", text: $viewModel.newDishNutritionalInfo)
-                        .lineLimit(3)
-
-                    TextField("Allergens", text: $viewModel.newDishAllergens)
-                        .lineLimit(2)
+                Section("Additional Information (Optional)") {
+                    TextField("Nutritional Info", text: $viewModel.newDishNutritionalInfo, axis: .vertical)
+                        .lineLimit(3...5)
+                    TextField("Allergens", text: $viewModel.newDishAllergens, axis: .vertical)
+                        .lineLimit(2...4)
                 }
 
                 Section {
-                    Button(action: {
+                    // Create Dish Button
+                    Button {
+                        // ViewModel handles validation and network call
                         viewModel.addNewDishWithModel(
                             restaurantId: restaurantId,
                             modelId: modelId,
                             uploadedBy: uploadedBy
                         )
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Text("Create Dish")
+                        // Dismissal is handled by the parent view's success alert
+                    } label: {
+                        Text("Create Dish and Assign Model")
                             .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
+                            .frame(maxWidth: .infinity, alignment: .center) // Center text
                     }
-                    .disabled(viewModel.newDishName.isEmpty || viewModel.newDishPrice.isEmpty)
+                    // Disable button if price is empty
+                    .disabled(viewModel.newDishPrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
-            .navigationTitle("New Dish")
-            .navigationBarItems(
-                trailing: Button("Cancel") {
-                    presentationMode.wrappedValue.dismiss()
+            .navigationTitle("New Dish Details")
+            .navigationBarTitleDisplayMode(.inline) // Keep title inline
+            .toolbar { // Use .toolbar for navigation items
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { presentationMode.wrappedValue.dismiss() }
                 }
-            )
+            }
+            // Error alerts are shown by the presenting ModelAssignmentView
         }
     }
 }
 
+// MARK: - Preview
+
 struct ModelAssignmentViewPreview: PreviewProvider {
     static var previews: some View {
+        // --- How to get user_id for the preview ---
+        // Attempt to get from UserDefaults, provide a default if missing
+        let previewUserIdInt = UserDefaults.standard.integer(forKey: "user_id")
+        let previewUploadedBy = (previewUserIdInt != 0) ? String(previewUserIdInt) : "1" // Default to "1" i
+
+        // --- Example usage for preview ---
         ModelAssignmentView(
-            restaurantId: "ChIJ92rcyJWDRoYRotK6QCjsFf8",
-            modelId: "model456",
-            uploadedBy: "1"
+            restaurantId: "ChIJ92rcyJWDRoYRotK6QCjsFf8", // Example Google Place ID
+            modelId: "previewModel123",
+            uploadedBy: previewUploadedBy // Use fetched or default user ID string
         )
     }
 }
