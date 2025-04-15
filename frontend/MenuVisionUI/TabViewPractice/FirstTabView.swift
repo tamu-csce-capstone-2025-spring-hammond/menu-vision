@@ -156,12 +156,14 @@ struct FirstTabView: View {
                                 .padding()
                             }
                             .onAppear {
-                                
+                                                                
                                 documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first;
                                 
                                 //I know this is cooked forgive me
                                 
                                 pollForLoadingCompletion();
+                                
+                                modelIndex = viewManager.currentIndex();
                                 
                                 refreshUI.toggle(); //once model map is loaded into refresh the view by toggling this variable
                                 
