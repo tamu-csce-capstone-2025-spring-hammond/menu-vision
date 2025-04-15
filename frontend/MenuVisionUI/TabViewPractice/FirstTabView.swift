@@ -307,13 +307,17 @@ struct FirstTabView: View {
                     
                     
                     ToolbarItem(placement: .topBarTrailing) {
-                        HStack {
+                        HStack(spacing: 12) {
                             Toggle("", isOn: $freestyleMode)
                                 .toggleStyle(SwitchToggleStyle())
                                 .frame(width: 50)
                             
                             Text("Freestyle")
-                                .foregroundColor(Color.orange300)
+                                .background(Color.white).opacity(0.95)
+                                .foregroundColor(freestyleMode ? Color.orange300 : Color.gray)
+                                .cornerRadius(4)
+                                .font(.custom("Futura", size: 16))
+                               
                         }
                         .onChange(of: freestyleMode) {
                             viewManager.modeSwitch()
