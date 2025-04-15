@@ -341,18 +341,20 @@ struct ModelAssignmentView: View {
     var body: some View {
         NavigationView {
             ZStack { // Overlay loading indicator
-                VStack {
-                    // Search Bar
+                // Use a background consistent with login/signup if desired, e.g., Color.slate100 or Color.white
+                // Color.white.edgesIgnoringSafeArea(.all) // Example background
+                VStack(spacing: 16) { // Added spacing
+                    // Search Bar - Apply custom style
                     TextField("Search for an existing dish", text: $viewModel.searchText)
+                        .customTextFieldStyle() // Apply custom text field style
                         .onChange(of: viewModel.searchText) { viewModel.filterDishes(searchText: $0) }
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
                         .padding(.horizontal)
+                        .padding(.top) // Add padding top
 
                     // Conditional Content
                     if viewModel.filteredDishes.isEmpty && !viewModel.searchText.isEmpty {
                         noResultsView // Show "Create New" option
+                            .padding(.horizontal) // Add padding to match search bar
                     } else {
                         dishesList // Show list of existing dishes
                     }
@@ -411,47 +413,107 @@ struct ModelAssignmentView: View {
     private var dishesList: some View {
         List(viewModel.filteredDishes) { dish in
             Button { viewModel.handleDishSelection(dish: dish) } label: { // Use label for content
-                HStack { // Ensure content fills the row
+                HStack(alignment: .center, spacing: 12) { // Added alignment and spacing
+                    // Thumbnail View
+                    if let thumbnail = loadDishThumbnail(modelID: dish.model_id) {
+                        Image(uiImage: thumbnail)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 60, height: 60)
+                            .clipped()
+                            .cornerRadius(8)
+                    } else {
+                        // Fallback Placeholder
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(width: 60, height: 60)
+                            .cornerRadius(8)
+                    }
+
+                    // Text Content
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(dish.dish_name).font(.headline)
+                        Text(dish.dish_name).font(.headline).foregroundColor(.primary) // Use primary color
                         if let desc = dish.description, !desc.isEmpty {
                             Text(desc).font(.subheadline).foregroundColor(.secondary).lineLimit(2)
                         }
+                        // Use the price formatting you prefer (e.g., .green or .orange300)
                         Text(formatPrice(dish.price)).font(.subheadline).foregroundColor(.green)
                     }
+
                     Spacer() // Push content to leading edge
+
+                    Image(systemName: "chevron.right") // Add indicator for tappable row
+                        .foregroundColor(.secondary)
                 }
+                .padding(.vertical, 8) // Add vertical padding inside the row
+                // .padding(.horizontal, 4) // Horizontal padding might not be needed with List style
                 .contentShape(Rectangle()) // Make entire row tappable
             }
             .buttonStyle(PlainButtonStyle()) // Use plain style to avoid default list button appearance
-            .padding(.vertical, 4)
+            // .listRowInsets(EdgeInsets()) // Adjust list row insets if needed
         }
-        .listStyle(PlainListStyle())
+        .listStyle(PlainListStyle()) // Keep plain list style
     }
 
     private var noResultsView: some View {
         VStack(spacing: 20) {
             Spacer()
             Text("No dishes found matching '\(viewModel.searchText)'")
+                .font(.headline) // Style title text
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
+                .multilineTextAlignment(.center)
 
             Button {
                 viewModel.newDishName = viewModel.searchText // Pre-fill name
                 viewModel.showNewDishForm = true // Show the form sheet
             } label: {
                 Text("Create new dish: \(viewModel.searchText)")
+                    // Use custom button style - assuming customBlue is defined
+                    // .customButtonStyle()
+                    // OR replicate style manually if customButtonStyle uses specific colors/fonts
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
-                    .padding()
+                    .padding(.vertical, 14) // Match customButtonStyle padding
                     .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(10)
+                    .background(Color.orange300) // Use consistent theme color
+                    .cornerRadius(12) // Match customButtonStyle corner radius
+                    .shadow(color: Color.orange300.opacity(0.4), radius: 2, x: 0, y: 1) // Match shadow
             }
-            .padding(.horizontal)
+            // .padding(.horizontal) // Keep button padding within the view padding
             Spacer()
         }
         .padding(.top, 30)
+    }
+
+    // MARK: - Helper Functions
+
+    // Helper function to load thumbnail from local documents directory
+    private func loadDishThumbnail(modelID: String) -> UIImage? {
+        print("Attempting to load thumbnail for modelID: \(modelID)") // Log requested ID
+        let fileManager = FileManager.default
+        let filename = "\(modelID).png"
+        guard let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            print("Error: Could not access documents directory.")
+            return nil
+        }
+
+        let fileURL = documentsURL.appendingPathComponent(filename)
+        print("Checking for thumbnail at path: \(fileURL.path)") // Log constructed path
+
+        if fileManager.fileExists(atPath: fileURL.path) {
+            print("Thumbnail file FOUND at path: \(fileURL.path)")
+            if let image = UIImage(contentsOfFile: fileURL.path) {
+                print("Successfully loaded UIImage for modelID: \(modelID)")
+                return image
+            } else {
+                print("Error: Failed to load UIImage from path even though file exists: \(fileURL.path)")
+                return nil
+            }
+        } else {
+            print("Thumbnail file NOT FOUND at path: \(fileURL.path)")
+            return nil
+        }
     }
 
     // Helper to format price string (consider using NumberFormatter for locale)
@@ -490,47 +552,60 @@ struct NewDishFormView: View {
                             .multilineTextAlignment(.trailing)
                     }
 
-                    // Other Fields (Editable)
-                    TextField("Description (Optional)", text: $viewModel.newDishDescription, axis: .vertical) // Use axis for multi-line
-                        .lineLimit(3...5) // Allow 3 to 5 lines
-
-                    TextField("Ingredients (Optional)", text: $viewModel.newDishIngredients, axis: .vertical)
+                    // Other Fields (Editable) - Apply custom style
+                    TextField("Description (Optional)", text: $viewModel.newDishDescription, axis: .vertical)
+                        .customTextFieldStyle() // Apply custom style
                         .lineLimit(3...5)
 
-                    // Price Field (Numeric Input)
-                    HStack { // Use HStack for alignment if needed, or keep simple TextField
-                         priceLabel // Use the computed label
+                    TextField("Ingredients (Optional)", text: $viewModel.newDishIngredients, axis: .vertical)
+                        .customTextFieldStyle() // Apply custom style
+                        .lineLimit(3...5)
+
+                    // Price Field (Numeric Input) - Apply custom style
+                    HStack {
+                         priceLabel
                          Spacer()
                          TextField("e.g., 9.99", text: $viewModel.newDishPrice)
                              .keyboardType(.decimalPad)
-                             .multilineTextAlignment(.trailing) // Align input right
+                             .multilineTextAlignment(.trailing)
                     }
+                    .customTextFieldStyle() // Apply style to the HStack containing the TextField
+
                 }
 
                 Section("Additional Information (Optional)") {
                     TextField("Nutritional Info", text: $viewModel.newDishNutritionalInfo, axis: .vertical)
+                        .customTextFieldStyle() // Apply custom style
                         .lineLimit(3...5)
                     TextField("Allergens", text: $viewModel.newDishAllergens, axis: .vertical)
+                        .customTextFieldStyle() // Apply custom style
                         .lineLimit(2...4)
                 }
 
                 Section {
-                    // Create Dish Button
+                    // Create Dish Button - Apply custom style
                     Button {
-                        // ViewModel handles validation and network call
                         viewModel.addNewDishWithModel(
                             restaurantId: restaurantId,
                             modelId: modelId,
                             uploadedBy: uploadedBy
                         )
-                        // Dismissal is handled by the parent view's success alert
                     } label: {
                         Text("Create Dish and Assign Model")
+                            // Use custom button style
+                            // .customButtonStyle()
+                            // OR replicate style manually
                             .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity, alignment: .center) // Center text
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical, 14) // Match padding
+                            .background(Color.orange300) // Match color
+                            .cornerRadius(12) // Match corner radius
+                            .shadow(color: Color.orange300.opacity(0.4), radius: 2, x: 0, y: 1) // Match shadow
                     }
                     // Disable button if price is empty
                     .disabled(viewModel.newDishPrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .listRowInsets(EdgeInsets()) // Remove form padding for button if needed
                 }
             }
             .navigationTitle("New Dish Details")
