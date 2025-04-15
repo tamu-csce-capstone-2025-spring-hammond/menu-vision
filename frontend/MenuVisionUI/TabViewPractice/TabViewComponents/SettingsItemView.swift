@@ -1,10 +1,3 @@
-//
-//  SettingsItemView.swift
-//  MenuVision
-//
-//  Created by Albert Yin on 4/8/25.
-//
-
 import SwiftUI
 
 struct SettingsItemView: View {
