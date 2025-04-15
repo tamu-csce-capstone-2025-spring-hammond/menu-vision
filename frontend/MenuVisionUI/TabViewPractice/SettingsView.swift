@@ -119,38 +119,6 @@ struct SettingsView: View {
     }
 }
 
-// Placeholder views for navigation destinations
-
-struct EmailChangeView: View {
-    var body: some View {
-        Text("Email Change View")
-            .navigationTitle("Edit Email")
-    }
-}
-
-struct AgeChangeView: View {
-    var body: some View {
-        Text("Age Change View")
-            .navigationTitle("Edit Age")
-    }
-}
-
-struct RestrictChangeView: View {
-    var body: some View {
-        Text("Dietary Restrictions Change View")
-            .navigationTitle("Edit Restrictions")
-    }
-}
-
-struct PrefChangeView: View {
-    var body: some View {
-        Text("Dietary Preferences Change View")
-            .navigationTitle("Edit Preferences")
-    }
-}
-
-struct SettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        SettingsView()
-    }
+#Preview {
+    SettingsView()
 }
