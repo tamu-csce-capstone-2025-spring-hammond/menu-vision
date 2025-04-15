@@ -1,9 +1,3 @@
-//
-//  SettingsView.swift
-//  MenuVision
-//
-//  Created by Albert Yin on 4/3/25.
-//
 import SwiftUI
 
 struct SettingsView: View {
@@ -96,32 +90,23 @@ struct SettingsView: View {
                                 SettingsItemView(title: "Dietary Preferences", iconURL: "https://cdn.builder.io/api/v1/image/assets/c5b4e4c8487a42d48871ad1e7d9ecefa/40caf6b5d3f0daaad79ae5f0316b592311082ff9?placeholderIfAbsent=true")
                             }
 
-                        Divider()
-                            .padding(.horizontal, 0)
-                        Button(action: {
-                            vm.isLoggedIn = false
-                            UserDefaults.standard.set(false, forKey: "is_logged_in")
-                            UserDefaults.standard.set(0, forKey: "user_id")
-
-
-
-                        }) {
-                            Text("LOG OUT")
-                                .font(.system(size: 14, weight: .medium))
-                                .tracking(2)
-                                .foregroundColor(Color(red: 0.98, green: 0.96, blue: 0.99))
-                                .frame(width: 100)
-                                .frame(height: 40)
-                                .background(Color(red: 0.98, green: 0.67, blue: 0.48))
-                                .cornerRadius(38)
-                        }
-                        .padding(.top, 20)
-                    }
-                    .font(.system(size: 14))
-                    .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 24)
-
+                            Divider()
+                                .padding(.horizontal, 0)
+                            Button(action: {
+                                vm.isLoggedIn = false
+                                UserDefaults.standard.set(false, forKey: "is_logged_in")
+                                UserDefaults.standard.set(0, forKey: "user_id")
+                            }) {
+                                Text("LOG OUT")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .tracking(2)
+                                    .foregroundColor(Color(red: 0.98, green: 0.96, blue: 0.99))
+                                    .frame(width: 100)
+                                    .frame(height: 40)
+                                    .background(Color(red: 0.98, green: 0.67, blue: 0.48))
+                                    .cornerRadius(38)
+                            }
+                            .padding(.top, 20)
                         }
                         .font(.system(size: 14))
                         .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
@@ -141,7 +126,7 @@ struct SettingsView: View {
             .edgesIgnoringSafeArea(.bottom)
             .frame(maxWidth: 480)
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+        
     }
 }
 
