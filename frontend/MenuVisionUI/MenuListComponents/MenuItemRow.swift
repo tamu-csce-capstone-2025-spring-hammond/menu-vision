@@ -16,7 +16,10 @@ struct MenuItemRow: View {
                     let localImage = loadDishThumbnail(modelID: modelID)
 
                     Button(action: {
+                        dishMapping.setGoTo(id: modelID)
                         navigateToAR = true
+                        print("Tomorrow: ", navigateToAR)
+
                     }) {
                         ZStack(alignment: .topTrailing) {
                             if let image = localImage {
@@ -119,15 +122,9 @@ struct MenuItemRow: View {
                 }
             }
             .padding(.vertical, 8)
-
-            NavigationLink(
-                destination: FirstTabView().environmentObject(dishMapping),
-                isActive: $navigateToAR
-            ) {
-                EmptyView()
+            .navigationDestination(isPresented: $navigateToAR) {
+                FirstTabView().environmentObject(dishMapping)
             }
-            .frame(width: 0, height: 0)
-            .hidden()
         }
         .sheet(isPresented: $showDetail) {
             MenuItemDetailView(item: item)
