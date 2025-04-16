@@ -118,16 +118,20 @@ struct NameChangeView: View {
                         if isLoading {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 48)
+                                .background(buttonColor)
+                                .cornerRadius(12)
                         } else {
                             Text("Save")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 48)
+                                .background(buttonColor)
+                                .cornerRadius(12)
                         }
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .background(buttonColor)
-                    .cornerRadius(12)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 370)
                     .disabled(isLoading)
