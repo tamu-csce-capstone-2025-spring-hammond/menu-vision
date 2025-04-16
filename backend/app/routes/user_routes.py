@@ -41,7 +41,10 @@ def login():
                 "user_id": user.user_id,
                 "email": user.email,
                 "first_name": user.first_name,
-                "last_name": user.last_name
+                "last_name": user.last_name,
+                "age": user.age,
+                "food_restrictions": user.food_restrictions,
+                "food_preferences": user.food_preferences
             })
         else:
             return jsonify({"message": "Invalid credentials"}), 401
