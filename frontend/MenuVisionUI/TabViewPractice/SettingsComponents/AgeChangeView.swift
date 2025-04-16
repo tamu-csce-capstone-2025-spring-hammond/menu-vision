@@ -1,14 +1,11 @@
-//
-//  AgeChangeView.swift
-//  MenuVision
-//
-//  Created by Albert Yin on 4/10/25.
-//
-
 import SwiftUI
 
 struct AgeChangeView: View {
     @State private var age: String = ""
+    @State private var isLoading = false
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
+    
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var vm: UserStateViewModel
 
@@ -42,13 +39,13 @@ struct AgeChangeView: View {
                             Spacer()
                         }
 
-                        // Title - Using system font with explicit bold styling
+                        // Title
                         Text("Change Age")
-                            .font(.system(size: 24, weight: .black)) // Using .black for maximum boldness
-                            .bold() // Explicit bold modifier
+                            .font(.system(size: 24, weight: .black))
+                            .bold()
                             .foregroundColor(textPrimaryColor)
                             .padding(.top, 8)
-                            .tracking(0.24) // Letter spacing from design
+                            .tracking(0.24)
                     }
                     .frame(height: 80)
 
@@ -62,17 +59,16 @@ struct AgeChangeView: View {
 
                             ZStack(alignment: .leading) {
                                 if age.isEmpty {
-                                    // Using system font with explicit italic styling
                                     Text("age")
                                         .font(.system(size: 14))
-                                        .italic() // Explicit italic modifier
-                                        .foregroundStyle(placeholderColor) // Using newer API
+                                        .italic()
+                                        .foregroundStyle(placeholderColor)
                                 }
 
                                 TextField("", text: $age)
                                     .font(.system(size: 14))
                                     .foregroundColor(textSecondaryColor)
-                                    .keyboardType(.numberPad) // Use number pad for age input
+                                    .keyboardType(.numberPad)
                                     .onAppear {
                                         // Initialize with current user data
                                         age = String(vm.userData.age)
@@ -94,28 +90,94 @@ struct AgeChangeView: View {
 
                     // Save button
                     Button(action: {
-                        // Handle save action
-                        print("Saving age: \(age)")
+                        updateAge()
                     }) {
-                        Text("Save")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 48)
-                            .background(buttonColor)
-                            .cornerRadius(12)
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 48)
+                                .background(buttonColor)
+                                .cornerRadius(12)
+                        } else {
+                            Text("Save")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 48)
+                                .background(buttonColor)
+                                .cornerRadius(12)
+                        }
                     }
                     .padding(.horizontal, 24)
                     .padding(.bottom, 370)
+                    .disabled(isLoading)
                 }
             }
             .frame(width: min(414, geometry.size.width))
             .frame(maxWidth: .infinity)
         }
-        .navigationBarHidden(true) // Hide the default navigation bar
+        .navigationBarHidden(true)
+        .alert(isPresented: $showErrorAlert) {
+            Alert(
+                title: Text("Error"),
+                message: Text(errorMessage),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+    }
+    
+    private func updateAge() {
+        // Validate input
+        guard let ageValue = Int(age.trimmingCharacters(in: .whitespaces)) else {
+            errorMessage = "Please enter a valid age"
+            showErrorAlert = true
+            return
+        }
+        
+        // Start loading
+        isLoading = true
+        
+        // Prepare request payload
+        let userId = UserDefaults.standard.integer(forKey: "user_id")
+        let payload: [String: Any] = ["age": ageValue]
+        
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+            errorMessage = "Failed to prepare request data"
+            showErrorAlert = true
+            isLoading = false
+            return
+        }
+        
+        // Make API request
+        API.shared.request(
+            endpoint: "user/\(userId)",
+            method: "PUT",
+            body: jsonData,
+            headers: ["Content-Type": "application/json"]
+        ) { result in
+            // Ensure UI updates happen on main thread
+            DispatchQueue.main.async {
+                isLoading = false
+                
+                switch result {
+                case .success:
+                    // Update view model data
+                    vm.userData.age = ageValue
+                    
+                    // Dismiss view
+                    presentationMode.wrappedValue.dismiss()
+                
+                case .failure(let error):
+                    errorMessage = "Failed to update age: \(error.localizedDescription)"
+                    showErrorAlert = true
+                }
+            }
+        }
     }
 }
 
 #Preview {
     AgeChangeView()
+        .environmentObject(UserStateViewModel())
 }
