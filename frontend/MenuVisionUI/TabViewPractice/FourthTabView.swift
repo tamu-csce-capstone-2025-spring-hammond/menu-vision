@@ -393,6 +393,14 @@ extension CameraManager {
         DispatchQueue.global(qos: .background).async {
             if self.captureSession.isRunning {
                 self.captureSession.stopRunning()
+                // Release inputs and outputs
+                for input in self.captureSession.inputs {
+                    self.captureSession.removeInput(input)
+                }
+                for output in self.captureSession.outputs {
+                    self.captureSession.removeOutput(output)
+                }
+
             }
         }
     }
