@@ -8,10 +8,13 @@ import SwiftUI
 
 struct PrefChangeView: View {
     @State private var selectedCuisines: Set<String> = []
+    @EnvironmentObject var vm: UserStateViewModel
+
         @Environment(\.presentationMode) var presentationMode
 
         // List of available cuisines
         private let cuisines = [
+            "American",
             "Chinese",
             "French",
             "Greek",
@@ -19,7 +22,11 @@ struct PrefChangeView: View {
             "Italian",
             "Japanese",
             "Korean",
-            "Latin American"
+            "Mexican",
+            "Middle Eastern",
+            "Spanish",
+            "Thai",
+            "Vietnamese"
         ]
 
         var body: some View {
@@ -101,6 +108,10 @@ struct PrefChangeView: View {
             .edgesIgnoringSafeArea(.bottom)
             .navigationBarBackButtonHidden(true)
             .navigationBarHidden(true)
+            .onAppear {
+                // Initialize selected restrictions from UserStateViewModel
+                selectedCuisines = Set(vm.userData.food_preferences)
+                    }
         }
 
         private func toggleSelection(_ cuisine: String) {

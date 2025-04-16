@@ -37,8 +37,12 @@ class LoginHandler {
                             if let userId = response["user_id"] as? Int {
                                 // Store user ID if remember me is checked
                                 if rememberMe {
+                                    
                                     UserDefaults.standard.set(userId, forKey: "user_id")
                                     UserDefaults.standard.set(true, forKey: "is_logged_in")
+                                    
+                                    
+                                    
                                 }
                                 
                                 // Fetch AWS credentials after successful login
