@@ -10,6 +10,7 @@ import SwiftUI
 struct AgeChangeView: View {
     @State private var age: String = ""
     @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var vm: UserStateViewModel
 
     // Custom colors to match the design
     private let textPrimaryColor = Color(red: 31/255, green: 32/255, blue: 36/255) // #1F2024
@@ -72,6 +73,10 @@ struct AgeChangeView: View {
                                     .font(.system(size: 14))
                                     .foregroundColor(textSecondaryColor)
                                     .keyboardType(.numberPad) // Use number pad for age input
+                                    .onAppear {
+                                        // Initialize with current user data
+                                        age = String(vm.userData.age)
+                                    }
                             }
                             .padding(.horizontal, 16)
                             .frame(height: 48)

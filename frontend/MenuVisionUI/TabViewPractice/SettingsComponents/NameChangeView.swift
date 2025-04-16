@@ -1,16 +1,14 @@
-//
-//  NameChangeView.swift
-//  MenuVision
-//
-//  Created by Albert Yin on 4/10/25.
-//
-
 import SwiftUI
 
 struct NameChangeView: View {
     @State private var firstName: String = ""
     @State private var lastName: String = ""
+    @State private var isLoading = false
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
+    
     @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var vm: UserStateViewModel
 
     // Custom colors to match the design
     private let textPrimaryColor = Color(red: 31/255, green: 32/255, blue: 36/255) // #1F2024
@@ -42,13 +40,13 @@ struct NameChangeView: View {
                             Spacer()
                         }
 
-                        // Title - Using system font with explicit bold styling
+                        // Title
                         Text("Change Name")
-                            .font(.system(size: 24, weight: .black)) // Using .black for maximum boldness
-                            .bold() // Explicit bold modifier
+                            .font(.system(size: 24, weight: .black))
+                            .bold()
                             .foregroundColor(textPrimaryColor)
                             .padding(.top, 8)
-                            .tracking(0.24) // Letter spacing from design
+                            .tracking(0.24)
                     }
                     .frame(height: 80)
 
@@ -62,11 +60,10 @@ struct NameChangeView: View {
 
                             ZStack(alignment: .leading) {
                                 if firstName.isEmpty {
-                                    // Using system font with explicit italic styling
                                     Text("first name")
                                         .font(.system(size: 14))
-                                        .italic() // Explicit italic modifier
-                                        .foregroundStyle(placeholderColor) // Using newer API
+                                        .italic()
+                                        .foregroundStyle(placeholderColor)
                                 }
 
                                 TextField("", text: $firstName)
@@ -90,11 +87,10 @@ struct NameChangeView: View {
 
                             ZStack(alignment: .leading) {
                                 if lastName.isEmpty {
-                                    // Using system font with explicit italic styling
                                     Text("last name")
                                         .font(.system(size: 14))
-                                        .italic() // Explicit italic modifier
-                                        .foregroundStyle(placeholderColor) // Using newer API
+                                        .italic()
+                                        .foregroundStyle(placeholderColor)
                                 }
 
                                 TextField("", text: $lastName)
@@ -117,28 +113,100 @@ struct NameChangeView: View {
 
                     // Save button
                     Button(action: {
-                        // Handle save action
-                        print("Saving name: \(firstName) \(lastName)")
+                        updateName()
                     }) {
-                        Text("Save")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 48)
-                            .background(buttonColor)
-                            .cornerRadius(12)
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Text("Save")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
                     }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(buttonColor)
+                    .cornerRadius(12)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 370)
+                    .disabled(isLoading)
                 }
             }
             .frame(width: min(414, geometry.size.width))
             .frame(maxWidth: .infinity)
         }
-        .navigationBarHidden(true) // Hide the default navigation bar
+        .navigationBarHidden(true)
+        .onAppear {
+            // Initialize with current user data
+            firstName = vm.userData.first_name
+            lastName = vm.userData.last_name
+        }
+        .alert(isPresented: $showErrorAlert) {
+            Alert(
+                title: Text("Error"),
+                message: Text(errorMessage),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+    }
+    
+    private func updateName() {
+        // Validate input
+        guard !firstName.trimmingCharacters(in: .whitespaces).isEmpty,
+              !lastName.trimmingCharacters(in: .whitespaces).isEmpty else {
+            errorMessage = "First and last names cannot be empty"
+            showErrorAlert = true
+            return
+        }
+        
+        // Start loading
+        isLoading = true
+        
+        // Prepare request payload
+        let userId = UserDefaults.standard.integer(forKey: "user_id")
+        let payload: [String: Any] = [
+            "first_name": firstName.trimmingCharacters(in: .whitespaces),
+            "last_name": lastName.trimmingCharacters(in: .whitespaces)
+        ]
+        
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+            errorMessage = "Failed to prepare request data"
+            showErrorAlert = true
+            isLoading = false
+            return
+        }
+        
+        // Make API request
+        API.shared.request(
+            endpoint: "user/\(userId)",
+            method: "PUT",
+            body: jsonData,
+            headers: ["Content-Type": "application/json"]
+        ) { result in
+            // Ensure UI updates happen on main thread
+            DispatchQueue.main.async {
+                isLoading = false
+                
+                switch result {
+                case .success:
+                    // Update view model data
+                    vm.userData.first_name = self.firstName
+                    vm.userData.last_name = self.lastName
+                    
+                    // Dismiss view
+                    presentationMode.wrappedValue.dismiss()
+                
+                case .failure(let error):
+                    errorMessage = "Failed to update name: \(error.localizedDescription)"
+                    showErrorAlert = true
+                }
+            }
+        }
     }
 }
 
 #Preview {
     NameChangeView()
+        .environmentObject(UserStateViewModel())
 }

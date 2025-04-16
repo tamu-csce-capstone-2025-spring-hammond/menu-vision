@@ -9,7 +9,9 @@ import SwiftUI
 
 struct EmailChangeView: View {
     @State private var email: String = ""
-       @Environment(\.presentationMode) var presentationMode
+    @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var vm: UserStateViewModel
+
 
        // Custom colors to match the design
        private let textPrimaryColor = Color(red: 31/255, green: 32/255, blue: 36/255) // #1F2024
@@ -71,6 +73,10 @@ struct EmailChangeView: View {
                                    TextField("", text: $email)
                                        .font(.system(size: 14))
                                        .foregroundColor(textSecondaryColor)
+                                       .onAppear {
+                                           // Initialize with current user data
+                                           email = vm.userData.email
+                                                       }
                                }
                                .padding(.horizontal, 16)
                                .frame(height: 48)

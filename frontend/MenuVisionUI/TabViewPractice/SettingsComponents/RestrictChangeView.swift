@@ -10,18 +10,29 @@ import SwiftUI
 struct RestrictChangeView: View {
     // State to track selected dietary restrictions
     @State private var selectedRestrictions: Set<String> = []
-        @Environment(\.presentationMode) var presentationMode
+    @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var vm: UserStateViewModel
+
 
         // List of all dietary restrictions
         private let dietaryRestrictions = [
-            "Dairy Allergy",
-            "Gluten Free",
+            "Vegetarian",
+            "Vegan",
+            "Pescatarian",
+            "Gluten-Free",
+            "Dairy-Free",
+            "Nut-Free",
+            "Soy-Free",
+            "Egg-Free",
+            "Lactose Intolerant",
             "Halal",
             "Kosher",
-            "Lactose Intolerant",
             "No Beef",
             "No Pork",
-            "No Red Meat"
+            "No Red Meat",
+            "Low Carb",
+            "Low Sugar",
+            "Low Sodium"
         ]
 
         var body: some View {
@@ -110,6 +121,10 @@ struct RestrictChangeView: View {
             // Hide the default navigation bar back button if this view is in a NavigationView
             .navigationBarBackButtonHidden(true)
             .navigationBarHidden(true)
+            .onAppear {
+                // Initialize selected restrictions from UserStateViewModel
+                selectedRestrictions = Set(vm.userData.food_restrictions)
+            }
         }
 
         private func toggleSelection(_ restriction: String) {
