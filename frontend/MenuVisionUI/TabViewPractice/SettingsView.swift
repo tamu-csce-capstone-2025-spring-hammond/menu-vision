@@ -57,12 +57,12 @@ struct SettingsView: View {
                             Divider()
                                 .padding(.horizontal, 0)
                             
-                            NavigationLink(destination: UserChangeView()) {
-                                SettingsItemView(title: "Username", iconURL: "https://cdn.builder.io/api/v1/image/assets/c5b4e4c8487a42d48871ad1e7d9ecefa/11a7c5f6112b6118688ced18bc061843134a4eba?placeholderIfAbsent=true")
-                            }
-                            
-                            Divider()
-                                .padding(.horizontal, 0)
+//                            NavigationLink(destination: UserChangeView()) {
+//                                SettingsItemView(title: "Username", iconURL: "https://cdn.builder.io/api/v1/image/assets/c5b4e4c8487a42d48871ad1e7d9ecefa/11a7c5f6112b6118688ced18bc061843134a4eba?placeholderIfAbsent=true")
+//                            }
+//                            
+//                            Divider()
+//                                .padding(.horizontal, 0)
                             
                             NavigationLink(destination: PassChangeView()) {
                                 SettingsItemView(title: "Password", iconURL: "https://cdn.builder.io/api/v1/image/assets/c5b4e4c8487a42d48871ad1e7d9ecefa/e28c1c6a07eea247c30a7b352bf54c411fd89f48?placeholderIfAbsent=true")
