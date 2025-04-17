@@ -215,9 +215,10 @@ struct MenuScannerView: View {
                             }
                         }
                         
+                        dishMapping.setStartedLoading();
+                        
                         if (selectedRestaurant == nil){
                             dishMapping.setStartedDownloading();
-                            dishMapping.setStartedLoading();
                         }
                     }
                     .onDisappear {

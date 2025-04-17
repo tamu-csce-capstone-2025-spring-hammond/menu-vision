@@ -148,27 +148,33 @@ struct ARViewContainer: UIViewRepresentable {
         
         //fill the model map
         
-        modelMap.removeAll()
-                
-        for (index, dish) in dishMapping.getModels()
-            .sorted(by: {
-                ($0.value.max(by: { $0.model_rating < $1.model_rating })?.model_rating ?? 0) >
-                ($1.value.max(by: { $0.model_rating < $1.model_rating })?.model_rating ?? 0)
-            }).enumerated()
-        {
-            if let bestModel = dish.value.max(by: { $0.model_rating < $1.model_rating }) {
-                modelMap[index] = (bestModel.model_id, bestModel.dish_name)
-                
-                if bestModel.model_id == dishMapping.goToID {
-                    modelIndex = index
+        Task{
+            
+            dishMapping.setStartedLoading();
+            
+            modelMap.removeAll()
+                    
+            for (index, dish) in dishMapping.getModels()
+                .sorted(by: {
+                    ($0.value.max(by: { $0.model_rating < $1.model_rating })?.model_rating ?? 0) >
+                    ($1.value.max(by: { $0.model_rating < $1.model_rating })?.model_rating ?? 0)
+                }).enumerated()
+            {
+                if let bestModel = dish.value.max(by: { $0.model_rating < $1.model_rating }) {
+                    modelMap[index] = (bestModel.model_id, bestModel.dish_name)
+                    
+                    if bestModel.model_id == dishMapping.goToID {
+                        modelIndex = index
+                    }
+                    
+                    print("Making model map: ", bestModel.dish_name);
                 }
-                
-                print("Making model map: ", bestModel.dish_name);
+                            
             }
-                        
-        }
 
-        dishMapping.setFinishedLoading();
+            dishMapping.setFinishedLoading();
+        }
+        
                         
         let arView = ARView(frame: .zero);
         
