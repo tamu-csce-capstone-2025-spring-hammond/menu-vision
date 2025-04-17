@@ -147,6 +147,8 @@ struct ARViewContainer: UIViewRepresentable {
     func makeUIView(context: Context) -> ARView {
         
         //fill the model map
+        
+        modelMap.removeAll()
                 
         for (index, dish) in dishMapping.getModels()
             .sorted(by: {
@@ -160,6 +162,8 @@ struct ARViewContainer: UIViewRepresentable {
                 if bestModel.model_id == dishMapping.goToID {
                     modelIndex = index
                 }
+                
+                print("Making model map: ", bestModel.dish_name);
             }
                         
         }
