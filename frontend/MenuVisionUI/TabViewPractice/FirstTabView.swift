@@ -70,7 +70,7 @@ struct FirstTabView: View {
     var body: some View {
         VStack{
             
-            if (dishMapping.isFinishedDownloading()){
+            if (dishMapping.isFinishedLoading()){
                 ZStack{
                     // ARViewContainer is the AR view from your AR files.
                     ARViewContainer(viewManager: viewManager)
@@ -291,6 +291,10 @@ struct FirstTabView: View {
                                     self.refreshUI.toggle()
                                 }
                                 
+                            }
+                            .onDisappear{
+                                print("Happened");
+                                dishMapping.setStartedLoading();
                             }
                         }
                     }
