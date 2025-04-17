@@ -214,6 +214,11 @@ struct MenuScannerView: View {
                                 showAlert = true
                             }
                         }
+                        
+                        if (selectedRestaurant == nil){
+                            dishMapping.setStartedDownloading();
+                            dishMapping.setStartedLoading();
+                        }
                     }
                     .onDisappear {
                         camera.stopCameraSafely()
@@ -250,14 +255,18 @@ struct MenuScannerView: View {
                             
                             print("\nAttempting download for restaurant: \(id)")
                             
-                            //I use these for starting the ar view
-                            dishMapping.setStartedDownloading();
-                            dishMapping.setStartedLoading();
                             
-                            let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id)
-                            
-                            if !models.isEmpty {
+                            Task{
+                                dishMapping.setStartedDownloading();
+                                dishMapping.setStartedLoading();
+                                
+                                let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id)
+                                
                                 dishMapping.setModels(models)
+                                
+                                print(dishMapping.modelsByDishName);
+                                
+                                dishMapping.setFinishedDownloading();
                             }
                             
                             //sort dishMapping based on rating
@@ -265,6 +274,9 @@ struct MenuScannerView: View {
                             
                             
                             //set finished loading is called in the arview container
+                            
+                        }
+                        else{
                             dishMapping.setFinishedDownloading();
                         }
                     }

@@ -20,7 +20,7 @@ struct FirstTabView: View {
     @State private var documentsURL: URL?;
     
     private func pollForLoadingCompletion(){
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) {
             if (!dishMapping.isFinishedLoading()){
                 pollForLoadingCompletion();
             }
@@ -272,6 +272,8 @@ struct FirstTabView: View {
                             }
 
                             .onAppear {
+                                
+                                print("howdy");
                                                                 
                                 documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first;
                                 
@@ -281,7 +283,9 @@ struct FirstTabView: View {
                                 
                                 modelIndex = viewManager.currentIndex();
                                 
-                                refreshUI.toggle(); //once model map is loaded into refresh the view by toggling this variable
+                                DispatchQueue.main.async {
+                                    self.refreshUI.toggle()
+                                }
                                 
                             }
                         }
