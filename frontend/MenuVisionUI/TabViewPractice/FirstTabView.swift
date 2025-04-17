@@ -274,6 +274,10 @@ struct FirstTabView: View {
                             .onAppear {
                                 
                                 print("howdy");
+                                
+                                DispatchQueue.main.async {
+                                    dishMapping.setStartedLoading();
+                                }
                                                                 
                                 documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first;
                                 
