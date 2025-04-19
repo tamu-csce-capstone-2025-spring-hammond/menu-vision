@@ -181,8 +181,7 @@ struct MenuScannerView: View {
                                                     .background(Color.blue)
                                                     .foregroundColor(.white)
                                                     .clipShape(Capsule())
-                                            }
-                                        
+                                            }                                        
                                         
                                     }
                                     else{
