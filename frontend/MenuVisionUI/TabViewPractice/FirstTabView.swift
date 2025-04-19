@@ -18,6 +18,8 @@ struct FirstTabView: View {
     @EnvironmentObject var dishMapping: DishMapping;
     
     @State private var documentsURL: URL?;
+    
+    @State private var viewID = UUID()
         
     private func pollForLoadingCompletion(){
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -260,7 +262,7 @@ struct FirstTabView: View {
                                     .padding()
                                 }
                                 .onAppear {
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                                         scrollProxy.scrollTo(modelIndex, anchor: .center)
                                     }
                                 }
@@ -269,6 +271,13 @@ struct FirstTabView: View {
                                         scrollProxy.scrollTo(newIndex, anchor: .center)
                                     }
                                 }
+                                .onChange(of: dishMapping.finishedLoading) {
+                                    withAnimation {
+                                        scrollProxy.scrollTo(modelIndex, anchor: .center)
+                                    }
+                                }
+
+
                             }
                             .onAppear {
                                 
@@ -285,13 +294,15 @@ struct FirstTabView: View {
                                 DispatchQueue.main.async {
                                     self.refreshUI.toggle();
                                 }
-                                                                
+                                                                                                
                             }
-                            .id(UUID())
+                            .id(viewID)
                             .onDisappear{
                                 print("Happened");
                                 dishMapping.setStartedLoading();
+                                viewID = UUID();
                             }
+                            
                         }
                     }
             }

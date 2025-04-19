@@ -149,10 +149,12 @@ struct ARViewContainer: UIViewRepresentable {
         //fill the model map
         
         Task{
-            
+                        
             dishMapping.setStartedLoading();
             
             modelMap.removeAll()
+            
+            print(dishMapping.goToID);
                     
             for (index, dish) in dishMapping.getModels()
                 .sorted(by: {
@@ -164,6 +166,7 @@ struct ARViewContainer: UIViewRepresentable {
                     modelMap[index] = (bestModel.model_id, bestModel.dish_name)
                     
                     if bestModel.model_id == dishMapping.goToID {
+                        print("Changed model index");
                         modelIndex = index
                     }
                     
