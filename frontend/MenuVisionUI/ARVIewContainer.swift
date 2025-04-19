@@ -158,25 +158,25 @@ struct ARViewContainer: UIViewRepresentable {
                     
             for (index, dish) in dishMapping.getModels()
                 .sorted(by: {
-                    ($0.value.max(by: { $0.model_rating < $1.model_rating })?.model_rating ?? 0) >
-                    ($1.value.max(by: { $0.model_rating < $1.model_rating })?.model_rating ?? 0)
+                    ($0.value[0].model_rating >
+                     $1.value[0].model_rating)
                 }).enumerated()
             {
-                if let bestModel = dish.value.max(by: { $0.model_rating < $1.model_rating }) {
-                    modelMap[index] = (bestModel.model_id, bestModel.dish_name)
-                    
-                    if bestModel.model_id == dishMapping.goToID {
-                        print("Changed model index");
-                        modelIndex = index
-                    }
-                    
-                    print("Making model map: ", bestModel.dish_name);
+                modelMap[index] = (dish.value[0].model_id, dish.value[0].dish_name)
+                
+                if dish.value[0].model_id == dishMapping.goToID {
+                    modelIndex = index;
+                    print("Changed model index to: ", modelIndex);
                 }
+                
+                print("Making model map: ", dish.value[0].dish_name, " ", dish.value[0].model_id);
                             
             }
 
             dishMapping.setFinishedLoading();
         }
+        
+        print(modelMap);
         
                         
         let arView = ARView(frame: .zero);

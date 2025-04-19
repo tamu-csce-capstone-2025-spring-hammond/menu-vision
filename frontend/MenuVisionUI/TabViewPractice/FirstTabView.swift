@@ -271,11 +271,7 @@ struct FirstTabView: View {
                                         scrollProxy.scrollTo(newIndex, anchor: .center)
                                     }
                                 }
-                                .onChange(of: dishMapping.finishedLoading) {
-                                    withAnimation {
-                                        scrollProxy.scrollTo(modelIndex, anchor: .center)
-                                    }
-                                }
+                                
 
 
                             }
@@ -289,9 +285,8 @@ struct FirstTabView: View {
                                 
                                 pollForLoadingCompletion();
                                 
-                                modelIndex = viewManager.currentIndex();
-                                
                                 DispatchQueue.main.async {
+                                    modelIndex = viewManager.currentIndex();
                                     self.refreshUI.toggle();
                                 }
                                                                                                 
@@ -300,6 +295,7 @@ struct FirstTabView: View {
                             .onDisappear{
                                 print("Happened");
                                 dishMapping.setStartedLoading();
+                                dishMapping.goToID = ""; //reset so that it doesn't keep going to the random item that was selected that one time
                                 viewID = UUID();
                             }
                             
