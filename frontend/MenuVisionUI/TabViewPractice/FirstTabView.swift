@@ -20,7 +20,7 @@ struct FirstTabView: View {
     @State private var documentsURL: URL?;
     
     private func pollForLoadingCompletion(){
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             if (!dishMapping.isFinishedLoading()){
                 pollForLoadingCompletion();
             }
@@ -70,7 +70,7 @@ struct FirstTabView: View {
     var body: some View {
         VStack{
             
-            if (dishMapping.isFinishedDownloading()){
+            if (dishMapping.finishedDownloading){
                 ZStack{
                     // ARViewContainer is the AR view from your AR files.
                     ARViewContainer(viewManager: viewManager)
@@ -270,14 +270,9 @@ struct FirstTabView: View {
                                     }
                                 }
                             }
-
                             .onAppear {
                                 
-                                print("howdy");
-                                
-                                DispatchQueue.main.async {
-                                    dishMapping.setStartedLoading();
-                                }
+                                print("howdy, ", dishMapping.finishedLoading);
                                                                 
                                 documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first;
                                 
@@ -292,6 +287,7 @@ struct FirstTabView: View {
                                 }
                                 
                             }
+                            .id(UUID())
                             .onDisappear{
                                 print("Happened");
                                 dishMapping.setStartedLoading();

@@ -265,7 +265,7 @@ struct MenuScannerView: View {
                                 
                                 dishMapping.setModels(models)
                                 
-                                print(dishMapping.modelsByDishName);
+                                //print(dishMapping.modelsByDishName);
                                 
                                 dishMapping.setFinishedDownloading();
                             }
@@ -277,9 +277,7 @@ struct MenuScannerView: View {
                             //set finished loading is called in the arview container
                             
                         }
-                        else{
-                            dishMapping.setFinishedDownloading();
-                        }
+
                     }
                 } else {
                     VStack {
