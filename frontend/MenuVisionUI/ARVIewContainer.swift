@@ -211,7 +211,7 @@ struct ARViewContainer: UIViewRepresentable {
         
         arView.session.delegate = context.coordinator;
         
-
+        resetScene();
         
         return arView;
     }
