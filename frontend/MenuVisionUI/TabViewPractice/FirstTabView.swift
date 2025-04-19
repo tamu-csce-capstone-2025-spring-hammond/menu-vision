@@ -18,7 +18,7 @@ struct FirstTabView: View {
     @EnvironmentObject var dishMapping: DishMapping;
     
     @State private var documentsURL: URL?;
-    
+        
     private func pollForLoadingCompletion(){
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             if (!dishMapping.isFinishedLoading()){
@@ -283,9 +283,9 @@ struct FirstTabView: View {
                                 modelIndex = viewManager.currentIndex();
                                 
                                 DispatchQueue.main.async {
-                                    self.refreshUI.toggle()
+                                    self.refreshUI.toggle();
                                 }
-                                
+                                                                
                             }
                             .id(UUID())
                             .onDisappear{
