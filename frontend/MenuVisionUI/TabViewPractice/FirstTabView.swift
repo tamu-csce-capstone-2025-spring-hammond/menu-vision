@@ -8,6 +8,9 @@ struct FirstTabView: View {
     @State private var modelIndex: Int = 0;
     @State private var freestyleMode: Bool = false;
     
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+
     @State private var reportText: String = "";
     
     @State private var showReportModal: Bool = false;
@@ -288,6 +291,12 @@ struct FirstTabView: View {
                                 DispatchQueue.main.async {
                                     modelIndex = viewManager.currentIndex();
                                     self.refreshUI.toggle();
+                                    
+                                    if (dishMapping.getModels().isEmpty){
+                                        alertMessage = "Could not download AR models for this restaurant. Either nothing has been uploaded yet or the internet connection may be weak."
+                                        showAlert = true
+
+                                    }
                                 }
                                                                                                 
                             }
@@ -310,6 +319,9 @@ struct FirstTabView: View {
                 Text("Loading models...")
             }
             
+        }
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text("No Models Found"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
         .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
