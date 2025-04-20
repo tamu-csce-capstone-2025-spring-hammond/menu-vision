@@ -260,13 +260,35 @@ struct MenuScannerView: View {
                                 dishMapping.setStartedDownloading();
                                 dishMapping.setStartedLoading();
                                 
-                                let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id)
+                                dishMapping.modelsByDishName.removeAll();
                                 
-                                dishMapping.setModels(models)
+                                var retryCount = 0
+                                let maxRetries = 3 // Define the number of retry attempts
+                                let delayInSeconds = 2 // Define the delay between retries
+
+                                while retryCount < maxRetries {
+                                    let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id)
+
+                                    if !models.isEmpty {
+                                        dishMapping.setModels(models)
+                                        break // Exit the loop if download is successful
+                                    } else {
+                                        print("Model list is empty. Retrying in \(delayInSeconds) seconds... (Attempt \(retryCount + 1) of \(maxRetries))")
+                                        retryCount += 1
+                                        try? await Task.sleep(nanoseconds: UInt64(delayInSeconds) * 1_000_000_000) // Introduce a delay
+                                    }
+                                }
+
+                                if retryCount == maxRetries && dishMapping.modelsByDishName.isEmpty {
+                                    print("Failed to download models after \(maxRetries) retries.")
+                                    DispatchQueue.main.async {
+                                        alertMessage = "Failed to download AR models for this restaurant. Either no models have been uploaded yet or the internet connection is weak."
+                                        showAlert = true
+                                    }
+                                }
                                 
-                                //print(dishMapping.modelsByDishName);
+                                dishMapping.setFinishedDownloading()
                                 
-                                dishMapping.setFinishedDownloading();
                             }
                             
                             //sort dishMapping based on rating
@@ -327,8 +349,15 @@ struct MenuScannerView: View {
                     displayName: DisplayName(text: "Capstone Cafe", languageCode: "en")
                 )
                 
+                let blizzardCafe = Restaurant(
+                    id: "dknsdknslnslsnlsnls",
+                    placeId: "slnlsnlsnslnsls",
+                    displayName: DisplayName(text: "Blizzard Cafe", languageCode: "en")
+                )
+
+                
                 DispatchQueue.main.async {
-                    self.restaurants = [capstoneCafe] + (decodedResponse.places ?? [])
+                    self.restaurants = [capstoneCafe, blizzardCafe] + (decodedResponse.places ?? [])
                 }
             } catch {
                 print("Error decoding JSON: \(error)")
