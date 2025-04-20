@@ -267,10 +267,17 @@ struct MenuScannerView: View {
                                 let delayInSeconds = 2 // Define the delay between retries
 
                                 while retryCount < maxRetries {
+                                    
+                                    if (id != selectedRestaurant?.id){
+                                        break;
+                                    }
+                                    
                                     let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id)
 
                                     if !models.isEmpty {
-                                        dishMapping.setModels(models)
+                                        if (id == selectedRestaurant?.id){
+                                            dishMapping.setModels(models);
+                                        }
                                         break // Exit the loop if download is successful
                                     } else {
                                         print("Model list is empty. Retrying in \(delayInSeconds) seconds... (Attempt \(retryCount + 1) of \(maxRetries))")
@@ -287,8 +294,11 @@ struct MenuScannerView: View {
                                     }
                                 }
                                 
-                                dishMapping.setFinishedDownloading()
+                                if (id == selectedRestaurant?.id){
+                                    dishMapping.setFinishedDownloading();
+                                }
                                 
+                            
                             }
                             
                             //sort dishMapping based on rating
