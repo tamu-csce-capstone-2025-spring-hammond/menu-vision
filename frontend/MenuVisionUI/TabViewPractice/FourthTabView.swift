@@ -349,15 +349,15 @@ struct MenuScannerView: View {
                     displayName: DisplayName(text: "Capstone Cafe", languageCode: "en")
                 )
                 
-                let blizzardCafe = Restaurant(
+                let reveilleCafe = Restaurant(
                     id: "dknsdknslnslsnlsnls",
                     placeId: "slnlsnlsnslnsls",
-                    displayName: DisplayName(text: "Blizzard Cafe", languageCode: "en")
+                    displayName: DisplayName(text: "Reveille Cafe", languageCode: "en")
                 )
 
                 
                 DispatchQueue.main.async {
-                    self.restaurants = [capstoneCafe, blizzardCafe] + (decodedResponse.places ?? [])
+                    self.restaurants = [capstoneCafe, reveilleCafe] + (decodedResponse.places ?? [])
                 }
             } catch {
                 print("Error decoding JSON: \(error)")
