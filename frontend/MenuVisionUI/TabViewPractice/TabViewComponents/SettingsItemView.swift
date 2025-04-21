@@ -3,6 +3,8 @@ import SwiftUI
 struct SettingsItemView: View {
     let title: String
     let iconURL: String
+    @EnvironmentObject var vm: UserStateViewModel
+
 
     var body: some View {
         HStack(spacing: 16) {
