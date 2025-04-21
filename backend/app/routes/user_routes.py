@@ -115,6 +115,8 @@ def update_user(user_id):
         user.food_restrictions = data.get("food_restrictions", user.food_restrictions)
         user.food_preferences = data.get("food_preferences", user.food_preferences)
         user.total_points = data.get("total_points", user.total_points)
+        user.hashed_password = data.get("hashed_password", user.hashed_password)
+
         
         db.session.commit()
         return jsonify({"message": "User updated successfully"})
