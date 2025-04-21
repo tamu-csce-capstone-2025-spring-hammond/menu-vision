@@ -18,21 +18,15 @@ class DishMapping: ObservableObject {
     
     func setModels(_ models: [DishData]) {
         var newMapping: [String: [DishData]] = [:]
+        
+        let modelList = models.sorted(by: { $0.model_rating > $1.model_rating});
 
-        for model in models {
-            newMapping[model.dish_name, default: []].append(model)
+        for model in modelList {
+            newMapping[model.dish_name, default: []].append(model);
         }
 
         self.modelsByDishName = newMapping
 
-//        print("DishMapping updated:")
-//        for (dish, models) in modelsByDishName {
-//            print("\(dish): \(models.count) model(s)")
-//            for model in models {
-//                print("- model_id: \(model.model_id), dish_id: \(model.dish_id)")
-//            }
-//        }
-//        print(modelsByDishName)
     }
     
     func getModels() -> [String: [DishData]]{

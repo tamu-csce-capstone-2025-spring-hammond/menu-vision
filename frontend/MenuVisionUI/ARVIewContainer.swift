@@ -147,18 +147,37 @@ struct ARViewContainer: UIViewRepresentable {
     func makeUIView(context: Context) -> ARView {
         
         //fill the model map
-                
-        for (index, dish) in dishMapping.getModels().sorted(by: { $0.value[0].model_rating > $1.value[0].model_rating }).enumerated() {
-            //note: I am indexing 0 right now for the value here, not sure why the map stores a list of dishdata, need to check it over
+        
+        Task{
                         
-            modelMap[index] = (dish.value[0].model_id, dish.value[0].dish_name);
+            dishMapping.setStartedLoading();
             
-            if (dish.value[0].model_id == dishMapping.goToID){
-                modelIndex = index;
+            modelMap.removeAll()
+            
+            print(dishMapping.goToID);
+                    
+            for (index, dish) in dishMapping.getModels()
+                .sorted(by: {
+                    ($0.value[0].model_rating >
+                     $1.value[0].model_rating)
+                }).enumerated()
+            {
+                modelMap[index] = (dish.value[0].model_id, dish.value[0].dish_name)
+                
+                if dish.value[0].model_id == dishMapping.goToID {
+                    modelIndex = index;
+                    print("Changed model index to: ", modelIndex);
+                }
+                
+                print("Making model map: ", dish.value[0].dish_name, " ", dish.value[0].model_id);
+                            
             }
+
+            dishMapping.setFinishedLoading();
         }
         
-        dishMapping.setFinishedLoading();
+        print(modelMap);
+        
                         
         let arView = ARView(frame: .zero);
         
@@ -176,6 +195,8 @@ struct ARViewContainer: UIViewRepresentable {
             config.frameSemantics.insert(.sceneDepth)
         }
         
+        config.maximumNumberOfTrackedImages = 10;
+        
         arView.session.run(config);
         
         arView.addCoaching();
@@ -191,14 +212,17 @@ struct ARViewContainer: UIViewRepresentable {
         
         context.coordinator.arView = arView; // Assign ARView to Coordinator
         
-        //setup session callback for computer vision
         arView.session.delegate = context.coordinator;
         
-
+        resetScene();
         
         return arView;
     }
     
+    static func dismantleUIView(_ uiView: ARView, coordinator: Coordinator) {
+        print("Ending AR");
+        uiView.session.pause()
+    }
 
     func updateUIView(_ uiView: ARView, context: Context) {
         //context.coordinator.sz = sz;
@@ -221,7 +245,6 @@ struct ARViewContainer: UIViewRepresentable {
         }
         
         //callback called every frame
-        //use this to capture the frame and store it for computer vision processing
         func session(_ session: ARSession, didUpdate frame: ARFrame) {
             //let frameCapture = frame.capturedImage;
             //trackHand(in: frameCapture);
@@ -258,10 +281,6 @@ struct ARViewContainer: UIViewRepresentable {
                     }
                 }
            }
-        }
-        
-        func dismantleUIView(_ uiView: ARView, coordinator: Coordinator) {
-            uiView.session.pause()
         }
         
         //take in a frame capture and use computer vision to seek out hand positions and gestures

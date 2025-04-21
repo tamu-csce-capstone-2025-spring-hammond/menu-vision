@@ -18,7 +18,6 @@ struct MenuItemRow: View {
                     Button(action: {
                         dishMapping.setGoTo(id: modelID)
                         navigateToAR = true
-                        print("Tomorrow: ", navigateToAR)
 
                     }) {
                         ZStack(alignment: .topTrailing) {

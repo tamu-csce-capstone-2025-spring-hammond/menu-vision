@@ -8,6 +8,9 @@ struct FirstTabView: View {
     @State private var modelIndex: Int = 0;
     @State private var freestyleMode: Bool = false;
     
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+
     @State private var reportText: String = "";
     
     @State private var showReportModal: Bool = false;
@@ -19,6 +22,8 @@ struct FirstTabView: View {
     
     @State private var documentsURL: URL?;
     
+    @State private var viewID = UUID()
+        
     private func pollForLoadingCompletion(){
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             if (!dishMapping.isFinishedLoading()){
@@ -70,7 +75,7 @@ struct FirstTabView: View {
     var body: some View {
         VStack{
             
-            if (dishMapping.isFinishedDownloading()){
+            if (dishMapping.finishedDownloading){
                 ZStack{
                     // ARViewContainer is the AR view from your AR files.
                     ARViewContainer(viewManager: viewManager)
@@ -260,7 +265,7 @@ struct FirstTabView: View {
                                     .padding()
                                 }
                                 .onAppear {
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                                         scrollProxy.scrollTo(modelIndex, anchor: .center)
                                     }
                                 }
@@ -269,9 +274,13 @@ struct FirstTabView: View {
                                         scrollProxy.scrollTo(newIndex, anchor: .center)
                                     }
                                 }
-                            }
+                                
 
+
+                            }
                             .onAppear {
+                                
+                                print("howdy, ", dishMapping.finishedLoading);
                                                                 
                                 documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first;
                                 
@@ -279,11 +288,26 @@ struct FirstTabView: View {
                                 
                                 pollForLoadingCompletion();
                                 
-                                modelIndex = viewManager.currentIndex();
-                                
-                                refreshUI.toggle(); //once model map is loaded into refresh the view by toggling this variable
-                                
+                                DispatchQueue.main.async {
+                                    modelIndex = viewManager.currentIndex();
+                                    self.refreshUI.toggle();
+                                    
+                                    if (dishMapping.getModels().isEmpty){
+                                        alertMessage = "Could not download AR models for this restaurant. Either nothing has been uploaded yet or the internet connection may be weak."
+                                        showAlert = true
+
+                                    }
+                                }
+                                                                                                
                             }
+                            .id(viewID)
+                            .onDisappear{
+                                print("Happened");
+                                dishMapping.setStartedLoading();
+                                dishMapping.goToID = ""; //reset so that it doesn't keep going to the random item that was selected that one time
+                                viewID = UUID();
+                            }
+                            
                         }
                     }
             }
@@ -295,6 +319,9 @@ struct FirstTabView: View {
                 Text("Loading models...")
             }
             
+        }
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text("No Models Found"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
         .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
