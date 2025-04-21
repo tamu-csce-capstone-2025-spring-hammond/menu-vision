@@ -69,7 +69,8 @@ def get_user(user_id):
             "food_restrictions": user.food_restrictions,
             "food_preferences": user.food_preferences,
             "total_points": user.total_points,
-            "created_at": user.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            "created_at": user.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "hashed_password": user.hashed_password
         })
     except Exception as e:
         return jsonify({"message": "Error fetching user", "error": str(e)}), 500
