@@ -181,8 +181,7 @@ struct MenuScannerView: View {
                                                     .background(Color.blue)
                                                     .foregroundColor(.white)
                                                     .clipShape(Capsule())
-                                            }
-                                        
+                                            }                                        
                                         
                                     }
                                     else{
@@ -213,6 +212,12 @@ struct MenuScannerView: View {
                                 alertMessage = "Could not retrieve location. Please ensure location services are enabled."
                                 showAlert = true
                             }
+                        }
+                        
+                        dishMapping.setStartedLoading();
+                        
+                        if (selectedRestaurant == nil){
+                            dishMapping.setStartedDownloading();
                         }
                     }
                     .onDisappear {
@@ -250,14 +255,50 @@ struct MenuScannerView: View {
                             
                             print("\nAttempting download for restaurant: \(id)")
                             
-                            //I use these for starting the ar view
-                            dishMapping.setStartedDownloading();
-                            dishMapping.setStartedLoading();
                             
-                            let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id)
+                            Task{
+                                dishMapping.setStartedDownloading();
+                                dishMapping.setStartedLoading();
+                                
+                                dishMapping.modelsByDishName.removeAll();
+                                
+                                var retryCount = 0
+                                let maxRetries = 3 // Define the number of retry attempts
+                                let delayInSeconds = 2 // Define the delay between retries
+
+                                while retryCount < maxRetries {
+                                    
+                                    if (id != selectedRestaurant?.id){
+                                        break;
+                                    }
+                                    
+                                    let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id)
+
+                                    if !models.isEmpty {
+                                        if (id == selectedRestaurant?.id){
+                                            dishMapping.setModels(models);
+                                        }
+                                        break // Exit the loop if download is successful
+                                    } else {
+                                        print("Model list is empty. Retrying in \(delayInSeconds) seconds... (Attempt \(retryCount + 1) of \(maxRetries))")
+                                        retryCount += 1
+                                        try? await Task.sleep(nanoseconds: UInt64(delayInSeconds) * 1_000_000_000) // Introduce a delay
+                                    }
+                                }
+
+                                if retryCount == maxRetries && dishMapping.modelsByDishName.isEmpty {
+                                    print("Failed to download models after \(maxRetries) retries.")
+                                    DispatchQueue.main.async {
+                                        alertMessage = "Failed to download AR models for this restaurant. Either no models have been uploaded yet or the internet connection is weak."
+                                        showAlert = true
+                                    }
+                                }
+                                
+                                if (id == selectedRestaurant?.id){
+                                    dishMapping.setFinishedDownloading();
+                                }
+                                
                             
-                            if !models.isEmpty {
-                                dishMapping.setModels(models)
                             }
                             
                             //sort dishMapping based on rating
@@ -265,8 +306,9 @@ struct MenuScannerView: View {
                             
                             
                             //set finished loading is called in the arview container
-                            dishMapping.setFinishedDownloading();
+                            
                         }
+
                     }
                 } else {
                     VStack {
@@ -317,8 +359,15 @@ struct MenuScannerView: View {
                     displayName: DisplayName(text: "Capstone Cafe", languageCode: "en")
                 )
                 
+                let reveilleCafe = Restaurant(
+                    id: "dknsdknslnslsnlsnls",
+                    placeId: "slnlsnlsnslnsls",
+                    displayName: DisplayName(text: "Reveille Cafe", languageCode: "en")
+                )
+
+                
                 DispatchQueue.main.async {
-                    self.restaurants = [capstoneCafe] + (decodedResponse.places ?? [])
+                    self.restaurants = [capstoneCafe, reveilleCafe] + (decodedResponse.places ?? [])
                 }
             } catch {
                 print("Error decoding JSON: \(error)")
@@ -393,6 +442,14 @@ extension CameraManager {
         DispatchQueue.global(qos: .background).async {
             if self.captureSession.isRunning {
                 self.captureSession.stopRunning()
+                // Release inputs and outputs
+                for input in self.captureSession.inputs {
+                    self.captureSession.removeInput(input)
+                }
+                for output in self.captureSession.outputs {
+                    self.captureSession.removeOutput(output)
+                }
+
             }
         }
     }
