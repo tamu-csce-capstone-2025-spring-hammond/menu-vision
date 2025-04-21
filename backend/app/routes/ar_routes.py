@@ -336,3 +336,21 @@ def downvote_model(model_id, user_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+# check if a user has upvoted or downvoted a model
+@ar_bp.route("/model/<string:model_id>/check-vote/<int:user_id>", methods=["GET"])
+def check_vote(model_id, user_id):
+    try:
+        model = ARModel.query.get(model_id)
+        if not model:
+            return jsonify({"message": "Model not found"}), 404
+        
+        rating = ModelRating.query.filter_by(model_id=model_id, user_id=user_id).first()
+        if not rating:
+            return jsonify({"message": "No vote found"}), 200
+        
+        return jsonify({"message": "Vote found", "review": rating.review}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+    
