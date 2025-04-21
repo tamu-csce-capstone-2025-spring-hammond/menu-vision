@@ -62,25 +62,37 @@ class UserStateViewModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let data):
-                    
-                    if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                        print(json)
-                        
-                        self.userData.user_id = json["user_id"] as! Int
-                        print( self.userData.user_id )
-                        self.userData.first_name = json["first_name"] as! String
-                        self.userData.last_name = json["last_name"] as! String
-                        self.userData.email = json["email"] as! String
-                        print( self.userData.email )
-                        self.userData.age = json["age"] as! Int
-                        self.userData.food_restrictions = json["food_restrictions"] as! [String]
-                        self.userData.food_preferences = json["food_preferences"] as! [String]
-                        self.userData.total_points = json["total_points"] as! Int
-                        completion(true)
-                    } else {
+                    do {
+                        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                            print(json)
+                            
+                            // Safely unwrap all values with nil coalescing
+                            if let userId = json["user_id"] as? Int {
+                                self.userData.user_id = userId
+                                print(self.userData.user_id)
+                            }
+                            
+                            self.userData.first_name = json["first_name"] as? String ?? ""
+                            self.userData.last_name = json["last_name"] as? String ?? ""
+                            self.userData.email = json["email"] as? String ?? ""
+                            print(self.userData.email)
+                            
+                            self.userData.age = json["age"] as? Int ?? 0
+                            self.userData.food_restrictions = json["food_restrictions"] as? [String] ?? []
+                            self.userData.food_preferences = json["food_preferences"] as? [String] ?? []
+                            self.userData.total_points = json["total_points"] as? Int ?? 0
+                            
+                            completion(true)
+                        } else {
+                            print("Failed to parse JSON")
+                            completion(false)
+                        }
+                    } catch {
+                        print("JSON parsing error: \(error)")
                         completion(false)
                     }
-                case .failure:
+                case .failure(let error):
+                    print("API error: \(error)")
                     completion(false)
                 }
             }
