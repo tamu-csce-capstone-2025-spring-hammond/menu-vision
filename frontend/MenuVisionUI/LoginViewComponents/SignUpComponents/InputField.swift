@@ -30,6 +30,8 @@ struct InputField: View {
                     .font(.system(size: 14))
                     .foregroundColor(Color(UIColor.darkGray))
                     .keyboardType(keyboardType)
+                    .autocapitalization(.none) // For compatibility
+                    .textInputAutocapitalization(.never) // Preferred in iOS 15+
 
                 // This is the placeholder that only shows when text is empty
                 if text.isEmpty {

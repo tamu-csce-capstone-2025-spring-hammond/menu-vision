@@ -22,7 +22,7 @@ struct SettingsView: View {
                     VStack(spacing: 0) {
                         // Profile info
                         VStack(alignment: .center, spacing: 0) {
-                            AsyncImage(url: URL(string: "https://cdn.builder.io/api/v1/image/assets/c5b4e4c8487a42d48871ad1e7d9ecefa/d5fada1d8e9d21931e1e4403a0769657c2e10a73?placeholderIfAbsent=true&format=webp")) { image in
+                            AsyncImage(url: URL(string: "https://cdn.builder.io/api/v1/image/assets/c5b4e4c8487a42d48871ad1e7d9ecefa/3ec6bc4f-88c8-4af7-ab33-a9b7ae943e35?placeholderIfAbsent=true")) { image in
                                 image
                                     .resizable()
                                     .aspectRatio(0.99, contentMode: .fit)
@@ -32,12 +32,12 @@ struct SettingsView: View {
                             .frame(width: 82, height: 82)
                             
                             VStack(alignment: .center, spacing: 4) {
-                                Text("Albert Yin")
+                                Text(vm.userData.first_name + " " + vm.userData.last_name)
                                     .font(.system(size: 16, weight: .heavy))
                                     .tracking(-0.5)
                                     .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
                                 
-                                Text("@Alberty3")
+                                Text(vm.userData.email)
                                     .font(.system(size: 12))
                                     .tracking(-0.5)
                                     .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
