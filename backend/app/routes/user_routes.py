@@ -69,7 +69,8 @@ def get_user(user_id):
             "food_restrictions": user.food_restrictions,
             "food_preferences": user.food_preferences,
             "total_points": user.total_points,
-            "created_at": user.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            "created_at": user.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "hashed_password": user.hashed_password
         })
     except Exception as e:
         return jsonify({"message": "Error fetching user", "error": str(e)}), 500
@@ -115,6 +116,8 @@ def update_user(user_id):
         user.food_restrictions = data.get("food_restrictions", user.food_restrictions)
         user.food_preferences = data.get("food_preferences", user.food_preferences)
         user.total_points = data.get("total_points", user.total_points)
+        user.hashed_password = data.get("hashed_password", user.hashed_password)
+
         
         db.session.commit()
         return jsonify({"message": "User updated successfully"})
