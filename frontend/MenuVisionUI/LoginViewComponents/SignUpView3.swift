@@ -145,6 +145,7 @@ struct SignUpView3: View {
                         )
                 }
                 .padding(.top, 32)
+                Spacer(minLength: 200)
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 24)

@@ -70,6 +70,7 @@ struct EmailChangeView: View {
                                     .foregroundColor(textSecondaryColor)
                                     .keyboardType(.emailAddress)
                                     .autocapitalization(.none)
+                                    .textInputAutocapitalization(.never)
                                     .onAppear {
                                         // Initialize with current user data
                                         email = vm.userData.email
