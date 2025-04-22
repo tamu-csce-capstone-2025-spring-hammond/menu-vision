@@ -16,17 +16,23 @@ extension ObjectCaptureSession.CaptureState {
     var label: String {
         switch self {
         case .initializing:
-            "initializing"
+//            "initializing"
+            ""
         case .ready:
-            "ready"
+//            "ready"
+            ""
         case .detecting:
-            "detecting"
+//            "detecting"
+            ""
         case .capturing:
-            "capturing"
+//            "capturing"
+            ""
         case .finishing:
-            "finishing"
+//            "finishing"
+            ""
         case .completed:
-            "completed"
+//            "completed"
+            ""
         case .failed(let error):
             "failed: \(String(describing: error))"
         @unknown default:
@@ -74,46 +80,137 @@ struct CreateButton: View {
     }
 }
 
+//struct ScanPreviewView: View {
+//    let thumbnail: UIImage
+//    let onAccept: () -> Void
+//    let onRetake: () -> Void
+////    let onAssignModel: () -> Void
+//    let onAssignModel: () async -> Void
+//
+//    var body: some View {
+//        VStack(spacing: 20) {
+//            Text("Preview Your Scan")
+//                .font(.title2)
+//                .bold()
+//
+//            Image(uiImage: thumbnail)
+//                .resizable()
+//                .aspectRatio(contentMode: .fit)
+//                .frame(width: 200, height: 200)
+//                .cornerRadius(12)
+//                .shadow(radius: 4)
+//
+//            HStack(spacing: 12) {
+//                Button("Retake", action: onRetake)
+//                    .buttonStyle(.borderedProminent)
+//                    .tint(.red)
+//
+//                Button("Preview", action: onAccept)
+//                    .buttonStyle(.borderedProminent)
+//
+////                Button("Accept", action: onAssignModel)
+////                    .buttonStyle(.bordered)
+//                Button("Assign") {
+//                    Task {
+//                        await onAssignModel()
+//                    }
+//                }
+//            }
+//        }
+//        .padding()
+//    }
+//}
+
 struct ScanPreviewView: View {
     let thumbnail: UIImage
     let onAccept: () -> Void
     let onRetake: () -> Void
-//    let onAssignModel: () -> Void
     let onAssignModel: () async -> Void
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("Preview Your Scan")
+            
+            Spacer(minLength: 60)
+            
+            Text("Click to Preview")
                 .font(.title2)
                 .bold()
+//                .foregroundColor(Color(red: 253/255, green: 172/255, blue: 97/255))
+//                .foregroundColor(Color(red: 123/255, green: 63/255, blue: 0/255))
 
+//            Image(uiImage: thumbnail)
+//                .resizable()
+//                .aspectRatio(contentMode: .fit)
+//                .frame(width: 200, height: 200)
+//                .cornerRadius(12)
+//                .shadow(radius: 4)
+
+            
+//            Button("Preview", action: onAccept)
+//                .buttonStyle(.borderedProminent)
+//                .tint(Color(red: 123/255, green: 63/255, blue: 0/255))
+//                .frame(width: 200, height: 44)
+//                .background(Color(red: 123/255, green: 63/255, blue: 0/255)) // #7B3F00
+//                .cornerRadius(12)
+////                .foregroundColor(.white)
+            ///
+        Button(action: onAccept) {
             Image(uiImage: thumbnail)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 200, height: 200)
                 .cornerRadius(12)
                 .shadow(radius: 4)
-
-            HStack(spacing: 12) {
+        }
+        .buttonStyle(PlainButtonStyle())
+            
+            Spacer().frame(height: 20)
+            
+            VStack(spacing: 20) {
                 Button("Retake", action: onRetake)
                     .buttonStyle(.borderedProminent)
-                    .tint(.red)
-
-                Button("Preview", action: onAccept)
-                    .buttonStyle(.borderedProminent)
-
-//                Button("Accept", action: onAssignModel)
-//                    .buttonStyle(.bordered)
-                Button("Assign") {
+//                    .tint(Color(red: 177/255, green: 18/255, blue: 38/255))
+//                    .tint(Color(red: 250 / 255, green: 172 / 255, blue: 124 / 255, opacity: 100 / 255))
+                    .tint(Color(red: 251 / 255, green: 188 / 255, blue: 149 / 255))
+                    .frame(width: 200, height: 44)
+//                    .background(Color(red: 177/255, green: 18/255, blue: 38/255))
+//                    .background(Color(red: 250 / 255, green: 172 / 255, blue: 124 / 255, opacity: 255 / 255))
+                    .background(Color(red: 251 / 255, green: 188 / 255, blue: 149 / 255))
+                    .cornerRadius(12)
+                
+                Button("Accept") {
                     Task {
                         await onAssignModel()
                     }
                 }
+                .buttonStyle(.borderedProminent)
+//                .tint(Color(red: 129/255, green: 156/255, blue: 139/255))
+//                .tint(Color(red: 37/255, green: 177/255, blue: 18/255))
+                .tint(Color(red: 248 / 255, green: 141 / 255, blue: 75 / 255))
+                .frame(width: 200, height: 44)
+//                .background(Color(red: 129/255, green: 156/255, blue: 139/255))
+//                .background(Color(red: 37/255, green: 177/255, blue: 18/255))
+                .background(Color(red: 248 / 255, green: 141 / 255, blue: 75 / 255))
+                .cornerRadius(12)
             }
+
+
+
+            Spacer()
         }
         .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+//        .background(Color.black.ignoresSafeArea())
+//        .background(Color(red: 255/255, green: 219/255, blue: 187/255).ignoresSafeArea())
+        .background(LinearGradient(
+            gradient: Gradient(colors: [/*Color(red: 218/255, green: 226/255, blue: 248/255)*/Color(red: 250 / 255, green: 172 / 255, blue: 124 / 255), Color.white]),
+            startPoint: .top,
+            endPoint: .bottom
+        ))
+        
     }
 }
+
 
 
 struct ScanView: View {
@@ -136,8 +233,6 @@ struct ScanView: View {
     @State private var showModelAssignmentView = false
     @State private var uploadedModelId: String = ""
     @State private var uuid: String = ""
-    
-    @EnvironmentObject var restaurantData: RestaurantData
     
     var modelPath: URL? {
         return modelFolderPath?.appending(path: "model.usdz")
@@ -225,6 +320,24 @@ struct ScanView: View {
         }
         .sheet(isPresented: $showScanPreviewPage) {
             if let thumbnailImage, let modelPath {
+//                ScanPreviewView(
+//                    thumbnail: thumbnailImage,
+//                    onAccept: {
+//                        showScanPreviewPage = false
+//                        quickLookIsPresented = true
+//                    },
+//                    onRetake: {
+//                        showScanPreviewPage = false
+//                        scanPassCount = 0
+//                        Task {
+//                            guard let directory = createNewScanDirectory() else { return }
+//                            modelFolderPath = directory.appending(path: "Models/")
+//                            imageFolderPath = directory.appending(path: "Images/")
+//                            session = ObjectCaptureSession()
+//                            session?.start(imagesDirectory: imageFolderPath!)
+//                        }
+//                    }
+//                )
                 ScanPreviewView(
                     thumbnail: thumbnailImage,
                     onAccept: {
@@ -249,7 +362,6 @@ struct ScanView: View {
                         let filesListView = FilesListView()
 //                        uuid = UUID().uuidString
                         await filesListView.s3testing(modelPath: modelPath, identificationNumber: uuid)
-                        // lowkey unsafe line below
                         if let url = thumbnailURL {
                             await filesListView.s3testing(modelPath: url, identificationNumber: uuid)
                         } else {
@@ -264,13 +376,13 @@ struct ScanView: View {
         }
         .fullScreenCover(isPresented: $showModelAssignmentView) {
             ModelAssignmentView(
-                restaurantId: restaurantData.restaurant_id,
+                restaurantId: "ChIJ92rcyJWDRoYRotK6QCjsFf8",
                 modelId: uploadedModelId,
-                uploadedBy: String(UserDefaults.standard.integer(forKey: "user_id"))
+                uploadedBy: "1"  // Replace with actual user ID if needed
             )
         }
 //        .sheet(isPresented: $quickLookIsPresented) {
-//            
+//
 //            if let modelPath {
 //                ARQuickLookView(modelFile: modelPath) {
 //                    guard let directory = createNewScanDirectory()
@@ -306,6 +418,7 @@ struct ScanView: View {
 }
 
 extension ScanView {
+    
     func createNewScanDirectory() -> URL? {
         guard let capturesFolder = getRootScansFolder()
         else { return nil }
@@ -358,6 +471,7 @@ extension ScanView {
                 case .processingComplete:
                     isProgressing = false
                     self.photogrammetrySession = nil
+//                    quickLookIsPresented = true
                     // uploading usdz file to s3 bucket
 //                    let filesListView = FilesListView()
                     uuid = UUID().uuidString
@@ -376,6 +490,11 @@ extension ScanView {
     
     // generate thumbnail
     func generateThumbnailRepresentations(modelURL: URL, identificationNumber: String) {
+//        guard let modelURL = Bundle.main.url(forResource: "onion_1", withExtension: "usdz") else {
+//            print("Model file not found in bundle")
+//            return
+//        }
+        
         let size = CGSize(width: 100, height: 100)
         let scale = UIScreen.main.scale
         
@@ -422,5 +541,45 @@ extension ScanView {
                 }
             }
         }
+    }
+
+    
+}
+
+//struct ScanPreviewViewProvider: PreviewProvider {
+//    static var previews: some View {
+//        ScanPreviewView(
+//            thumbnail: thumbnailImage,
+//            onAccept: {
+//
+//            },
+//            onRetake: {
+//
+//            },
+//            onAssignModel: {
+//
+//            }
+//        )
+//    }
+//}
+
+struct ScanPreviewViewProvider: PreviewProvider {
+    static var previews: some View {
+        let thumbnailImage: UIImage = {
+            if let url = Bundle.main.url(forResource: "1C3AB288-5AB9-4110-9C88-3ADDA8B9A032", withExtension: "png"),
+               let data = try? Data(contentsOf: url),
+               let image = UIImage(data: data) {
+                return image
+            } else {
+                return UIImage()
+            }
+        }()
+        
+        return ScanPreviewView(
+            thumbnail: thumbnailImage,
+            onAccept: {},
+            onRetake: {},
+            onAssignModel: {}
+        )
     }
 }
