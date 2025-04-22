@@ -34,6 +34,8 @@ struct HomeView: View {
             
         }
         .accentColor(.orange300)
+        .preferredColorScheme(.dark) // This will make unselected items white
+
         /*.gesture(
             DragGesture()
                 .onEnded { gesture in
