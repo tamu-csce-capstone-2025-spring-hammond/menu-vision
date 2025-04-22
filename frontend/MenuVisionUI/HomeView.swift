@@ -6,7 +6,7 @@ struct HomeView: View {
     @EnvironmentObject var restaurantData: RestaurantData
     
     init() {
-            UITabBar.appearance().backgroundColor = UIColor.black.withAlphaComponent(0.8)
+            UITabBar.appearance().backgroundColor = UIColor.white.withAlphaComponent(0.8)
         }
 
     var body: some View {
@@ -34,7 +34,6 @@ struct HomeView: View {
             
         }
         .accentColor(.orange300)
-        .preferredColorScheme(.dark) // This will make unselected items white
 
         /*.gesture(
             DragGesture()
