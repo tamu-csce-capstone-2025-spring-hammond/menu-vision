@@ -357,9 +357,12 @@ struct FirstTabView: View {
                     }
             }
             else{
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .blue))
-                    .scaleEffect(1.3)
+                
+                ProgressView(value: Double(dishMapping.modelCount), total: Double(dishMapping.totalModels))
+                    .frame(width: 150, height: 15)
+//                    .progressViewStyle(LinearProgressViewStyle())
+//                    .padding()
+//                    .scaleEffect(1.3)
 
                 Text("Loading models...")
             }
