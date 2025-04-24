@@ -271,7 +271,7 @@ struct ScanView: View {
                 Color.black.opacity(0.4)
                     .overlay {
                         VStack {
-                            ProgressView()
+                            ProgressBar()
                         }
                     }
             }
@@ -583,3 +583,4 @@ struct ScanPreviewViewProvider: PreviewProvider {
         )
     }
 }
+
