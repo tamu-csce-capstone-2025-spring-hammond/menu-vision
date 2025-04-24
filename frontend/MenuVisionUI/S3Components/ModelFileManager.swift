@@ -4,7 +4,7 @@
 //
 //  Created by Ethan Nguyen on 4/1/25.
 //
-
+import SwiftUI
 import Foundation
 import AWSS3
 import AWSClientRuntime
@@ -12,19 +12,24 @@ import AWSSDKIdentity
 
 class ModelFileManager {
     static let shared = ModelFileManager()
+//    @EnvironmentObject var dishMapping: DishMapping
 
     private init() {}
 
-    func clearAndDownloadFiles(for restaurantID: String) async -> [DishData] {
+    func clearAndDownloadFiles(for restaurantID: String, dishMapping: DishMapping) async -> [DishData] {
         print("Clearing and downloading for restaurant: \(restaurantID)")
         await removeAllFiles()
+        dishMapping.totalModels = 0
+        dishMapping.modelCount = 0
 
         let (keys, models) = await fetchModelKeysAndModelsFromAPI(restaurantID: restaurantID)
+        
         if keys.isEmpty {
             return []
         }
-
-        await asyncDownload(keys: keys)
+        dishMapping.totalModels = keys.count
+        print("dishMapping.totalModels", dishMapping.totalModels)
+        await asyncDownload(keys: keys, dishMapping: dishMapping)
         return models
     }
 
@@ -67,7 +72,7 @@ class ModelFileManager {
     }
 
 
-    func asyncDownload(keys: [String]) async {
+    func asyncDownload(keys: [String], dishMapping: DishMapping) async {
         do {
             let accessKey = UserDefaults.standard.string(forKey: "AWS_ACCESS_KEY")
             let secretKey = UserDefaults.standard.string(forKey: "AWS_SECRET_KEY")
@@ -98,6 +103,8 @@ class ModelFileManager {
                             print("Downloading: \(key)")
                             try await serviceHandler.downloadFile(bucket: "usdz-store-test", key: key, to: documentsDir.path)
                             print("Finished: \(key)")
+                            dishMapping.modelCount += 1
+                            print("dishMapping.modelCount", dishMapping.modelCount)
                         } catch {
                             print("Error downloading \(key): \(error)")
                         }
@@ -109,10 +116,12 @@ class ModelFileManager {
                             print("Downloading: \(pngKey)")
                             try await serviceHandler.downloadFile(bucket: "usdz-store-test", key: pngKey, to: documentsDir.path)
                             print("Finished: \(pngKey)")
+                            
                         } catch {
                             print("Error downloading \(pngKey): \(error)")
                         }
                     }
+                    
 
                 }
             }

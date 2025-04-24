@@ -16,6 +16,9 @@ class DishMapping: ObservableObject {
     
     @Published var goToID: String = "";
     
+    @Published var modelCount: Int = 0;
+    @Published var totalModels: Int = 0;
+    
     func setModels(_ models: [DishData]) {
         var newMapping: [String: [DishData]] = [:]
         
