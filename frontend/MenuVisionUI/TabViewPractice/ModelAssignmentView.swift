@@ -423,16 +423,29 @@ struct ModelAssignmentView: View {
             ZStack { // Overlay loading indicator
                 // Use a background consistent with login/signup if desired, e.g., Color.slate100 or Color.white
                 // Color.white.edgesIgnoringSafeArea(.all) // Example background
-                VStack(spacing: 16) { // Added spacing
-                    // Search Bar - Apply custom style
-                    TextField("Search for an existing dish", text: $viewModel.searchText)
-                        .customTextFieldStyle() // Apply custom text field style
-                        .onChange(of: viewModel.searchText) {
-                            viewModel.filterDishes(searchText: $0)
-                        }
-                        .padding(.horizontal)
-                        .padding(.top) // Add padding top
+                VStack(spacing: 16) {
+                    // Search Bar with magnifying glass, grey styling, and darker border
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray)
+                        
+                        TextField("Search for an item to assign AR model", text: $viewModel.searchText)
+                            .onChange(of: viewModel.searchText) {
+                                viewModel.filterDishes(searchText: $0)
+                            }
+                            .background(Color.clear)
+                    }
+                    .padding(10)
+                    .background(Color(.systemGray6)) // Light grey background
+                    .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.gray.opacity(0.7), lineWidth: 1) // Increased opacity for darker border
+                    )
+                    .padding(.horizontal)
+                    .padding(.top)
 
+                    
                     // Conditional Content
                     if viewModel.filteredDishes.isEmpty && !viewModel.searchText.isEmpty {
                         noResultsView // Show "Create New" option
