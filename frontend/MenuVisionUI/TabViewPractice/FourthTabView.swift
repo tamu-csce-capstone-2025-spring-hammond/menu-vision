@@ -311,6 +311,7 @@ struct MenuScannerView: View {
 
                     }
                 } else {
+                    // Add potential Loading bar here ---
                     VStack {
                         HStack {
                             Button(action: {

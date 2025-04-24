@@ -5,19 +5,29 @@
 //  Created by Albert Yin on 4/24/25.
 //
 
+
 import SwiftUI
 import WebKit
 
 struct ProgressBar: View {
-    var body: some View {
-        VStack(spacing: 1) {
-            GIFView(gifName: "progressLoader")
-                .frame(width: 300, height: 300)
-                .accessibilityLabel("Loading")
+    var progress: Double
 
-            Text("Cooking up your meal...")
-                .font(.headline)
-                .foregroundColor(.gray)
+    var body: some View {
+        ZStack {
+            Color.white
+                .edgesIgnoringSafeArea(.all)
+
+            VStack(spacing: 4) {
+                GIFView(gifName: "progressLoader")
+                    .frame(width: 300, height: 300)
+                    .accessibilityLabel("Loading")
+
+                Text("Cooking your food... \(Int(progress * 100))%")
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .font(.headline)
+                    .foregroundColor(.black)
+            }
         }
     }
 }
@@ -49,7 +59,7 @@ struct ProgressBar_Previews: PreviewProvider {
     static var previews: some View {
         ZStack {
             Color.white
-            ProgressBar()
+            ProgressBar(progress: 0.72)
         }
         .frame(width: 150, height: 150)
         .previewLayout(.sizeThatFits)
