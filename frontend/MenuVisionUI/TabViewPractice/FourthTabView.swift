@@ -272,7 +272,7 @@ struct MenuScannerView: View {
                                         break;
                                     }
                                     
-                                    let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id)
+                                    let models = await ModelFileManager.shared.clearAndDownloadFiles(for: id, dishMapping: dishMapping)
 
                                     if !models.isEmpty {
                                         if (id == selectedRestaurant?.id){
@@ -332,6 +332,7 @@ struct MenuScannerView: View {
 
                         Spacer()
                     }
+                                        
                 }
             }
             .navigationDestination(isPresented: $shouldNavigateToResult) {
@@ -400,6 +401,8 @@ struct MenuScannerView: View {
                 DispatchQueue.main.async {
                     self.apiResponse = jsonString
                     self.shouldNavigateToResult = true
+//                    print("shouldNavigateToResult", self.shouldNavigateToResult)
+
                 }
             }
         }.resume()
