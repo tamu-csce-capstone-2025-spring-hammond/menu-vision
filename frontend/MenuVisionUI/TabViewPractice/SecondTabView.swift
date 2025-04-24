@@ -234,6 +234,8 @@ struct ScanView: View {
     @State private var uploadedModelId: String = ""
     @State private var uuid: String = ""
     
+    @State private var progress: Double = 0.0
+    
     var modelPath: URL? {
         return modelFolderPath?.appending(path: "model.usdz")
     }
@@ -269,9 +271,10 @@ struct ScanView: View {
             
             if isProgressing {
                 Color.black.opacity(0.4)
+                    .edgesIgnoringSafeArea(.all)
                     .overlay {
                         VStack {
-                            ProgressBar()
+                            ProgressBar(progress: progress)
                         }
                     }
             }
@@ -464,24 +467,30 @@ extension ScanView {
             try photogrammetrySession.process(requests: [.modelFile(url: modelPath)])
             for try await output in photogrammetrySession.outputs {
                 switch output {
+                case .requestProgress(_, let fractionComplete):
+                    DispatchQueue.main.async {
+                        self.progress = fractionComplete
+                    }
+
                 case .requestError, .processingCancelled:
-                    isProgressing = false
+                    DispatchQueue.main.async {
+                        self.isProgressing = false
+                    }
                     self.photogrammetrySession = nil
-                    // TODO: Restart ObjectCapture
+
                 case .processingComplete:
-                    isProgressing = false
+                    DispatchQueue.main.async {
+                        self.isProgressing = false
+                    }
                     self.photogrammetrySession = nil
-//                    quickLookIsPresented = true
-                    // uploading usdz file to s3 bucket
-//                    let filesListView = FilesListView()
                     uuid = UUID().uuidString
-//                    await filesListView.s3testing(modelPath: modelPath, identificationNumber: uuid)
-                    
                     generateThumbnailRepresentations(modelURL: modelPath, identificationNumber: uuid)
+
                 default:
                     break
                 }
             }
+
             
         } catch {
             print("error", error)
