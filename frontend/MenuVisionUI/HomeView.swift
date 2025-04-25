@@ -4,10 +4,17 @@ struct HomeView: View {
 
     @State private var selection = 1
     @EnvironmentObject var restaurantData: RestaurantData
+    @Environment(\.colorScheme) var colorScheme;
     
     init() {
-            UITabBar.appearance().backgroundColor = UIColor.white.withAlphaComponent(0.8)
-        }
+        UITabBar.appearance().backgroundColor = UIColor { mode in
+                if mode.userInterfaceStyle == .dark {
+                    return UIColor.black.withAlphaComponent(0.8)
+                } else {
+                    return UIColor.white.withAlphaComponent(0.8)
+                }
+            }
+    }
 
     var body: some View {
         TabView(selection: $selection) {
