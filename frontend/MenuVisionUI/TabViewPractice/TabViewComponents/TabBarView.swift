@@ -4,9 +4,12 @@
 //
 //  Created by Albert Yin on 4/3/25.
 //
+
 import SwiftUI
 
+/// A view representing the main tab bar with multiple `TabBarItem`s for navigation.
 struct TabBarView: View {
+    /// The body of the `TabBarView`.
     var body: some View {
         HStack(alignment: .top, spacing: 4) {
             TabBarItem(
@@ -34,11 +37,18 @@ struct TabBarView: View {
     }
 }
 
+/// A view representing a single tab item in the tab bar.
 struct TabBarItem: View {
+    /// The URL of the icon image for the tab item.
     let iconURL: String
+    
+    /// The title text for the tab item.
     let title: String
+    
+    /// A boolean indicating if the tab item is currently selected.
     let isSelected: Bool
 
+    /// The body of the `TabBarItem`.
     var body: some View {
         VStack(spacing: 8) {
             AsyncImage(url: URL(string: "\(iconURL)&format=webp")) { image in
@@ -58,6 +68,7 @@ struct TabBarItem: View {
     }
 }
 
+/// A preview for `TabBarView`.
 #Preview {
     TabBarView()
 }

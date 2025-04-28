@@ -1,13 +1,29 @@
 import SwiftUI
 
+/// A view that allows users to change their first and last name.
+///
+/// This view provides a form for updating the user's name with input validation and API integration.
+/// It uses the `UserStateViewModel` to manage the user's state and update their name on the backend.
 struct NameChangeView: View {
+    /// State variable to store the updated first name.
     @State private var firstName: String = ""
+    
+    /// State variable to store the updated last name.
     @State private var lastName: String = ""
+    
+    /// State variable to indicate if the name update is in progress.
     @State private var isLoading = false
+    
+    /// State variable to control displaying error alerts.
     @State private var showErrorAlert = false
+    
+    /// State variable to store error messages.
     @State private var errorMessage = ""
     
+    /// Environment property to manage presentation mode for dismissing the view.
     @Environment(\.presentationMode) var presentationMode
+    
+    /// The view model that manages user state and data.
     @EnvironmentObject var vm: UserStateViewModel
 
     // Custom colors to match the design
@@ -154,7 +170,14 @@ struct NameChangeView: View {
             )
         }
     }
-    
+    /// Updates the user's name on the backend.
+        ///
+        /// This method performs the following steps:
+        /// 1. Validates that first and last names are not empty
+        /// 2. Prepares a request payload with the new name
+        /// 3. Sends an API request to update the user's name
+        /// 4. Updates the view model with the new name on success
+        /// 5. Dismisses the view or shows an error alert
     private func updateName() {
         // Validate input
         guard !firstName.trimmingCharacters(in: .whitespaces).isEmpty,

@@ -1,16 +1,26 @@
 import SwiftUI
 
+/// A view that allows users to update their dietary restrictions for personalized recommendations.
 struct RestrictChangeView: View {
-    // State to track selected dietary restrictions
+    /// The set of dietary restrictions selected by the user.
     @State private var selectedRestrictions: Set<String> = []
+    
+    /// A boolean indicating whether the app is currently processing an update.
     @State private var isLoading = false
+    
+    /// A boolean controlling the display of an error alert.
     @State private var showErrorAlert = false
+    
+    /// The error message displayed in the alert.
     @State private var errorMessage = ""
     
+    /// Environment property used to dismiss the view.
     @Environment(\.presentationMode) var presentationMode
+    
+    /// EnvironmentObject that manages user state and preferences.
     @EnvironmentObject var vm: UserStateViewModel
 
-    // List of all dietary restrictions
+    /// The list of all available dietary restrictions a user can select.
     private let dietaryRestrictions = [
         "Vegetarian",
         "Vegan",
@@ -31,14 +41,13 @@ struct RestrictChangeView: View {
         "Low Sodium"
     ]
 
+    /// The main body of the `RestrictChangeView`.
     var body: some View {
-        // Use ZStack to ensure we have full control over the layout
         ZStack {
             // Main content
             VStack(spacing: 0) {
-                // Header section with custom back button
+                // Header section with back button
                 VStack(alignment: .leading, spacing: 0) {
-                    // Only black arrow back button
                     Button(action: {
                         presentationMode.wrappedValue.dismiss()
                     }) {
@@ -68,13 +77,11 @@ struct RestrictChangeView: View {
                 // List of dietary restrictions
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 8) {
-                        // Reduced empty space at the top
                         Rectangle()
                             .frame(width: 327, height: 20)
                             .opacity(0)
                             .padding(.top, 10)
 
-                        // Dietary restriction options
                         ForEach(dietaryRestrictions, id: \.self) { restriction in
                             RestrictionItem(
                                 title: restriction,
@@ -90,7 +97,7 @@ struct RestrictChangeView: View {
                     .padding(.bottom, 20)
                 }
 
-                // Reduced spacer to move content up
+                // Spacer
                 Spacer(minLength: 10)
 
                 // Update button
@@ -140,6 +147,8 @@ struct RestrictChangeView: View {
         }
     }
 
+    /// Toggles selection for a given dietary restriction.
+    /// - Parameter restriction: The name of the dietary restriction to toggle.
     private func toggleSelection(_ restriction: String) {
         if selectedRestrictions.contains(restriction) {
             selectedRestrictions.remove(restriction)
@@ -148,11 +157,10 @@ struct RestrictChangeView: View {
         }
     }
 
+    /// Updates the user's dietary restrictions by sending a request to the server.
     private func updateRestrictions() {
-        // Start loading
         isLoading = true
         
-        // Prepare request payload
         let userId = UserDefaults.standard.integer(forKey: "user_id")
         let payload: [String: Any] = ["food_restrictions": Array(selectedRestrictions)]
         
@@ -163,25 +171,19 @@ struct RestrictChangeView: View {
             return
         }
         
-        // Make API request
         API.shared.request(
             endpoint: "user/\(userId)",
             method: "PUT",
             body: jsonData,
             headers: ["Content-Type": "application/json"]
         ) { result in
-            // Ensure UI updates happen on main thread
             DispatchQueue.main.async {
                 isLoading = false
                 
                 switch result {
                 case .success:
-                    // Update view model data
                     vm.userData.food_restrictions = Array(selectedRestrictions)
-                    
-                    // Dismiss view
                     presentationMode.wrappedValue.dismiss()
-                
                 case .failure(let error):
                     errorMessage = "Failed to update restrictions: \(error.localizedDescription)"
                     showErrorAlert = true
@@ -191,13 +193,21 @@ struct RestrictChangeView: View {
     }
 }
 
-// Nested dietary restriction item component
+// MARK: - RestrictionItem
+
+/// A subview representing an individual selectable dietary restriction item.
 extension RestrictChangeView {
     struct RestrictionItem: View {
+        /// The name of the dietary restriction.
         let title: String
+        
+        /// A boolean indicating whether the restriction is selected.
         let isSelected: Bool
+        
+        /// A closure triggered when the item is tapped.
         let onTap: () -> Void
 
+        /// The body of the `RestrictionItem`.
         var body: some View {
             Button(action: onTap) {
                 HStack(spacing: 16) {
@@ -237,17 +247,33 @@ extension RestrictChangeView {
     }
 }
 
-// Define custom colors
+// MARK: - Custom Colors
+
+/// Defines custom colors used throughout the `RestrictChangeView`.
 private extension Color {
+    /// Title text color.
     static let titleText = Color(red: 31/255, green: 32/255, blue: 36/255) // #1F2024
+    
+    /// Subtitle text color.
     static let subtitleText = Color(red: 113/255, green: 114/255, blue: 122/255) // #71727A
+    
+    /// Border color for unselected restriction items.
     static let borderColor = Color(red: 197/255, green: 198/255, blue: 204/255) // #C5C6CC
+    
+    /// Button background color.
     static let buttonBackground = Color(red: 250/255, green: 162/255, blue: 107/255) // #FAA26B
-    static let orangeHighlight = Color(red: 254/255, green: 215/255, blue: 170/255) // Lighter orange
+    
+    /// Highlight color for selected restriction items.
+    static let orangeHighlight = Color(red: 254/255, green: 215/255, blue: 170/255) // lighter orange
+    
+    /// Border color for selected restriction items.
     static let selectedBorderColor = Color(red: 214/255, green: 211/255, blue: 209/255) // border-stone-300
+    
+    /// Text color for restriction item titles.
     static let itemTextColor = Color(red: 33/255, green: 33/255, blue: 33/255) // text-neutral-800
 }
 
+/// A preview provider for `RestrictChangeView`.
 #Preview {
     RestrictChangeView()
         .environmentObject(UserStateViewModel())

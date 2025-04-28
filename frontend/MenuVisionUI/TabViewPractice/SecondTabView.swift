@@ -11,6 +11,7 @@ import RealityKit
 
 import QuickLookThumbnailing
 
+/// Extension to add a human-readable label for each ObjectCaptureSession state.
 extension ObjectCaptureSession.CaptureState {
 
     var label: String {
@@ -41,7 +42,7 @@ extension ObjectCaptureSession.CaptureState {
     }
 }
 
-// this button handles both detection and capturing, depending on the session's current state
+/// A button that handles both detection and capturing depending on the session state.
 @MainActor
 struct CreateButton: View {
     let session: ObjectCaptureSession
@@ -80,47 +81,7 @@ struct CreateButton: View {
     }
 }
 
-//struct ScanPreviewView: View {
-//    let thumbnail: UIImage
-//    let onAccept: () -> Void
-//    let onRetake: () -> Void
-////    let onAssignModel: () -> Void
-//    let onAssignModel: () async -> Void
-//
-//    var body: some View {
-//        VStack(spacing: 20) {
-//            Text("Preview Your Scan")
-//                .font(.title2)
-//                .bold()
-//
-//            Image(uiImage: thumbnail)
-//                .resizable()
-//                .aspectRatio(contentMode: .fit)
-//                .frame(width: 200, height: 200)
-//                .cornerRadius(12)
-//                .shadow(radius: 4)
-//
-//            HStack(spacing: 12) {
-//                Button("Retake", action: onRetake)
-//                    .buttonStyle(.borderedProminent)
-//                    .tint(.red)
-//
-//                Button("Preview", action: onAccept)
-//                    .buttonStyle(.borderedProminent)
-//
-////                Button("Accept", action: onAssignModel)
-////                    .buttonStyle(.bordered)
-//                Button("Assign") {
-//                    Task {
-//                        await onAssignModel()
-//                    }
-//                }
-//            }
-//        }
-//        .padding()
-//    }
-//}
-
+/// A view that previews a scanned object with options to accept, retake, or assign the model.
 struct ScanPreviewView: View {
     let thumbnail: UIImage
     let onAccept: () -> Void
@@ -135,25 +96,6 @@ struct ScanPreviewView: View {
             Text("Click to Preview")
                 .font(.title2)
                 .bold()
-//                .foregroundColor(Color(red: 253/255, green: 172/255, blue: 97/255))
-//                .foregroundColor(Color(red: 123/255, green: 63/255, blue: 0/255))
-
-//            Image(uiImage: thumbnail)
-//                .resizable()
-//                .aspectRatio(contentMode: .fit)
-//                .frame(width: 200, height: 200)
-//                .cornerRadius(12)
-//                .shadow(radius: 4)
-
-            
-//            Button("Preview", action: onAccept)
-//                .buttonStyle(.borderedProminent)
-//                .tint(Color(red: 123/255, green: 63/255, blue: 0/255))
-//                .frame(width: 200, height: 44)
-//                .background(Color(red: 123/255, green: 63/255, blue: 0/255)) // #7B3F00
-//                .cornerRadius(12)
-////                .foregroundColor(.white)
-            ///
         Button(action: onAccept) {
             Image(uiImage: thumbnail)
                 .resizable()
@@ -169,12 +111,8 @@ struct ScanPreviewView: View {
             VStack(spacing: 20) {
                 Button("Retake", action: onRetake)
                     .buttonStyle(.borderedProminent)
-//                    .tint(Color(red: 177/255, green: 18/255, blue: 38/255))
-//                    .tint(Color(red: 250 / 255, green: 172 / 255, blue: 124 / 255, opacity: 100 / 255))
                     .tint(Color(red: 251 / 255, green: 188 / 255, blue: 149 / 255))
                     .frame(width: 200, height: 44)
-//                    .background(Color(red: 177/255, green: 18/255, blue: 38/255))
-//                    .background(Color(red: 250 / 255, green: 172 / 255, blue: 124 / 255, opacity: 255 / 255))
                     .background(Color(red: 251 / 255, green: 188 / 255, blue: 149 / 255))
                     .cornerRadius(12)
                 
@@ -184,12 +122,8 @@ struct ScanPreviewView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
-//                .tint(Color(red: 129/255, green: 156/255, blue: 139/255))
-//                .tint(Color(red: 37/255, green: 177/255, blue: 18/255))
                 .tint(Color(red: 248 / 255, green: 141 / 255, blue: 75 / 255))
                 .frame(width: 200, height: 44)
-//                .background(Color(red: 129/255, green: 156/255, blue: 139/255))
-//                .background(Color(red: 37/255, green: 177/255, blue: 18/255))
                 .background(Color(red: 248 / 255, green: 141 / 255, blue: 75 / 255))
                 .cornerRadius(12)
             }
@@ -200,8 +134,6 @@ struct ScanPreviewView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-//        .background(Color.black.ignoresSafeArea())
-//        .background(Color(red: 255/255, green: 219/255, blue: 187/255).ignoresSafeArea())
         .background(LinearGradient(
             gradient: Gradient(colors: [/*Color(red: 218/255, green: 226/255, blue: 248/255)*/Color(red: 250 / 255, green: 172 / 255, blue: 124 / 255), Color.white]),
             startPoint: .top,
@@ -212,7 +144,7 @@ struct ScanPreviewView: View {
 }
 
 
-
+/// A view that manages the 3D scanning, processing, and model preview workflow.
 struct ScanView: View {
     
     @State private var session: ObjectCaptureSession?
@@ -320,24 +252,7 @@ struct ScanView: View {
         }
         .sheet(isPresented: $showScanPreviewPage) {
             if let thumbnailImage, let modelPath {
-//                ScanPreviewView(
-//                    thumbnail: thumbnailImage,
-//                    onAccept: {
-//                        showScanPreviewPage = false
-//                        quickLookIsPresented = true
-//                    },
-//                    onRetake: {
-//                        showScanPreviewPage = false
-//                        scanPassCount = 0
-//                        Task {
-//                            guard let directory = createNewScanDirectory() else { return }
-//                            modelFolderPath = directory.appending(path: "Models/")
-//                            imageFolderPath = directory.appending(path: "Images/")
-//                            session = ObjectCaptureSession()
-//                            session?.start(imagesDirectory: imageFolderPath!)
-//                        }
-//                    }
-//                )
+
                 ScanPreviewView(
                     thumbnail: thumbnailImage,
                     onAccept: {
@@ -368,7 +283,7 @@ struct ScanView: View {
                             print("Error: thumbnailURL is nil")
                             // Handle the error or show a UI alert
                         }
-//                        await filesListView.s3testing(modelPath: thumbnailURL, identificationNumber: uuid)
+
                         
                     }
                 )
@@ -381,20 +296,7 @@ struct ScanView: View {
                 uploadedBy: "1"  // Replace with actual user ID if needed
             )
         }
-//        .sheet(isPresented: $quickLookIsPresented) {
-//
-//            if let modelPath {
-//                ARQuickLookView(modelFile: modelPath) {
-//                    guard let directory = createNewScanDirectory()
-//                    else { return }
-//                    quickLookIsPresented = false
-//                    // need to set number of scans done back to 0
-//                    scanPassCount = 0
-//                    showScanPassPrompt = false
-//                    // TODO: Restart ObjectCapture
-//                }
-//            }
-//        }
+
         .sheet(isPresented: $quickLookIsPresented) {
             if let modelPath {
                 ARQuickLookView(modelFile: modelPath) {
@@ -417,8 +319,9 @@ struct ScanView: View {
     }
 }
 
+/// Extension for ScanView to manage file system and reconstruction tasks.
 extension ScanView {
-    
+    /// Creates a new scan directory under the app's document folder.
     func createNewScanDirectory() -> URL? {
         guard let capturesFolder = getRootScansFolder()
         else { return nil }
@@ -445,6 +348,7 @@ extension ScanView {
         return newCaptureDirectory
     }
     
+    /// Returns the root folder where scans are stored.
     private func getRootScansFolder() -> URL? {
         guard let documentFolder = try? FileManager.default.url(for: .documentDirectory,
                                                                 in: .userDomainMask,
@@ -454,6 +358,7 @@ extension ScanView {
         return documentFolder.appendingPathComponent("Scans/", isDirectory: true)
     }
     
+    /// Starts photogrammetry reconstruction of captured images into a 3D model.
     private func startReconstruction() async {
         guard let imageFolderPath,
               let modelPath else { return }
@@ -475,8 +380,6 @@ extension ScanView {
                     // uploading usdz file to s3 bucket
 //                    let filesListView = FilesListView()
                     uuid = UUID().uuidString
-//                    await filesListView.s3testing(modelPath: modelPath, identificationNumber: uuid)
-                    
                     generateThumbnailRepresentations(modelURL: modelPath, identificationNumber: uuid)
                 default:
                     break
@@ -488,12 +391,8 @@ extension ScanView {
         }
     }
     
-    // generate thumbnail
+    /// Generates a thumbnail image from a USDZ model file.
     func generateThumbnailRepresentations(modelURL: URL, identificationNumber: String) {
-//        guard let modelURL = Bundle.main.url(forResource: "onion_1", withExtension: "usdz") else {
-//            print("Model file not found in bundle")
-//            return
-//        }
         
         let size = CGSize(width: 100, height: 100)
         let scale = UIScreen.main.scale
@@ -529,10 +428,6 @@ extension ScanView {
                             
                             self.thumbnailURL = thumbnailURL
                             
-                            // upload to s3 (maybe fix code not to instantiate FilesListView twice)
-//                            let filesListView = FilesListView()
-//                            Task {
-//                                await filesListView.s3testing(modelPath: thumbnailURL, identificationNumber: identificationNumber)
 //                            }
                         } catch {
                             print("Failed to save thumbnail: \(error)")
@@ -545,23 +440,6 @@ extension ScanView {
 
     
 }
-
-//struct ScanPreviewViewProvider: PreviewProvider {
-//    static var previews: some View {
-//        ScanPreviewView(
-//            thumbnail: thumbnailImage,
-//            onAccept: {
-//
-//            },
-//            onRetake: {
-//
-//            },
-//            onAssignModel: {
-//
-//            }
-//        )
-//    }
-//}
 
 struct ScanPreviewViewProvider: PreviewProvider {
     static var previews: some View {

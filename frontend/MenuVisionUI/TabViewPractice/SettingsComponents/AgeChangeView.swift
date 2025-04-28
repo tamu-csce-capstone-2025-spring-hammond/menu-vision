@@ -1,21 +1,45 @@
 import SwiftUI
 
+/// A view that allows users to update their age information.
+///
+/// This view presents a form for users to update their age and handles the API request
+/// to save the changes. The view manages loading states and error handling.
 struct AgeChangeView: View {
+    /// The string value of the user's age displayed in the text field.
     @State private var age: String = ""
+    
+    /// Flag indicating whether an API request is in progress.
     @State private var isLoading = false
+    
+    /// Flag to show the error alert when an error occurs.
     @State private var showErrorAlert = false
+    
+    /// The message to display in the error alert.
     @State private var errorMessage = ""
     
+    /// Environment value to dismiss the view.
     @Environment(\.presentationMode) var presentationMode
+    
+    /// UserStateViewModel containing the user data.
     @EnvironmentObject var vm: UserStateViewModel
 
-    // Custom colors to match the design
+    /// Custom colors used throughout the view.
+    /// Primary text color for the main content.
     private let textPrimaryColor = Color(red: 31/255, green: 32/255, blue: 36/255) // #1F2024
+    
+    /// Secondary text color for form fields and labels.
     private let textSecondaryColor = Color(red: 47/255, green: 48/255, blue: 54/255) // #2F3036
+    
+    /// Color used for placeholder text in form fields.
     private let placeholderColor = Color(red: 143/255, green: 144/255, blue: 152/255) // #8F9098
+    
+    /// Color used for form field borders.
     private let borderColor = Color(red: 197/255, green: 198/255, blue: 204/255) // #C5C6CC
+    
+    /// Color used for primary action buttons.
     private let buttonColor = Color(red: 250/255, green: 162/255, blue: 107/255) // #FAA26B
 
+    /// The body content of the view.
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .top) {
@@ -127,6 +151,12 @@ struct AgeChangeView: View {
         }
     }
     
+    /// Updates the user's age by sending a request to the server.
+    ///
+    /// This method validates the age input, prepares the API request payload,
+    /// and sends a PUT request to update the user's age. It handles success by
+    /// updating the view model and dismissing the view, and shows an error alert
+    /// on failure.
     private func updateAge() {
         // Validate input
         guard let ageValue = Int(age.trimmingCharacters(in: .whitespaces)) else {
@@ -177,6 +207,7 @@ struct AgeChangeView: View {
     }
 }
 
+/// A preview provider for the AgeChangeView.
 #Preview {
     AgeChangeView()
         .environmentObject(UserStateViewModel())

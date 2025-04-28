@@ -2,32 +2,46 @@ import SwiftUI
 import RealityKit
 import ARKit
 
+/// View for the first tab of the app, showing an AR scene with menu item models that can be voted on.
 struct FirstTabView: View {
 
-    @StateObject private var viewManager = ARViewManager();
-    @State private var modelIndex: Int = 0;
-    @State private var freestyleMode: Bool = false;
+    /// Manages the ARView and model selection logic.
+        @StateObject private var viewManager = ARViewManager()
+        /// Index of the currently selected model.
+        @State private var modelIndex: Int = 0
+        /// Indicates whether freestyle mode is enabled.
+        @State private var freestyleMode: Bool = false
 
-    @State private var showAlert = false
-    @State private var alertMessage = ""
+        /// Controls the display of an alert.
+        @State private var showAlert = false
+        /// Message to display in the alert.
+        @State private var alertMessage = ""
 
-    @State private var reportText: String = "";
+        /// Text entered by the user when reporting a dish.
+        @State private var reportText: String = ""
 
-    @State private var showReportModal: Bool = false;
-    @State private var showInformationModal: Bool = false;
+        /// Controls the display of the report modal.
+        @State private var showReportModal: Bool = false
+        /// Controls the display of the information modal.
+        @State private var showInformationModal: Bool = false
 
-    @State var refreshUI: Bool = false; // Not strictly needed for this task but kept from original code
+        /// Refreshes the UI manually.
+        @State var refreshUI: Bool = false
 
-    @EnvironmentObject var dishMapping: DishMapping;
+        /// Environment object containing dish model mappings.
+        @EnvironmentObject var dishMapping: DishMapping
 
-    @State private var documentsURL: URL?;
+        /// URL for documents directory to load images.
+        @State private var documentsURL: URL?
 
-    @State private var viewID = UUID() // Not strictly needed for this task but kept from original code
+        /// Unique view ID to force view refresh.
+        @State private var viewID = UUID()
 
-    // MARK: - New State for Vote Status
-    @State private var userVoteStatus: String? = nil // "up", "down", or nil (no vote)
+        /// Current user's voting status for the model ("up", "down", or nil).
+        @State private var userVoteStatus: String? = nil
 
-    // MARK: - Polling for Loading Completion (Original)
+
+    /// Repeatedly polls until all AR models are finished loading, then fetches user vote status.
     private func pollForLoadingCompletion(){
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             if (!dishMapping.isFinishedLoading()){
@@ -39,7 +53,7 @@ struct FirstTabView: View {
         }
     }
 
-    // MARK: - Fetch User Vote Status (New Function)
+    /// Fetches the user's vote status (upvote or downvote) for the currently selected model.
     private func fetchUserVoteStatusForCurrentModel() {
         let modelId = viewManager.getCurrentModelID()
         let userId = UserDefaults.standard.integer(forKey: "user_id")
@@ -120,7 +134,7 @@ struct FirstTabView: View {
     }
 
 
-    // MARK: - Call Vote API (Modified to Fetch Status on Success)
+    /// Sends a POST request to upvote or downvote a model and fetches the updated vote status.
     private func callVoteAPI(endpoint: String, modelId: String, userId: Int) {
         // Construct the URL
         guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/model/\(modelId)/\(endpoint)/\(userId)") else {
@@ -152,7 +166,7 @@ struct FirstTabView: View {
         }.resume()
     }
 
-    // MARK: - Vote Action (Original)
+    /// Performs the upvote or downvote action for the currently selected model.
     private func voteAction(endpoint: String) {
         let modelId = viewManager.getCurrentModelID()
         if modelId.isEmpty {

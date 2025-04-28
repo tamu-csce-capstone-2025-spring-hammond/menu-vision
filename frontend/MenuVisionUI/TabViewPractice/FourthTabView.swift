@@ -10,25 +10,58 @@ import AVFoundation
 import UIKit
 import CoreLocation
 
+/// A view that allows users to scan restaurant menus using the camera and fetch AR models.
 struct MenuScannerView: View {
+    /// Manages restaurant-related data.
     @EnvironmentObject var restaurantData: RestaurantData
+
+    /// Manages downloaded dish AR models.
     @EnvironmentObject var dishMapping: DishMapping
+
+    /// Manages camera input and captures photos.
     @StateObject private var camera = CameraManager()
+
+    /// Controls visibility of error alerts.
     @State private var showAlert = false
+
+    /// The error message displayed in alerts.
     @State private var alertMessage = ""
+
+    /// Current zoom factor for the camera preview.
     @State private var zoomFactor: CGFloat = 1.0
+
+    /// Captured image from the camera.
     @State private var capturedImage: UIImage?
+
+    /// Indicates whether a capture or upload process is ongoing.
     @State private var isProcessing = false
+
+    /// Manages user's location permissions and fetching.
     @StateObject private var locationManager = LocationManager()
+
+    /// Controls visibility of location-related alerts.
     @State private var showingLocationAlert = false
+
+    /// A list of nearby restaurants fetched based on the user's location.
     @State private var restaurants: [Restaurant] = []
+
+    /// The restaurant currently selected by the user.
     @State private var selectedRestaurant: Restaurant?
+
+    /// API response text after sending a menu image.
     @State private var apiResponse: String = ""
+
+    /// Indicates navigation to the result view after OCR processing.
     @State private var shouldNavigateToResult = false
+
+    /// Indicates navigation to the local files list view.
     @State private var shouldNavigateToFilesListView = false
+
+    /// Tracks the ID of the last selected restaurant to avoid duplicate downloads.
     @State private var lastSelectedRestaurantID: String?
+
+    /// Whether the app is in the process of adding a restaurant to the database.
     @State private var isAddingRestaurant = false
-    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -340,7 +373,10 @@ struct MenuScannerView: View {
             }
         }
     }
-
+    /// Fetches a list of nearby restaurants based on the user's current location.
+       /// - Parameters:
+       ///   - longitude: User's longitude coordinate.
+       ///   - latitude: User's latitude coordinate.
     func fetchNearbyRestaurants(longitude: Double, latitude: Double) {
         let urlString = "https://menu-vision-b202af7ea787.herokuapp.com/general/nearby-restaurants/\(longitude)/\(latitude)"
         guard let url = URL(string: urlString) else { return }
@@ -375,7 +411,8 @@ struct MenuScannerView: View {
             }
         }.resume()
     }
-
+    /// Sends the captured menu image to the OCR API to extract text.
+   /// - Parameter image: The captured menu `UIImage`.
     func sendImageToAPI(image: UIImage) {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
         
@@ -407,7 +444,8 @@ struct MenuScannerView: View {
             }
         }.resume()
     }
-
+    /// Adds a restaurant to the database if it does not already exist.
+       /// - Parameter restaurant: The restaurant object to be added.
     private func addRestaurantToDatabase(restaurant: Restaurant) async {
         guard let id = restaurant.id, let name = restaurant.displayName?.text else { return }
         
@@ -459,12 +497,13 @@ extension CameraManager {
 }
 
 
-// Response struct to handle "places" key
+/// The API response containing a list of nearby restaurants.
 struct RestaurantResponse: Codable {
+    /// List of nearby restaurants.
     let places: [Restaurant]?
 }
 
-// Define Restaurant struct - adjust properties to match your API response
+/// Represents a restaurant fetched from the API or selected by the user.
 struct Restaurant: Codable, Hashable {
     let id: String?
     let placeId: String?
@@ -480,11 +519,13 @@ struct Restaurant: Codable, Hashable {
     }
 }
 
+/// The display name of a restaurant, with optional language code.
 struct DisplayName: Codable {
     let text: String?
     let languageCode: String?
 }
 
+/// Manages user's location permissions and fetching a one-time location.
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined // Initialize
@@ -494,7 +535,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
     }
-
+    /// Fetches the user's location once and calls the completion handler.
     func getLocationOnce(completion: @escaping (CLLocation?) -> Void) {
         locationManager.requestWhenInUseAuthorization() // Request authorization
         locationManager.delegate = self // Ensure delegate is set
@@ -572,12 +613,15 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 }
 
+/// Manages the camera session, photo capture, and zoom functionality.
 class CameraManager: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
     @Published var captureSession = AVCaptureSession()
     private let photoOutput = AVCapturePhotoOutput()
     private var currentDevice: AVCaptureDevice?
     private var photoCaptureCompletion: ((UIImage?) -> Void)?
-
+    
+    
+    /// Checks camera permission and sets up the camera session if authorized.
     func checkPermissionsAndSetup(completion: @escaping (Bool, String) -> Void) {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
@@ -648,7 +692,8 @@ class CameraManager: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
             }
         }
     }
-
+    
+    /// Captures a photo from the live camera feed.
     func capturePhoto(completion: @escaping (UIImage?) -> Void) {
         guard captureSession.isRunning else {
             completion(nil)
@@ -690,7 +735,8 @@ class CameraManager: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
             }
         }
     }
-
+    
+    /// Sets the zoom factor for the camera.
     func setZoom(zoomFactor: CGFloat) {
         guard let device = currentDevice else { return }
 
@@ -708,6 +754,8 @@ class CameraManager: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
     }
 }
 
+
+/// A UIView wrapper for displaying the live camera preview inside SwiftUI.
 struct CameraPreview: UIViewRepresentable {
     let session: AVCaptureSession
     let zoomFactor: CGFloat

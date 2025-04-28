@@ -1,25 +1,53 @@
 import SwiftUI
 
+/// A view that allows the user to change their password with form validation and password visibility toggles.
 struct PassChangeView: View {
+    /// The new password entered by the user.
     @State private var newPassword: String = ""
+    
+    /// The confirmation password entered by the user.
     @State private var confirmPassword: String = ""
+    
+    /// A boolean to track whether the new password is visible or hidden.
     @State private var isPasswordVisible: Bool = false
+    
+    /// A boolean to track whether the confirm password is visible or hidden.
     @State private var isConfirmPasswordVisible: Bool = false
+    
+    /// A boolean to indicate if the new password and confirmation match.
     @State private var passwordsMatch: Bool = true
+    
+    /// A boolean to indicate if the app is currently processing the password update.
     @State private var isLoading: Bool = false
+    
+    /// A boolean to control showing an error alert.
     @State private var showErrorAlert: Bool = false
+    
+    /// A boolean to control showing a success alert.
     @State private var showSuccessAlert: Bool = false
+    
+    /// The message displayed in the alert dialogs.
     @State private var alertMessage: String = ""
     
+    /// Environment property used to dismiss the view.
     @Environment(\.presentationMode) var presentationMode
 
-    // Custom colors to match the design
+    /// Primary text color used throughout the view.
     private let textPrimaryColor = Color(red: 31/255, green: 32/255, blue: 36/255) // #1F2024
+    
+    /// Secondary text color used throughout the view.
     private let textSecondaryColor = Color(red: 47/255, green: 48/255, blue: 54/255) // #2F3036
+    
+    /// Placeholder color used for form field hints.
     private let placeholderColor = Color(red: 143/255, green: 144/255, blue: 152/255) // #8F9098
+    
+    /// Border color used for text field borders.
     private let borderColor = Color(red: 197/255, green: 198/255, blue: 204/255) // #C5C6CC
+    
+    /// Button background color.
     private let buttonColor = Color(red: 250/255, green: 162/255, blue: 107/255) // #FAA26B
 
+    /// The main body of the view.
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .top) {
@@ -43,13 +71,13 @@ struct PassChangeView: View {
                             Spacer()
                         }
 
-                        // Title - Using system font with explicit bold styling
+                        // Title
                         Text("Change Password")
-                            .font(.system(size: 24, weight: .black)) // Using .black for maximum boldness
-                            .bold() // Explicit bold modifier
+                            .font(.system(size: 24, weight: .black))
+                            .bold()
                             .foregroundColor(textPrimaryColor)
                             .padding(.top, 8)
-                            .tracking(0.24) // Letter spacing from design
+                            .tracking(0.24)
                     }
                     .frame(height: 80)
 
@@ -232,13 +260,13 @@ struct PassChangeView: View {
                 Text(alertMessage)
             }
         }
-        .navigationBarHidden(true) // Hide the default navigation bar
+        .navigationBarHidden(true)
     }
     
-    // Function to validate that passwords match
+    /// Validates that the new password and confirm password fields match.
+    /// - Returns: A boolean indicating whether the passwords match.
     private func validatePasswords() -> Bool {
         if newPassword.isEmpty && confirmPassword.isEmpty {
-            // Both empty, don't show error yet
             passwordsMatch = true
             return false
         }
@@ -248,7 +276,7 @@ struct PassChangeView: View {
         return match
     }
     
-    // Function to update password
+    /// Updates the user's password after validating and hashing it.
     private func updatePassword() {
         guard validatePasswords() else {
             alertMessage = "Passwords do not match"
@@ -256,13 +284,10 @@ struct PassChangeView: View {
             return
         }
         
-        // Start loading state
         isLoading = true
         
-        // Get current user ID
         let userId = UserDefaults.standard.integer(forKey: "user_id")
         
-        // Call the hash API to securely hash the password before sending to server
         guard let hashURL = URL(string: "https://api.algobook.info/v1/crypto/hash?plain=\(newPassword)") else {
             alertMessage = "Invalid hashing URL"
             showErrorAlert = true
@@ -305,7 +330,6 @@ struct PassChangeView: View {
                 return
             }
 
-            // Call API to update password
             API.shared.request(
                 endpoint: "user/\(userId)",
                 method: "PUT",
@@ -329,7 +353,7 @@ struct PassChangeView: View {
     }
 }
 
-// Allow preview
+/// Preview provider for `PassChangeView`.
 #Preview {
     PassChangeView()
 }

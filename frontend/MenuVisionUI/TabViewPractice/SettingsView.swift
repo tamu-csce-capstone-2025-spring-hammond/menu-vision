@@ -6,7 +6,10 @@
 //
 import SwiftUI
 
+/// A view that displays the user settings screen, including profile information, settings options, and logout functionality.
 struct SettingsView: View {
+    
+    /// The shared user state view model, providing user data and authentication state.
     @EnvironmentObject var vm: UserStateViewModel
     var body: some View {
         NavigationView {

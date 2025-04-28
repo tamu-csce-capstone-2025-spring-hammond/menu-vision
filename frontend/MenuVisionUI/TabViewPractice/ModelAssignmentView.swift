@@ -1,4 +1,4 @@
-//
+
 //  ModelAssignmentView.swift
 //  MenuVision
 //
@@ -10,46 +10,70 @@ import Combine
 
 // MARK: - Data Models
 
+/// Represents a single dish model associated with a menu item.
 struct DishModel: Identifiable, Hashable, Decodable {
+    /// Unique identifier for the dish.
     let dish_id: Int
+    /// Name of the dish.
     let dish_name: String
+    /// Optional description of the dish.
     let description: String?
+    /// Optional list of ingredients for the dish.
     let ingredients: String?
-    let price: String // Price comes as String from API, validation handles format
+    /// Price of the dish as a String from the API.
+    let price: String
+    /// Optional nutritional information for the dish.
     let nutritional_info: String?
+    /// Optional allergen information for the dish.
     let allergens: String?
-    let model_id: String // Specific model associated in this context
+    /// ID of the associated AR model.
+    let model_id: String
+    /// Rating of the model associated with the dish.
     let model_rating: Int
 
-    var id: Int { dish_id } // Unique based on dish
+    /// Computed property to conform to `Identifiable`.
+    var id: Int { dish_id }
 
+    /// Hashes the dish based on its `dish_id`.
     func hash(into hasher: inout Hasher) {
         hasher.combine(dish_id)
     }
 
+    /// Compares two `DishModel` instances based on `dish_id`.
     static func == (lhs: DishModel, rhs: DishModel) -> Bool {
-        // Equality based on dish_id for uniqueness in the list
         return lhs.dish_id == rhs.dish_id
     }
 }
 
+/// Represents all models associated with a restaurant.
 struct RestaurantModels: Decodable {
+    /// The unique ID of the restaurant.
     let restaurant_id: String
+    /// Name of the restaurant.
     let name: String
+    /// Creation date of the record.
     let created_at: String
+    /// List of dish models associated with the restaurant.
     let models: [DishModel]
 }
 
-// MARK: - ViewModel
 
+
+/// ViewModel for managing dish models and assignment workflows.
 class ModelAssignmentViewModel: ObservableObject {
     // Published properties for UI state
-    @Published var searchText = ""
-    @Published var dishes: [DishModel] = []
-    @Published var filteredDishes: [DishModel] = []
-    @Published var isLoading = false
-    @Published var errorMessage: String?
-    @Published var showError = false
+    /// Search text for filtering dishes.
+        @Published var searchText = ""
+        /// List of all fetched dishes.
+        @Published var dishes: [DishModel] = []
+        /// List of dishes filtered by search.
+        @Published var filteredDishes: [DishModel] = []
+        /// Indicates whether data is loading.
+        @Published var isLoading = false
+        /// Error message to display.
+        @Published var errorMessage: String?
+        /// Controls error alert visibility.
+        @Published var showError = false
 
     // New Dish Form Properties
     @Published var newDishName = ""
@@ -85,12 +109,13 @@ class ModelAssignmentViewModel: ObservableObject {
     var currentUploadedBy: String? // User ID as String
     var currentRestaurantId: String? // Store restaurantId for potential re-fetch
 
-    private var cancellables = Set<AnyCancellable>()
+    /// Internal cancellables for Combine.
+        private var cancellables = Set<AnyCancellable>()
 
-    init() {}
+        /// Initializes a new instance of `ModelAssignmentViewModel`.
+        init() {}
 
-    // MARK: - Network Fetching
-
+    /// Fetches restaurant models from the server.
     func fetchRestaurantModels(restaurantId: String) {
         self.currentRestaurantId = restaurantId // Store for potential later use
         isLoading = true
@@ -168,8 +193,7 @@ class ModelAssignmentViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    // MARK: - Filtering
-
+    /// Filters dishes by search text.
     func filterDishes(searchText: String) {
         if searchText.isEmpty {
             filteredDishes = dishes
@@ -181,8 +205,7 @@ class ModelAssignmentViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Network Actions (Add Model / Add Dish)
-
+    /// Associates an AR model to an existing dish.
     func addModelToExistingDish(dishId: Int, modelId: String, uploadedBy: String) {
         // Validate User ID format
         guard let uploadedById = Int(uploadedBy) else {
@@ -216,7 +239,7 @@ class ModelAssignmentViewModel: ObservableObject {
 
         makeNetworkRequest(request: request, successMessageBase: "Model successfully added")
     }
-
+    /// Adds a new dish with a model to a restaurant.
     func addNewDishWithModel(restaurantId: String, modelId: String, uploadedBy: String) {
         // --- Data Validation ---
         let trimmedDishName = newDishName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -294,8 +317,7 @@ class ModelAssignmentViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Helper for Network Requests
-
+    /// Makes a generic network request.
     private func makeNetworkRequest(
         request: URLRequest,
         successMessageBase: String,
@@ -359,8 +381,7 @@ class ModelAssignmentViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    // MARK: - Form and State Management
-
+    /// Makes a generic network request.
     private func resetNewDishForm() {
         // Don't reset newDishName as it's set when form is shown
         newDishDescription = ""
@@ -370,7 +391,8 @@ class ModelAssignmentViewModel: ObservableObject {
         newDishAllergens = ""
         showNewDishForm = false
     }
-
+    
+    /// Confirms adding a model to the selected dish.
     func confirmAddModelToDish() {
         guard let dish = selectedDish, let modelId = currentModelId,
               let uploadedBy = currentUploadedBy
@@ -388,6 +410,7 @@ class ModelAssignmentViewModel: ObservableObject {
         resetConfirmationState()
     }
 
+    /// Handles when a dish is selected.
     func handleDishSelection(dish: DishModel) {
         // Ensure context is available before triggering confirmation
         guard let modelId = currentModelId, let uploadedBy = currentUploadedBy else {
@@ -406,8 +429,7 @@ class ModelAssignmentViewModel: ObservableObject {
     }
 }
 
-// MARK: - Main View
-
+/// Main view for assigning AR models to dishes.
 struct ModelAssignmentView: View {
     // StateObject for the ViewModel lifecycle tied to this view
     @StateObject private var viewModel = ModelAssignmentViewModel()
@@ -636,8 +658,7 @@ struct ModelAssignmentView: View {
     }
 }
 
-// MARK: - New Dish Form View
-
+/// View for creating a new dish and assigning a model.
 struct NewDishFormView: View {
     @ObservedObject var viewModel: ModelAssignmentViewModel // Use shared ViewModel
     let restaurantId: String
@@ -751,7 +772,7 @@ struct NewDishFormView: View {
 }
 
 // MARK: - Preview
-
+/// Preview provider for `ModelAssignmentView`.
 struct ModelAssignmentViewPreview: PreviewProvider {
     static var previews: some View {
         // --- How to get user_id for the preview ---

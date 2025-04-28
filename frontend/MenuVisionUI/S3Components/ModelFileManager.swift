@@ -10,12 +10,27 @@ import AWSS3
 import AWSClientRuntime
 import AWSSDKIdentity
 
+/// A singleton class that manages 3D model files, including downloading, storage, and cleanup.
+///
+/// This class handles the transfer of 3D model files between AWS S3 storage and the local
+/// device filesystem. It provides methods to download all models for a restaurant and
+/// clear local storage when needed.
 class ModelFileManager {
+    /// The shared singleton instance of ModelFileManager.
     static let shared = ModelFileManager()
-//    @EnvironmentObject var dishMapping: DishMapping
 
+    /// Private initializer to ensure singleton pattern.
     private init() {}
 
+    /// Clears all local files and downloads model files for a specific restaurant.
+    ///
+    /// This method removes all previously downloaded files from the documents directory
+    /// and then downloads all models associated with the specified restaurant from S3.
+    ///
+    /// - Parameters:
+    ///   - restaurantID: The unique identifier of the restaurant.
+    ///   - dishMapping: The DishMapping instance to update with download progress.
+    /// - Returns: An array of DishData objects representing the downloaded models.
     func clearAndDownloadFiles(for restaurantID: String, dishMapping: DishMapping) async -> [DishData] {
         print("Clearing and downloading for restaurant: \(restaurantID)")
         await removeAllFiles()
@@ -33,6 +48,9 @@ class ModelFileManager {
         return models
     }
 
+    /// Removes all files from the app's documents directory.
+    ///
+    /// This method is used to clean up local storage before downloading new model files.
     func removeAllFiles() async {
         let fileManager = FileManager.default
         if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
@@ -48,6 +66,11 @@ class ModelFileManager {
         }
     }
 
+    /// Fetches model keys and data from the API for a specific restaurant.
+    ///
+    /// - Parameter restaurantID: The unique identifier of the restaurant.
+    /// - Returns: A tuple containing (1) an array of model keys for download from S3
+    ///           and (2) an array of DishData objects with the model metadata.
     func fetchModelKeysAndModelsFromAPI(restaurantID: String) async -> ([String], [DishData]) {
         guard let url = URL(string: "https://menu-vision-b202af7ea787.herokuapp.com/ar/restaurant/\(restaurantID)/models") else {
             return ([], [])
@@ -71,7 +94,14 @@ class ModelFileManager {
         }
     }
 
-
+    /// Asynchronously downloads multiple files from S3 to local storage.
+    ///
+    /// This method configures AWS credentials and downloads both the USDZ model files
+    /// and their associated PNG thumbnails.
+    ///
+    /// - Parameters:
+    ///   - keys: An array of file keys to download from S3.
+    ///   - dishMapping: The DishMapping instance to update with download progress.
     func asyncDownload(keys: [String], dishMapping: DishMapping) async {
         do {
             let accessKey = UserDefaults.standard.string(forKey: "AWS_ACCESS_KEY")
@@ -121,8 +151,6 @@ class ModelFileManager {
                             print("Error downloading \(pngKey): \(error)")
                         }
                     }
-                    
-
                 }
             }
         } catch {
@@ -130,6 +158,9 @@ class ModelFileManager {
         }
     }
     
+    /// Lists all files in the app's documents directory.
+    ///
+    /// This is a diagnostic method used to verify what files are currently stored locally.
     func listAllFilesInDocumentsDirectory() {
         let fileManager = FileManager.default
         if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {

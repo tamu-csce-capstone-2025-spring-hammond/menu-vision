@@ -1,15 +1,26 @@
 import SwiftUI
 
+/// A view that allows users to update their cuisine preferences for personalized recommendations.
 struct PrefChangeView: View {
+    /// The set of cuisines selected by the user.
     @State private var selectedCuisines: Set<String> = []
+    
+    /// A boolean indicating whether the app is currently loading.
     @State private var isLoading = false
+    
+    /// A boolean controlling whether to show an error alert.
     @State private var showErrorAlert = false
+    
+    /// The error message displayed in the alert.
     @State private var errorMessage = ""
     
+    /// Environment property to control view dismissal.
     @Environment(\.presentationMode) var presentationMode
+    
+    /// EnvironmentObject that manages user state and preferences.
     @EnvironmentObject var vm: UserStateViewModel
 
-    // List of available cuisines
+    /// The list of available cuisines that a user can choose from.
     private let cuisines = [
         "American",
         "Chinese",
@@ -26,6 +37,7 @@ struct PrefChangeView: View {
         "Vietnamese"
     ]
 
+    /// The main body of the `PrefChangeView`.
     var body: some View {
         VStack(spacing: 0) {
             // Header section
@@ -58,13 +70,13 @@ struct PrefChangeView: View {
             // List of cuisine preferences
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 8) {
-                    // Reduced empty space at the top
+                    // Empty space for better top padding
                     Rectangle()
                         .frame(width: 327, height: 20)
                         .opacity(0)
                         .padding(.top, 10)
 
-                    // Cuisine options
+                    // Cuisine options list
                     ForEach(cuisines, id: \.self) { cuisine in
                         CuisineItem(
                             title: cuisine,
@@ -79,10 +91,10 @@ struct PrefChangeView: View {
                 .padding(.vertical, 24)
             }
 
-            // Reduced spacer to move content up
+            // Spacer to push button to the bottom
             Spacer(minLength: 10)
 
-            // Update button
+            // Update preferences button
             Button(action: {
                 updatePreferences()
             }) {
@@ -129,6 +141,8 @@ struct PrefChangeView: View {
         }
     }
 
+    /// Toggles selection for a given cuisine.
+    /// - Parameter cuisine: The name of the cuisine to toggle.
     private func toggleSelection(_ cuisine: String) {
         if selectedCuisines.contains(cuisine) {
             selectedCuisines.remove(cuisine)
@@ -137,11 +151,10 @@ struct PrefChangeView: View {
         }
     }
 
+    /// Updates the user's cuisine preferences by sending a request to the server.
     private func updatePreferences() {
-        // Start loading
         isLoading = true
         
-        // Prepare request payload
         let userId = UserDefaults.standard.integer(forKey: "user_id")
         let payload: [String: Any] = ["food_preferences": Array(selectedCuisines)]
         
@@ -152,25 +165,19 @@ struct PrefChangeView: View {
             return
         }
         
-        // Make API request
         API.shared.request(
             endpoint: "user/\(userId)",
             method: "PUT",
             body: jsonData,
             headers: ["Content-Type": "application/json"]
         ) { result in
-            // Ensure UI updates happen on main thread
             DispatchQueue.main.async {
                 isLoading = false
                 
                 switch result {
                 case .success:
-                    // Update view model data
                     vm.userData.food_preferences = Array(selectedCuisines)
-                    
-                    // Dismiss view
                     presentationMode.wrappedValue.dismiss()
-                
                 case .failure(let error):
                     errorMessage = "Failed to update preferences: \(error.localizedDescription)"
                     showErrorAlert = true
@@ -180,13 +187,21 @@ struct PrefChangeView: View {
     }
 }
 
-// Nested cuisine item component
+// MARK: - CuisineItem
+
+/// A subview representing an individual selectable cuisine item.
 extension PrefChangeView {
     struct CuisineItem: View {
+        /// The title (name) of the cuisine.
         let title: String
+        
+        /// A boolean indicating if the cuisine is selected.
         let isSelected: Bool
+        
+        /// A closure that triggers when the item is tapped.
         let onTap: () -> Void
 
+        /// The body of the `CuisineItem`.
         var body: some View {
             Button(action: onTap) {
                 HStack(spacing: 16) {
@@ -226,17 +241,33 @@ extension PrefChangeView {
     }
 }
 
-// Define custom colors
+// MARK: - Custom Colors
+
+/// Defines custom colors used throughout the `PrefChangeView`.
 private extension Color {
+    /// Title text color.
     static let titleText = Color(red: 31/255, green: 32/255, blue: 36/255) // #1F2024
+    
+    /// Subtitle text color.
     static let subtitleText = Color(red: 113/255, green: 114/255, blue: 122/255) // #71727A
+    
+    /// Border color for unselected cuisine items.
     static let borderColor = Color(red: 197/255, green: 198/255, blue: 204/255) // #C5C6CC
+    
+    /// Button background color.
     static let buttonBackground = Color(red: 250/255, green: 162/255, blue: 107/255) // #FAA26B
-    static let orangeHighlight = Color(red: 254/255, green: 215/255, blue: 170/255) // Lighter orange
+    
+    /// Highlight color for selected cuisine items.
+    static let orangeHighlight = Color(red: 254/255, green: 215/255, blue: 170/255) // lighter orange
+    
+    /// Border color for selected cuisine items.
     static let selectedBorderColor = Color(red: 214/255, green: 211/255, blue: 209/255) // border-stone-300
+    
+    /// Text color for cuisine item titles.
     static let itemTextColor = Color(red: 33/255, green: 33/255, blue: 33/255) // text-neutral-800
 }
 
+/// A preview for `PrefChangeView`.
 #Preview {
     PrefChangeView()
         .environmentObject(UserStateViewModel())
