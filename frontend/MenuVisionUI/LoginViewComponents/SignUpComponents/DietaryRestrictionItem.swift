@@ -7,15 +7,40 @@
 
 import SwiftUI
 
+/// A selectable item for dietary restriction options
+///
+/// This view displays a dietary restriction option as a selectable button with
+/// visual feedback for the selected state. When selected, the item is highlighted
+/// with an orange background.
+///
+/// Example usage:
+/// ```
+/// DietaryRestrictionItem(
+///     title: "Dairy Allergy",
+///     isSelected: true,
+///     onTap: {
+///         // Handle selection
+///     }
+/// )
+/// ```
 struct DietaryRestrictionItem: View {
+    /// The text to display for the dietary restriction
     let title: String
+    
+    /// Whether this item is currently selected
     let isSelected: Bool
+    
+    /// Callback function to execute when the item is tapped
     let onTap: () -> Void
 
-    // Define colors
+    /// Define colors used in the view
+    ///
+    /// - orangeHighlight: A lighter orange used for background when selected
+    /// - orangeButton: The standard orange color used for the button
     private let orangeHighlight = Color(red: 254/255, green: 215/255, blue: 170/255) // Lighter orange than the button
     private let orangeButton = Color(red: 253/255, green: 186/255, blue: 116/255) // Original orange-300
 
+    /// The body of the view
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 16) {
@@ -51,7 +76,9 @@ struct DietaryRestrictionItem: View {
     }
 }
 
+/// Preview provider for DietaryRestrictionItem
 struct DietaryRestrictionItem_Previews: PreviewProvider {
+    /// Generate previews showing both selected and unselected states
     static var previews: some View {
         VStack(spacing: 8) {
             DietaryRestrictionItem(

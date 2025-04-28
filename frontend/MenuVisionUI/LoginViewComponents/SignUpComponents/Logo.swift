@@ -7,7 +7,15 @@
 
 import SwiftUI
 
+/// A shape representing the MenuVision logo
+///
+/// This shape draws a stylized logo using SVG-like path commands.
+/// The logo scales appropriately to fit the given rect.
 struct Logo: Shape {
+    /// Creates a path that represents the MenuVision logo
+    ///
+    /// - Parameter rect: The rectangle to draw the logo in
+    /// - Returns: A path representing the logo
     func path(in rect: CGRect) -> Path {
         let width = rect.width
         let height = rect.height
@@ -120,17 +128,28 @@ struct Logo: Shape {
     }
 }
 
-// Color extension with init(hex:) is already defined elsewhere in the project
-
+/// A customizable logo view component
+///
+/// This view wraps the Logo shape and allows customization of size and color.
 struct CustomLogo: View {
+    /// The size of the logo
     var size: CGSize
+    
+    /// The color of the logo
     var color: Color
 
+    /// Initializes a CustomLogo with specified dimensions and color
+    ///
+    /// - Parameters:
+    ///   - width: The width of the logo (default: 18)
+    ///   - height: The height of the logo (default: 18)
+    ///   - color: The color of the logo (default: orange color)
     init(width: CGFloat = 18, height: CGFloat = 18, color: Color = Color(hex: "FAAC7B")) {
         self.size = CGSize(width: width, height: height)
         self.color = color
     }
 
+    /// The body of the logo view
     var body: some View {
         Logo()
             .fill(color)

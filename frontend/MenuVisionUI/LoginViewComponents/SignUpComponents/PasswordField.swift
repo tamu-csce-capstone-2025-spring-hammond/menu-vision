@@ -7,14 +7,39 @@
 
 import SwiftUI
 
+/// A custom password input field with visibility toggle
+///
+/// This component provides a styled password field with optional title,
+/// placeholder text, and a visibility toggle button that allows users to
+/// see the password they've entered.
+///
+/// Example usage:
+/// ```
+/// @State private var password = ""
+///
+/// PasswordField(
+///     title: "Password",
+///     password: $password,
+///     placeholder: "Enter your password"
+/// )
+/// ```
 struct PasswordField: View {
+    /// The title displayed above the password field (can be empty)
     let title: String
+    
+    /// Binding to the password text value
     @Binding var password: String
+    
+    /// Placeholder text shown when the field is empty
     let placeholder: String
+    
+    /// Whether the password is currently visible or masked
     @State private var isSecured: Bool = true
 
+    /// State to track if the field is currently focused
     @FocusState private var isFocused: Bool
 
+    /// The body of the password field view
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if !title.isEmpty {
@@ -70,9 +95,12 @@ struct PasswordField: View {
     }
 }
 
+/// Preview provider for PasswordField
 struct PasswordField_Previews: PreviewProvider {
+    /// State variable for preview
     @State static var password = ""
 
+    /// Generate previews showing different configurations
     static var previews: some View {
         VStack {
             PasswordField(

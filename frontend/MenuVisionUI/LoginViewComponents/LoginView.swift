@@ -1,21 +1,41 @@
 import SwiftUI
 
+/// A view that presents the login interface for user authentication.
+///
+/// This view handles user authentication by collecting email and password credentials,
+/// maintaining login state, and providing navigation to other parts of the app when successful.
 struct LoginView: View {
+    /// Environment property to access presentation mode for dismissing the view.
     @Environment(\.presentationMode) var presentationMode
+    
+    /// Access to the shared user state view model.
     @EnvironmentObject var vm: UserStateViewModel
+    
+    /// The user's email input.
     @State private var email: String = ""
+    
+    /// The user's password input.
     @State private var password: String = ""
+    
+    /// Controls whether the password text is displayed or masked.
     @State private var isPasswordVisible: Bool = false
+    
+    /// Controls whether to remember the user's login state.
     @State private var rememberMe: Bool = false
+    
+    /// Controls display of alert messages.
     @State private var showingAlert = false
+    
+    /// Message content for the alert dialog.
     @State private var alertMessage = ""
+    
+    /// Environment property to dismiss the view.
     @Environment(\.dismiss) var dismiss
-
 
     
 //    @Binding var isLoggedIn: Bool
     
-    // Add app storage to persist user ID
+    /// App storage for persisting user ID between app launches.
     @AppStorage("user_id") private var userId: Int = 0
 
     var body: some View {

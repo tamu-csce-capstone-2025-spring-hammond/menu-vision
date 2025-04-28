@@ -7,12 +7,24 @@
 
 import SwiftUI
 
+/// A view that allows users to select dietary restrictions during the sign-up process.
+///
+/// This is the first step in the multi-step sign-up flow, where users can select their
+/// dietary restrictions that will be used for personalized menu recommendations.
 struct SignUpView: View {
+    /// Shared data model containing user information collected during sign-up.
     @ObservedObject var signUpData: SignUpData
+    
+    /// Set of selected dietary restrictions.
     @State private var selectedRestrictions: Set<String> = []
+    
+    /// Environment property to access presentation mode for dismissing the view.
     @Environment(\.presentationMode) var presentationMode
+    
+    /// Controls navigation to the next sign-up view.
     @State private var navigateToSignUpView2 = false
 
+    /// List of dietary restriction options that users can select from.
     let dietaryOptions = [
         "Vegetarian",
         "Vegan",
@@ -130,6 +142,9 @@ struct SignUpView: View {
         }
     }
 
+    /// Toggles the selection state of a dietary restriction option.
+    ///
+    /// - Parameter option: The dietary restriction option to toggle.
     private func toggleSelection(_ option: String) {
         if selectedRestrictions.contains(option) {
             selectedRestrictions.remove(option)

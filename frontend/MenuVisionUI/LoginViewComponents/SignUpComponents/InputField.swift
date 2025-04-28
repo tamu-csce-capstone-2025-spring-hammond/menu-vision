@@ -7,14 +7,38 @@
 
 import SwiftUI
 
+/// A custom text input field with title and placeholder
+///
+/// This component provides a styled text field with an optional title label and
+/// customizable placeholder text. It also supports different keyboard types.
+///
+/// Example usage:
+/// ```
+/// @State private var name = ""
+///
+/// InputField(
+///     title: "Name",
+///     text: $name,
+///     placeholder: "Enter your name"
+/// )
+/// ```
 struct InputField: View {
+    /// The title displayed above the text field
     let title: String
+    
+    /// Binding to the input text value
     @Binding var text: String
+    
+    /// Placeholder text shown when the field is empty
     let placeholder: String
+    
+    /// The keyboard type to use for the input field
     var keyboardType: UIKeyboardType = .default
 
+    /// State to track if the field is currently focused
     @FocusState private var isFocused: Bool
 
+    /// The body of the input field view
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if !title.isEmpty {
@@ -54,9 +78,12 @@ struct InputField: View {
     }
 }
 
+/// Preview provider for InputField
 struct InputField_Previews: PreviewProvider {
+    /// State variable for preview
     @State static var text = ""
 
+    /// Generate previews showing different configurations
     static var previews: some View {
         VStack {
             InputField(

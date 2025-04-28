@@ -7,12 +7,24 @@
 
 import SwiftUI
 
+/// A view that allows users to select their cuisine preferences during sign-up.
+///
+/// This is the second step in the multi-step sign-up flow, where users can select
+/// their preferred cuisines that will be used for personalized menu recommendations.
 struct SignUpView2: View {
+    /// Shared data model containing user information collected during sign-up.
     @ObservedObject var signUpData: SignUpData
+    
+    /// Set of selected cuisine preferences.
     @State private var selectedCuisines: Set<String> = []
+    
+    /// Environment property to access presentation mode for dismissing the view.
     @Environment(\.presentationMode) var presentationMode
+    
+    /// Controls navigation to the next sign-up view.
     @State private var navigateToSignUpView3 = false
 
+    /// List of cuisine options that users can select from.
     private let cuisines = [
         "American",
         "Chinese",
@@ -29,7 +41,10 @@ struct SignUpView2: View {
         "Vietnamese"
     ]
 
+    /// Color used for highlighting selected items.
     private let orangeHighlight = Color(red: 254/255, green: 215/255, blue: 170/255)
+    
+    /// Color used for the main button.
     private let orangeButton = Color(red: 253/255, green: 186/255, blue: 116/255)
 
     var body: some View {
@@ -130,6 +145,9 @@ struct SignUpView2: View {
         }
     }
 
+    /// Toggles the selection state of a cuisine preference.
+    ///
+    /// - Parameter cuisine: The cuisine option to toggle.
     private func toggleSelection(_ cuisine: String) {
         if selectedCuisines.contains(cuisine) {
             selectedCuisines.remove(cuisine)
@@ -139,10 +157,20 @@ struct SignUpView2: View {
     }
 }
 
+/// A view representing an individual cuisine option item in the list.
+///
+/// This item displays the cuisine name and visual indicators for selection state.
 struct CuisineListItem: View {
+    /// The name of the cuisine.
     let title: String
+    
+    /// Whether this cuisine is currently selected.
     let isSelected: Bool
+    
+    /// The background color to use when the item is selected.
     let orangeHighlight: Color
+    
+    /// Closure to execute when the item is tapped.
     let onTap: () -> Void
 
     var body: some View {

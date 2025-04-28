@@ -7,28 +7,60 @@
 
 import SwiftUI
 
+/// A view that collects user personal information during sign-up.
+///
+/// This is the final step in the multi-step sign-up flow, where users enter
+/// their personal information to complete account creation.
 struct SignUpView3: View {
+    /// Shared data model containing user information collected during sign-up.
     @ObservedObject var signUpData: SignUpData
+    
+    /// The user's first name.
     @State private var first_name: String = ""
+    
+    /// The user's last name.
     @State private var last_name: String = ""
+    
+    /// The user's age.
     @State private var age: String = ""
+    
+    /// The user's username.
     @State private var username: String = ""
+    
+    /// The user's email address.
     @State private var email: String = ""
+    
+    /// The user's password.
     @State private var password: String = ""
+    
+    /// Value for password confirmation.
     @State private var confirmPassword: String = ""
+    
+    /// Whether the user has agreed to terms and conditions.
     @State private var agreedToTerms: Bool = false
+    
+    /// Environment property to access presentation mode for dismissing the view.
     @Environment(\.presentationMode) var presentationMode
+    
+    /// Controls navigation back to the root view after successful signup.
     @State private var navigateToRoot = false
     
-    // Add state variables for validation
+    /// Indicates if passwords match during validation.
     @State private var passwordsMatch: Bool = true
+    
+    /// Controls display of password mismatch alert.
     @State private var showPasswordMismatchAlert: Bool = false
     
-    // Add state variables for successful signup notification
+    /// Controls display of signup success alert.
     @State private var showSignupSuccessAlert: Bool = false
+    
+    /// Message content for the signup success alert.
     @State private var signupSuccessMessage: String = ""
 
+    /// Color used for highlighting selected items.
     private let orangeHighlight = Color(red: 254/255, green: 215/255, blue: 170/255)
+    
+    /// Color used for the main button.
     private let orangeButton = Color(red: 253/255, green: 186/255, blue: 116/255)
 
     var body: some View {
@@ -173,7 +205,9 @@ struct SignUpView3: View {
         }
     }
     
-    // Function to validate that passwords match
+    /// Validates that the password and confirmation password match.
+    ///
+    /// - Returns: A boolean indicating whether the passwords match.
     private func validatePasswords() -> Bool {
         if password.isEmpty && confirmPassword.isEmpty {
             // Both empty, don't show error yet
@@ -186,6 +220,10 @@ struct SignUpView3: View {
         return match
     }
 
+    /// Sends sign-up data to the backend API.
+    ///
+    /// This method first hashes the password for security, then creates a payload with all the
+    /// user information and makes an API request to create the new user account.
     private func sendSignUpData() {
         guard let hashURL = URL(string: "https://api.algobook.info/v1/crypto/hash?plain=\(password)") else {
             print("Invalid hashing URL")
@@ -258,7 +296,10 @@ struct SignUpView3: View {
         }.resume()
     }
 
-
+    /// Recursively finds a navigation controller in the view controller hierarchy.
+    ///
+    /// - Parameter viewController: The root view controller to start the search from.
+    /// - Returns: A navigation controller if one is found, nil otherwise.
     private func findNavigationController(from viewController: UIViewController) -> UINavigationController? {
         if let nav = viewController as? UINavigationController {
             return nav

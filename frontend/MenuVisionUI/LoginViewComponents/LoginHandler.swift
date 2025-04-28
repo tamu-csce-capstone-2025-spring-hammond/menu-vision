@@ -7,11 +7,28 @@
 
 import Foundation
 
+/// A singleton class that handles user authentication operations for the MenuVision app.
+///
+/// LoginHandler provides methods for validating user credentials, fetching AWS credentials
+/// after successful login, and retrieving stored AWS credentials from UserDefaults.
 class LoginHandler {
+    /// The shared singleton instance of the LoginHandler.
     static let shared = LoginHandler()
     
+    /// Private initializer to ensure singleton pattern.
     private init() {}
     
+    /// Validates user login credentials against the backend API.
+    ///
+    /// This method sends the user's email and password to the authentication endpoint,
+    /// processes the response, and handles storing user ID in UserDefaults if "remember me" is enabled.
+    ///
+    /// - Parameters:
+    ///   - email: The user's email address.
+    ///   - password: The user's password.
+    ///   - rememberMe: Boolean indicating if the user's login should be persisted.
+    ///   - completion: A closure that receives login success status, optional error message, and optional user ID.
+    ///                 Called on the main thread when authentication completes.
     func validateLogin(email: String, password: String, rememberMe: Bool, completion: @escaping (Bool, String?, Int?) -> Void) {
         let payload = [
             "email": email,
@@ -69,9 +86,13 @@ class LoginHandler {
         }
     }
     
+    /// Fetches AWS credentials from the backend and stores them in UserDefaults.
+    ///
+    /// Called automatically after successful login to ensure the app has access to
+    /// required AWS credentials for S3 operations.
     func fetchAWSCredentials() {
         API.shared.request(
-            endpoint: "general/keys", 
+            endpoint: "general/keys",
             method: "GET"
         ) { result in
             switch result {
@@ -96,7 +117,12 @@ class LoginHandler {
         }
     }
     
-    // Helper function to get AWS credentials from UserDefaults
+    /// Retrieves AWS credentials previously stored in UserDefaults.
+    ///
+    /// This helper method provides a convenient way to access the AWS access key and secret key
+    /// as a tuple, ensuring both values are available.
+    ///
+    /// - Returns: A tuple containing the access key and secret key, or nil if either is missing.
     func getAWSCredentials() -> (accessKey: String, secretKey: String)? {
         guard let accessKey = UserDefaults.standard.string(forKey: "AWS_ACCESS_KEY"),
               let secretKey = UserDefaults.standard.string(forKey: "AWS_SECRET_KEY") else {

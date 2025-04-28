@@ -7,9 +7,15 @@
 
 import SwiftUI
 
+/// A view that provides options for users to either log in or sign up for the app.
+///
+/// This view serves as the initial navigation screen for unauthenticated users,
+/// offering navigation paths to either the sign-up flow or the login screen.
 struct SignUpAndInView: View {
+    /// Navigation path for handling navigation between views.
     @State private var navigationPath = NavigationPath()
-//    @Binding var isLoggedIn: Bool
+    
+    /// Access to the shared user state view model.
     @EnvironmentObject var vm: UserStateViewModel
 
 
@@ -121,6 +127,9 @@ struct SignUpAndInView: View {
         }
     }
 
+    /// Creates an attributed string for the sign-up text with different styling for different parts.
+    ///
+    /// - Returns: An AttributedString with "DON'T HAVE AN ACCOUNT?" in gray and "SIGN UP" in orange.
     private func attributedSignUpText() -> AttributedString {
         var noAccountText = AttributedString("DON'T HAVE AN ACCOUNT? ")
         noAccountText.foregroundColor = Color(red: 0.63, green: 0.64, blue: 0.7)

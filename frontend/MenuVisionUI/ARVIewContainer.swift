@@ -4,6 +4,13 @@ import ARKit
 import AVFoundation
 import Vision
 
+/// A model that represents a 3D object placed in AR space.
+/// - Parameters:
+///   - model: The 3D model entity.
+///   - anchor: The anchor entity that positions the model in AR space.
+///   - mealID: The identifier for the associated meal.
+///   - labelled: Whether the model has a text label attached.
+///   - atRest: Whether the model has stopped moving and been oriented properly.
 struct PresentModel{
     var model: ModelEntity
     var anchor: AnchorEntity
@@ -12,36 +19,51 @@ struct PresentModel{
     var atRest: Bool;
 }
 
+/// Array of all models currently displayed in the AR scene.
 var presentModels: [PresentModel] = [];
 
+/// Flag indicating whether a ground plane has been created for physics collision.
 private var grounded: Bool = false;
 
+/// The index of the currently selected model in the modelMap.
 var modelIndex: Int = 0;
 
+/// Determines the placement mode for models.
+/// - When false: Models replace each other at the same location (casual mode).
+/// - When true: Multiple models can be placed in the scene (freestyle mode).
 var freestyleMode : Bool = false;
 
+/// Flag indicating whether at least one model has been placed in the scene.
 var modelPlaced: Bool = false;
 
+/// Reference to the active ARView instance.
 var viewer: ARView!;
 
+/// Maps indices to model ID and name pairs.
+/// Key: Index for selection
+/// Value: (model_id, dish_name) tuple
 private var modelMap: [Int: (String, String)] = [:]
 
+/// Clears all models from the AR scene and resets scene state.
 func resetScene(){
     modelPlaced = false;
     viewer.scene.anchors.removeAll();
     presentModels.removeAll();
 }
 
+/// Extension to convert a transformation matrix to a translation vector.
 extension simd_float4x4 {
+    /// Extracts the translation component from a 4x4 transformation matrix.
+    /// - Returns: A 3D vector representing the translation.
     func toTranslation() -> SIMD3<Float> {
         return SIMD3<Float>(columns.3.x, columns.3.y, columns.3.z);
     }
 }
 
-//add AR coaching implementation
-//when user first starts up app (or AR render view) this will pop up directing the user to move their phone around
-//along a surface until a flat surface for anchoring is discovered
+/// Extension to add AR coaching overlay to ARView.
+/// The coaching overlay guides users to move their device to detect horizontal surfaces.
 extension ARView: ARCoachingOverlayViewDelegate {
+    /// Adds and configures an AR coaching overlay to help users find surfaces.
     func addCoaching() {
         print("Model Index: ",modelIndex);
         let coacher = ARCoachingOverlayView(frame: self.bounds);
@@ -59,17 +81,23 @@ extension ARView: ARCoachingOverlayViewDelegate {
     }
 }
 
-//for some reason the mod can go negative here so I added the count again to ensure its positive
+/// Decrements the model index with wrap-around behavior.
+/// Ensures the index stays positive by adding modelMap.count.
 func decModel(){
     modelIndex = (modelIndex - 1 + modelMap.count) % modelMap.count;
 }
 
+/// Increments the model index with wrap-around behavior.
 func incModel(){
     modelIndex = (modelIndex + 1 + modelMap.count) % modelMap.count;
 }
 
+/// Manages the ARView state and model selection.
 class ARViewManager: ObservableObject {
     
+    /// Changes to a specific model by index.
+    /// In non-freestyle mode, this also replaces the currently placed model.
+    /// - Parameter index: The index of the model to select.
     func changeModel(index: Int) {
         modelIndex = index;
         
@@ -78,6 +106,7 @@ class ARViewManager: ObservableObject {
         }
     }
     
+    /// Decrements the model index and updates the displayed model in non-freestyle mode.
     func decrementModel() {
         decModel();
         
@@ -86,6 +115,7 @@ class ARViewManager: ObservableObject {
         }
     }
     
+    /// Increments the model index and updates the displayed model in non-freestyle mode.
     func incrementModel() {
         incModel();
         
@@ -94,11 +124,15 @@ class ARViewManager: ObservableObject {
         }
     }
     
+    /// Returns the current model index.
+    /// - Returns: The index of the currently selected model.
     func currentIndex() -> Int {
         
         return modelIndex;
     }
     
+    /// Gets the model ID string for the currently selected model.
+    /// - Returns: The model ID string, or an empty string if no model is selected.
     func getCurrentModelID() -> String {
         if let model = modelMap[modelIndex] {
             let modelName = model.0;
@@ -109,6 +143,8 @@ class ARViewManager: ObservableObject {
         }
     }
     
+    /// Gets the display name for the currently selected model.
+    /// - Returns: The human-readable name of the model, or an empty string if no model is selected.
     func getCurrentModelName() -> String {
         if let model = modelMap[modelIndex] {
             let modelName = model.1;
@@ -119,16 +155,21 @@ class ARViewManager: ObservableObject {
         }
     }
     
+    /// Returns the entire model map dictionary.
+    /// - Returns: A dictionary mapping indices to model ID and name pairs.
     func getModelMap() -> [Int: (String, String)] {
         return modelMap;
     }
     
+    /// Toggles between freestyle and casual placement modes.
+    /// Resets the scene when the mode changes.
     func modeSwitch() {
         freestyleMode.toggle();
         
         resetScene();
     }
     
+    /// Resets the AR scene, clearing all placed models.
     func reset(){
         resetScene();
     }
@@ -136,14 +177,18 @@ class ARViewManager: ObservableObject {
 }
 
 
+/// A SwiftUI view that wraps RealityKit's ARView for AR content display.
 struct ARViewContainer: UIViewRepresentable {
     
+    /// The view manager that controls AR model selection and placement.
     @ObservedObject var viewManager: ARViewManager
     
+    /// The shared data model containing all available dish models.
     @EnvironmentObject var dishMapping: DishMapping
     
-    //@Binding var setUpComplete: Bool
-    
+    /// Creates the ARView and configures it for use.
+    /// - Parameter context: The context in which this view representable will operate.
+    /// - Returns: A configured ARView instance.
     func makeUIView(context: Context) -> ARView {
         
         //fill the model map
@@ -219,32 +264,52 @@ struct ARViewContainer: UIViewRepresentable {
         return arView;
     }
     
+    /// Cleans up the ARView when it's no longer needed.
+    /// - Parameters:
+    ///   - uiView: The ARView to clean up.
+    ///   - coordinator: The coordinator managing the ARView.
     static func dismantleUIView(_ uiView: ARView, coordinator: Coordinator) {
         print("Ending AR");
         uiView.session.pause()
     }
 
+    /// Updates the ARView when SwiftUI updates.
+    /// - Parameters:
+    ///   - uiView: The ARView to update.
+    ///   - context: The context for the update.
     func updateUIView(_ uiView: ARView, context: Context) {
         //context.coordinator.sz = sz;
         
     }
 
+    /// Creates a coordinator to manage the ARView and handle gestures.
+    /// - Returns: A new coordinator instance.
     func makeCoordinator() -> Coordinator {
         Coordinator(self);
     }
     
 
+    /// Coordinates between SwiftUI and ARKit, managing the AR session and handling user interactions.
     class Coordinator: NSObject, ARSessionDelegate {
+        /// Reference to the parent ARViewContainer.
         var parent: ARViewContainer;
+        /// Weak reference to the ARView to prevent retain cycles.
         weak var arView: ARView?;
         
+        /// Request for hand pose detection using Vision framework.
         private var handPose = VNDetectHumanHandPoseRequest();
 
+        /// Initializes a new coordinator with a reference to its parent container.
+        /// - Parameter parent: The ARViewContainer that owns this coordinator.
         init(_ parent: ARViewContainer) {
             self.parent = parent;
         }
         
-        //callback called every frame
+        /// Processes each frame update from the AR session.
+        /// Updates label positions and checks if models have come to rest.
+        /// - Parameters:
+        ///   - session: The AR session providing the update.
+        ///   - frame: The current AR frame.
         func session(_ session: ARSession, didUpdate frame: ARFrame) {
             //let frameCapture = frame.capturedImage;
             //trackHand(in: frameCapture);
@@ -283,7 +348,8 @@ struct ARViewContainer: UIViewRepresentable {
            }
         }
         
-        //take in a frame capture and use computer vision to seek out hand positions and gestures
+        /// Analyzes a frame to detect hand poses for gesture control.
+        /// - Parameter frameCapture: The pixel buffer containing the camera frame.
         func trackHand(in frameCapture: CVPixelBuffer) {
             let handler = VNImageRequestHandler(cvPixelBuffer: frameCapture, options: [:]);
             do {
@@ -319,6 +385,8 @@ struct ARViewContainer: UIViewRepresentable {
             }
         }
         
+        /// Handles swipe gestures to change models.
+        /// - Parameter gesture: The swipe gesture recognizer.
         @objc func handleSwipe(_ gesture: UISwipeGestureRecognizer) {
             
             //toggle models upon swipe
@@ -327,6 +395,8 @@ struct ARViewContainer: UIViewRepresentable {
             
         }
 
+        /// Handles tap gestures for placing models and toggling labels.
+        /// - Parameter gesture: The tap gesture recognizer.
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let arView = arView else { return }
             
@@ -452,6 +522,8 @@ struct ARViewContainer: UIViewRepresentable {
             
         }
         
+        /// Handles long press gestures for removing models.
+        /// - Parameter gesture: The long press gesture recognizer.
         @objc func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
             guard let arView = arView else { return }
             
@@ -531,6 +603,10 @@ struct ARViewContainer: UIViewRepresentable {
            
         }
         
+        /// Places a 3D model at the specified position in the AR scene.
+        /// - Parameters:
+        ///   - raycastResult: The result of the raycast that detected a surface.
+        ///   - arView: The ARView in which to place the model.
         func placeModel(from raycastResult: ARRaycastResult, in arView: ARView) {
             do {
                 //set up light
@@ -605,6 +681,8 @@ struct ARViewContainer: UIViewRepresentable {
     }
 }
 
+/// Replaces the currently displayed model with a new one in casual mode.
+/// This function is called when the user swipes or selects a different model.
 func swapModel(){
     
     //can only be done after a model has been placed in the past and an anchor exists
@@ -645,6 +723,8 @@ func swapModel(){
     
 }
 
+/// Creates a new 3D model entity for the currently selected meal.
+/// - Returns: A ModelEntity configured with physics properties for AR interaction.
 func createModel() -> ModelEntity{
     
     do{

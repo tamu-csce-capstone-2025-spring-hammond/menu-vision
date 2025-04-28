@@ -7,13 +7,45 @@
 
 import SwiftUI
 
+/// A customizable input field component with optional trailing icon
+///
+/// This component provides a styled text field with title, placeholder, and optional trailing icon.
+/// It supports both regular and secure text fields.
+///
+/// Example usage:
+/// ```
+/// @State private var email = ""
+///
+/// InputField1(
+///     title: "Email",
+///     placeholder: "Enter your email",
+///     text: $email
+/// )
+/// ```
 struct InputField1<TrailingContent: View>: View {
+    /// The title displayed above the text field
     let title: String
+    
+    /// Placeholder text shown when the field is empty
     let placeholder: String
+    
+    /// Binding to the input text value
     @Binding var text: String
+    
+    /// Whether this is a secure text field (password field)
     var isSecure: Bool = false
+    
+    /// Optional trailing icon to display inside the field
     var trailingIcon: (() -> TrailingContent)?
 
+    /// Initializes an InputField1 with optional trailing icon
+    ///
+    /// - Parameters:
+    ///   - title: The title displayed above the text field
+    ///   - placeholder: Placeholder text shown when the field is empty
+    ///   - text: Binding to the input text value
+    ///   - isSecure: Whether this is a secure text field (password field)
+    ///   - trailingIcon: Optional trailing icon to display inside the field
     init(
         title: String,
         placeholder: String,
@@ -28,6 +60,7 @@ struct InputField1<TrailingContent: View>: View {
         self.trailingIcon = trailingIcon
     }
 
+    /// The body of the input field view
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
@@ -63,7 +96,9 @@ struct InputField1<TrailingContent: View>: View {
     }
 }
 
+/// Preview provider for InputField1
 struct InputFieldView_Previews: PreviewProvider {
+    /// Generate previews showing different configurations
     static var previews: some View {
         VStack {
             InputField1(
