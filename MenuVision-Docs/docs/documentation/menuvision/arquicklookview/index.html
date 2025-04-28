@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    
+    <title>ARQuickLookView| Documentation</title>
+    
+    <link rel="icon"       href="../../../favicon.ico" />
+    <link rel="mask-icon"  href="../../../favicon.svg" color="#333333" />
+    <link rel='stylesheet' href='../../../css/site.css' />
+    <style>
+      @import "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/styles/default.min.css" screen;
+      @import "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/styles/dark.min.css" screen and (prefers-color-scheme: dark);
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/languages/swift.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <div class="doc-topic">
+        <nav role="navigation" class="nav documentation-nav">
+  <div class="nav__wrapper">
+    <div class="nav__background"></div>
+    <div class="nav-content">
+      <div class="nav-title">
+        <span class="nav-title-link inactive">Documentation</span>
+      </div>
+      <div class="nav-menu">
+        <div class="nav-menu-tray">
+          <ul class="nav-menu-items hierarchy">
+            
+              <li class="nav-menu-item hierarchy-item">
+                
+                
+                  <a href="../index.html" class="item">MenuVision</a>
+                
+              </li>
+            
+              <li class="nav-menu-item hierarchy-item">
+                
+                  <span class="current item">ARQuickLookView</span>
+                
+                
+              </li>
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main id="main" role="main" class="main">
+  <div class="topictitle">
+  <span class="eyebrow">Structure</span>
+  <h1 class="title">ARQuickLookView</h1>
+</div>
+
+  <div class="container content-grid">
+  <div class="description">
+    <div class="abstract content">
+      A SwiftUI wrapper view that presents a 3D model in AR Quick Look using <code>QLPreviewController</code>.
+    </div>
+  </div>
+  
+  <!-- The sidebar once we have one: <div class="summary"></div> -->
+  
+  <div class="primary-content">
+    <section id='declaration' class='declaration'>
+  <h2>Declaration</h2>
+  <div class='declaration-group'>
+    <pre class='source indented'><code class='language-swift'><span class='token-attribute'>@</span><span class='token-attribute'>MainActor</span> <span class='token-keyword'>struct</span> <span class='token-identifier'>ARQuickLookView</span></code></pre>
+  </div>
+</section>
+
+  </div>
+</div>
+
+  
+  <section id='topics' class='contenttable alt-light'>
+  <div class='container'>
+    <h2 class='title'>Topics</h2>
+
+    
+      <div class="row contenttable-section">
+        <div class="col section-title large-3 medium-3 small-12">
+          <h3 class="title">Classes</h3>
+        </div>
+  
+        <div class="col section-content large-9 medium-9 small-12">
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/arquicklookview/coordinator/index.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>class</span><span class='decorator empty-token'> </span><span class='identifier'>Coordinator</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">Coordinator class that serves as both delegate and data source for Quick Look preview.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/arquicklookview/qlpreviewcontrollerwrapper/index.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>class</span><span class='decorator empty-token'> </span><span class='identifier'>QLPreviewControllerWrapper</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">A UIKit wrapper around <code>QLPreviewController</code> that ensures it is presented once when the view appears.</div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+    
+      <div class="row contenttable-section">
+        <div class="col section-title large-3 medium-3 small-12">
+          <h3 class="title">Initializers</h3>
+        </div>
+  
+        <div class="col section-content large-9 medium-9 small-12">
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/arquicklookview/init(modelfile:endcapturecallback:).html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='identifier'>init</span><span class='decorator'>(</span><span class='decorator'>modelFile</span><span class='decorator'>: </span><span class='decorator'>URL</span><span class='decorator'>, </span><span class='decorator'>endCaptureCallback</span><span class='decorator'>: () -&gt; </span><span class='decorator'>Void</span><span class='decorator'>)</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content"></div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+    
+      <div class="row contenttable-section">
+        <div class="col section-title large-3 medium-3 small-12">
+          <h3 class="title">Instance Properties</h3>
+        </div>
+  
+        <div class="col section-content large-9 medium-9 small-12">
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/arquicklookview/endcapturecallback.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>let</span><span class='decorator empty-token'> </span><span class='identifier'>endCaptureCallback</span><span class='decorator'>: () -&gt; </span><span class='decorator'>Void</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">A callback triggered when the Quick Look preview is dismissed.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/arquicklookview/modelfile.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>let</span><span class='decorator empty-token'> </span><span class='identifier'>modelFile</span><span class='decorator'>: </span><span class='decorator'>URL</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">The URL of the 3D model file to preview.</div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+    
+      <div class="row contenttable-section">
+        <div class="col section-title large-3 medium-3 small-12">
+          <h3 class="title">Instance Methods</h3>
+        </div>
+  
+        <div class="col section-content large-9 medium-9 small-12">
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/arquicklookview/makecoordinator().html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>func</span><span class='decorator empty-token'> </span><span class='identifier'>makeCoordinator</span><span class='decorator'>() -&gt; </span><span class='decorator'>Coordinator</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">Creates the coordinator that acts as the data source and delegate for <code>QLPreviewController</code>.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/arquicklookview/makeuiviewcontroller(context:).html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>func</span><span class='decorator empty-token'> </span><span class='identifier'>makeUIViewController</span><span class='decorator'>(</span><span class='decorator'>context</span><span class='decorator'>: </span><span class='decorator'>Context</span><span class='decorator'>) -&gt; </span><span class='decorator'>QLPreviewControllerWrapper</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">Creates the <code>QLPreviewControllerWrapper</code> to present the Quick Look preview.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/arquicklookview/updateuiviewcontroller(_:context:).html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>func</span><span class='decorator empty-token'> </span><span class='identifier'>updateUIViewController</span><span class='decorator'>(</span><span class='decorator'>QLPreviewControllerWrapper</span><span class='decorator'>, </span><span class='decorator'>context</span><span class='decorator'>: </span><span class='decorator'>Context</span><span class='decorator'>)</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">Updates the UIKit controller (not used here since Quick Look does not dynamically update).</div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+    
+      <div class="row contenttable-section">
+        <div class="col section-title large-3 medium-3 small-12">
+          <h3 class="title">Default Implementations</h3>
+        </div>
+  
+        <div class="col section-content large-9 medium-9 small-12">
+          
+            <div class="link-block topic">
+              
+              
+                <a href="../../../documentation/menuvision/arquicklookview/uiviewcontrollerrepresentable-implementations.html" class="link has-adjacent-elements">
+                  <span class="topic-icon-wrapper">&nbsp;</span>
+                  UIViewControllerRepresentable Implementations
+                </a>
+              
+              <div class="abstract">
+                <div class="content"></div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+              
+                <a href="../../../documentation/menuvision/arquicklookview/view-implementations.html" class="link has-adjacent-elements">
+                  <span class="topic-icon-wrapper">&nbsp;</span>
+                  View Implementations
+                </a>
+              
+              <div class="abstract">
+                <div class="content"></div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+    
+  </div>
+</section>
+
+  
+</main>
+
+      </div>
+    </div>
+    <footer class="footer"></footer>
+    <script>hljs.highlightAll();</script>
+  </body>
+</html>

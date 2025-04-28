@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    
+    <title>DishData| Documentation</title>
+    
+    <link rel="icon"       href="../../../favicon.ico" />
+    <link rel="mask-icon"  href="../../../favicon.svg" color="#333333" />
+    <link rel='stylesheet' href='../../../css/site.css' />
+    <style>
+      @import "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/styles/default.min.css" screen;
+      @import "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/styles/dark.min.css" screen and (prefers-color-scheme: dark);
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/languages/swift.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <div class="doc-topic">
+        <nav role="navigation" class="nav documentation-nav">
+  <div class="nav__wrapper">
+    <div class="nav__background"></div>
+    <div class="nav-content">
+      <div class="nav-title">
+        <span class="nav-title-link inactive">Documentation</span>
+      </div>
+      <div class="nav-menu">
+        <div class="nav-menu-tray">
+          <ul class="nav-menu-items hierarchy">
+            
+              <li class="nav-menu-item hierarchy-item">
+                
+                
+                  <a href="../index.html" class="item">MenuVision</a>
+                
+              </li>
+            
+              <li class="nav-menu-item hierarchy-item">
+                
+                  <span class="current item">DishData</span>
+                
+                
+              </li>
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main id="main" role="main" class="main">
+  <div class="topictitle">
+  <span class="eyebrow">Structure</span>
+  <h1 class="title">DishData</h1>
+</div>
+
+  <div class="container content-grid">
+  <div class="description">
+    <div class="abstract content">
+      A model representing dish information retrieved from the backend API.
+    </div>
+  </div>
+  
+  <!-- The sidebar once we have one: <div class="summary"></div> -->
+  
+  <div class="primary-content">
+    <section id='declaration' class='declaration'>
+  <h2>Declaration</h2>
+  <div class='declaration-group'>
+    <pre class='source indented'><code class='language-swift'><span class='token-keyword'>struct</span> <span class='token-identifier'>DishData</span></code></pre>
+  </div>
+</section>
+<div class='content'><h2 id='overview'>Overview</h2><p>This struct contains all the metadata for a dish that has an associated AR model, including basic information like name, description, and price, as well as AR-specific fields like model_id and model_rating.</p></div>
+  </div>
+</div>
+
+  
+  <section id='topics' class='contenttable alt-light'>
+  <div class='container'>
+    <h2 class='title'>Topics</h2>
+
+    
+      <div class="row contenttable-section">
+        <div class="col section-title large-3 medium-3 small-12">
+          <h3 class="title">Initializers</h3>
+        </div>
+  
+        <div class="col section-content large-9 medium-9 small-12">
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/dishdata/init(dish_id:dish_name:description:ingredients:price:nutritional_info:allergens:model_id:model_rating:).html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='identifier'>init</span><span class='decorator'>(</span><span class='decorator'>dish_id</span><span class='decorator'>: </span><span class='decorator'>Int</span><span class='decorator'>, </span><span class='decorator'>dish_name</span><span class='decorator'>: </span><span class='decorator'>String</span><span class='decorator'>, </span><span class='decorator'>description</span><span class='decorator'>: </span><span class='decorator'>String</span><span class='decorator'>, </span><span class='decorator'>ingredients</span><span class='decorator'>: </span><span class='decorator'>String</span><span class='decorator'>, </span><span class='decorator'>price</span><span class='decorator'>: </span><span class='decorator'>String</span><span class='decorator'>, </span><span class='decorator'>nutritional_info</span><span class='decorator'>: </span><span class='decorator'>String</span><span class='decorator'>, </span><span class='decorator'>allergens</span><span class='decorator'>: </span><span class='decorator'>String</span><span class='decorator'>, </span><span class='decorator'>model_id</span><span class='decorator'>: </span><span class='decorator'>String</span><span class='decorator'>, </span><span class='decorator'>model_rating</span><span class='decorator'>: </span><span class='decorator'>Double</span><span class='decorator'>)</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content"></div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/dishdata/init(from:).html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='identifier'>init</span><span class='decorator'>(</span><span class='decorator'>from</span><span class='decorator'>: any </span><span class='decorator'>Decoder</span><span class='decorator'>) </span><span class='decorator'>throws</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content"></div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+    
+      <div class="row contenttable-section">
+        <div class="col section-title large-3 medium-3 small-12">
+          <h3 class="title">Instance Properties</h3>
+        </div>
+  
+        <div class="col section-content large-9 medium-9 small-12">
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/dishdata/allergens.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>let</span><span class='decorator empty-token'> </span><span class='identifier'>allergens</span><span class='decorator'>: </span><span class='decorator'>String</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">A comma-separated list of allergens present in the dish.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/dishdata/description.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>let</span><span class='decorator empty-token'> </span><span class='identifier'>description</span><span class='decorator'>: </span><span class='decorator'>String</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">A detailed description of the dish.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/dishdata/dish_id.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>let</span><span class='decorator empty-token'> </span><span class='identifier'>dish_id</span><span class='decorator'>: </span><span class='decorator'>Int</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">The unique identifier for the dish.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/dishdata/dish_name.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>let</span><span class='decorator empty-token'> </span><span class='identifier'>dish_name</span><span class='decorator'>: </span><span class='decorator'>String</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">The name of the dish.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/dishdata/ingredients.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>let</span><span class='decorator empty-token'> </span><span class='identifier'>ingredients</span><span class='decorator'>: </span><span class='decorator'>String</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">A comma-separated list of ingredients in the dish.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/dishdata/model_id.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>let</span><span class='decorator empty-token'> </span><span class='identifier'>model_id</span><span class='decorator'>: </span><span class='decorator'>String</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">The unique identifier for the AR model associated with this dish.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/dishdata/model_rating.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>let</span><span class='decorator empty-token'> </span><span class='identifier'>model_rating</span><span class='decorator'>: </span><span class='decorator'>Double</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">A rating score for the AR model, used for sorting and quality indication.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/dishdata/nutritional_info.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>let</span><span class='decorator empty-token'> </span><span class='identifier'>nutritional_info</span><span class='decorator'>: </span><span class='decorator'>String</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">Nutritional information for the dish.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/dishdata/price.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>let</span><span class='decorator empty-token'> </span><span class='identifier'>price</span><span class='decorator'>: </span><span class='decorator'>String</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">The price of the dish, stored as a string to handle various formats.</div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+    
+      <div class="row contenttable-section">
+        <div class="col section-title large-3 medium-3 small-12">
+          <h3 class="title">Enumerations</h3>
+        </div>
+  
+        <div class="col section-content large-9 medium-9 small-12">
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/dishdata/codingkeys/index.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>enum</span><span class='decorator empty-token'> </span><span class='identifier'>CodingKeys</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">Coding keys to map between JSON property names and struct property names.</div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+    
+  </div>
+</section>
+
+  
+</main>
+
+      </div>
+    </div>
+    <footer class="footer"></footer>
+    <script>hljs.highlightAll();</script>
+  </body>
+</html>

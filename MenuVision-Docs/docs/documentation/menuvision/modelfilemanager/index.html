@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    
+    <title>ModelFileManager| Documentation</title>
+    
+    <link rel="icon"       href="../../../favicon.ico" />
+    <link rel="mask-icon"  href="../../../favicon.svg" color="#333333" />
+    <link rel='stylesheet' href='../../../css/site.css' />
+    <style>
+      @import "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/styles/default.min.css" screen;
+      @import "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/styles/dark.min.css" screen and (prefers-color-scheme: dark);
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.0.1/languages/swift.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <div class="doc-topic">
+        <nav role="navigation" class="nav documentation-nav">
+  <div class="nav__wrapper">
+    <div class="nav__background"></div>
+    <div class="nav-content">
+      <div class="nav-title">
+        <span class="nav-title-link inactive">Documentation</span>
+      </div>
+      <div class="nav-menu">
+        <div class="nav-menu-tray">
+          <ul class="nav-menu-items hierarchy">
+            
+              <li class="nav-menu-item hierarchy-item">
+                
+                
+                  <a href="../index.html" class="item">MenuVision</a>
+                
+              </li>
+            
+              <li class="nav-menu-item hierarchy-item">
+                
+                  <span class="current item">ModelFileManager</span>
+                
+                
+              </li>
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main id="main" role="main" class="main">
+  <div class="topictitle">
+  <span class="eyebrow">Class</span>
+  <h1 class="title">ModelFileManager</h1>
+</div>
+
+  <div class="container content-grid">
+  <div class="description">
+    <div class="abstract content">
+      A singleton class that manages 3D model files, including downloading, storage, and cleanup.
+    </div>
+  </div>
+  
+  <!-- The sidebar once we have one: <div class="summary"></div> -->
+  
+  <div class="primary-content">
+    <section id='declaration' class='declaration'>
+  <h2>Declaration</h2>
+  <div class='declaration-group'>
+    <pre class='source indented'><code class='language-swift'><span class='token-keyword'>class</span> <span class='token-identifier'>ModelFileManager</span></code></pre>
+  </div>
+</section>
+<div class='content'><h2 id='overview'>Overview</h2><p>This class handles the transfer of 3D model files between AWS S3 storage and the local device filesystem. It provides methods to download all models for a restaurant and clear local storage when needed.</p></div>
+  </div>
+</div>
+
+  
+  <section id='topics' class='contenttable alt-light'>
+  <div class='container'>
+    <h2 class='title'>Topics</h2>
+
+    
+      <div class="row contenttable-section">
+        <div class="col section-title large-3 medium-3 small-12">
+          <h3 class="title">Instance Methods</h3>
+        </div>
+  
+        <div class="col section-content large-9 medium-9 small-12">
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/modelfilemanager/asyncdownload(keys:dishmapping:).html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>func</span><span class='decorator empty-token'> </span><span class='identifier'>asyncDownload</span><span class='decorator'>(</span><span class='decorator'>keys</span><span class='decorator'>: [</span><span class='decorator'>String</span><span class='decorator'>], </span><span class='decorator'>dishMapping</span><span class='decorator'>: </span><span class='decorator'>DishMapping</span><span class='decorator'>) </span><span class='decorator'>async</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">Asynchronously downloads multiple files from S3 to local storage.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/modelfilemanager/clearanddownloadfiles(for:dishmapping:).html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>func</span><span class='decorator empty-token'> </span><span class='identifier'>clearAndDownloadFiles</span><span class='decorator'>(</span><span class='decorator'>for</span><span class='decorator'>: </span><span class='decorator'>String</span><span class='decorator'>, </span><span class='decorator'>dishMapping</span><span class='decorator'>: </span><span class='decorator'>DishMapping</span><span class='decorator'>) </span><span class='decorator'>async</span><span class='decorator'> -&gt; [</span><span class='decorator'>DishData</span><span class='decorator'>]</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">Clears all local files and downloads model files for a specific restaurant.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/modelfilemanager/fetchmodelkeysandmodelsfromapi(restaurantid:).html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>func</span><span class='decorator empty-token'> </span><span class='identifier'>fetchModelKeysAndModelsFromAPI</span><span class='decorator'>(</span><span class='decorator'>restaurantID</span><span class='decorator'>: </span><span class='decorator'>String</span><span class='decorator'>) </span><span class='decorator'>async</span><span class='decorator'> -&gt; ([</span><span class='decorator'>String</span><span class='decorator'>], [</span><span class='decorator'>DishData</span><span class='decorator'>])</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">Fetches model keys and data from the API for a specific restaurant.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/modelfilemanager/listallfilesindocumentsdirectory().html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>func</span><span class='decorator empty-token'> </span><span class='identifier'>listAllFilesInDocumentsDirectory</span><span class='decorator'>()</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">Lists all files in the app’s documents directory.</div>
+              </div>
+            </div>
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/modelfilemanager/removeallfiles().html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>func</span><span class='decorator empty-token'> </span><span class='identifier'>removeAllFiles</span><span class='decorator'>() </span><span class='decorator'>async</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">Removes all files from the app’s documents directory.</div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+    
+      <div class="row contenttable-section">
+        <div class="col section-title large-3 medium-3 small-12">
+          <h3 class="title">Type Properties</h3>
+        </div>
+  
+        <div class="col section-content large-9 medium-9 small-12">
+          
+            <div class="link-block topic">
+              
+                <a href="../../../documentation/menuvision/modelfilemanager/shared.html" class="link has-adjacent-elements">
+                  <code class="decorated-title"><span class='decorator'>static</span><span class='decorator empty-token'> </span><span class='decorator'>let</span><span class='decorator empty-token'> </span><span class='identifier'>shared</span><span class='decorator'>: </span><span class='decorator'>ModelFileManager</span></code>
+                </a>
+              
+              
+              <div class="abstract">
+                <div class="content">The shared singleton instance of ModelFileManager.</div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+    
+  </div>
+</section>
+
+  
+</main>
+
+      </div>
+    </div>
+    <footer class="footer"></footer>
+    <script>hljs.highlightAll();</script>
+  </body>
+</html>
