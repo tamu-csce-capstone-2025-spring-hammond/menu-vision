@@ -1,0 +1,82 @@
+name: iOS Tests (Unit, Integration, System)
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: macos-13
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v2
+      with:
+        xcode-version: '15.2'
+
+    - name: Install xchtmlreport
+      run: |
+        brew install xchtmlreport
+
+    # UNIT TESTS
+    - name: Run Unit Tests
+      run: |
+        xcodebuild test \
+          -scheme MenuVision \
+          -destination 'platform=iOS Simulator,name=iPhone 14' \
+          -only-testing:MenuVisionUnitTests \
+          -resultBundlePath UnitTestsResult
+
+    - name: Generate Unit Test HTML Report
+      run: |
+        xchtmlreport -r UnitTestsResult
+
+    - name: Upload Unit Test Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: Unit-Test-Report
+        path: UnitTestsResult.html
+
+    # INTEGRATION TESTS
+    - name: Run Integration Tests
+      run: |
+        xcodebuild test \
+          -scheme MenuVision \
+          -destination 'platform=iOS Simulator,name=iPhone 14' \
+          -only-testing:MenuVisionIntegrationTests \
+          -resultBundlePath IntegrationTestsResult
+
+    - name: Generate Integration Test HTML Report
+      run: |
+        xchtmlreport -r IntegrationTestsResult
+
+    - name: Upload Integration Test Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: Integration-Test-Report
+        path: IntegrationTestsResult.html
+
+    # SYSTEM TESTS
+    - name: Run System (UI) Tests
+      run: |
+        xcodebuild test \
+          -scheme MenuVision \
+          -destination 'platform=iOS Simulator,name=iPhone 14' \
+          -only-testing:MenuVisionSystemTests \
+          -resultBundlePath SystemTestsResult
+
+    - name: Generate System Test HTML Report
+      run: |
+        xchtmlreport -r SystemTestsResult
+
+    - name: Upload System Test Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: System-Test-Report
+        path: SystemTestsResult.html
