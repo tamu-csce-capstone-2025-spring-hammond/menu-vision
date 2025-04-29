@@ -28,10 +28,11 @@ jobs:
     - name: Run Unit Tests
       run: |
         xcodebuild test \
+          -project MenuVision.xcodeproj \
           -scheme MenuVision \
           -destination 'platform=iOS Simulator,name=iPhone 14' \
           -only-testing:MenuVisionUnitTests \
-        | xcbeautify --report junit --output UnitTestReport.xml
+        | xcbeautify --report junit --junit-report-filename UnitTestReport.xml
 
     - name: Upload Unit Test Report
       uses: actions/upload-artifact@v4
@@ -43,10 +44,11 @@ jobs:
     - name: Run Integration Tests
       run: |
         xcodebuild test \
+          -project MenuVision.xcodeproj \
           -scheme MenuVision \
           -destination 'platform=iOS Simulator,name=iPhone 14' \
           -only-testing:MenuVisionIntegrationTests \
-        | xcbeautify --report junit --output IntegrationTestReport.xml
+        | xcbeautify --report junit --junit-report-filename IntegrationTestReport.xml
 
     - name: Upload Integration Test Report
       uses: actions/upload-artifact@v4
@@ -58,13 +60,23 @@ jobs:
     - name: Run System (UI) Tests
       run: |
         xcodebuild test \
+          -project MenuVision.xcodeproj \
           -scheme MenuVision \
           -destination 'platform=iOS Simulator,name=iPhone 14' \
           -only-testing:MenuVisionSystemTests \
-        | xcbeautify --report junit --output SystemTestReport.xml
+        | xcbeautify --report junit --junit-report-filename SystemTestReport.xml
 
     - name: Upload System Test Report
       uses: actions/upload-artifact@v4
       with:
         name: System-Test-Report
         path: SystemTestReport.xml
+
+    # FINAL COMBINED SUMMARY
+    - name: Publish Combined Test Summary
+      uses: dorny/test-reporter@v1
+      if: always() # run even if tests fail
+      with:
+        name: All Test Results
+        path: '**/*.xml'
+        reporter: java-junit
