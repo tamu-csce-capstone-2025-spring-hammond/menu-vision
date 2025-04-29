@@ -971,3 +971,5 @@
 	};
 	rootObject = 22E59CB92D6FA92C00D6C4B5 /* Project object */;
 }
+
+// force GitHub Actions clean build
