@@ -19,10 +19,13 @@ jobs:
       uses: maxim-lobanov/setup-xcode@v1
       with:
         xcode-version: '15.2'
-
-    - name: Install xchtmlreport
+    
+    - name: Download xchtmlreport
       run: |
-        brew install xchtmlreport
+        curl -L -o xchtmlreport.zip https://github.com/TitouanVanBelle/XCTestHTMLReport/releases/download/2.2.2/XCTestHTMLReport-2.2.2.zip
+        unzip xchtmlreport.zip
+        sudo mv XCTestHTMLReport-2.2.2/xchtmlreport /usr/local/bin/xchtmlreport
+      
 
     # UNIT TESTS
     - name: Run Unit Tests
