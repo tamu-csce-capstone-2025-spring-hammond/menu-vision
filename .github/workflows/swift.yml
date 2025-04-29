@@ -1,33 +1,33 @@
-name: Tests
+name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main, feature/* ]
+  workflow_dispatch:
 
 jobs:
-  test-ios:
+  build:
     runs-on: macos-13
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-    # (Optional) Set correct Xcode version
-    - name: Select Xcode 15.2
-      run: sudo xcode-select -switch /Applications/Xcode_15.2.app
+      - name: Select Xcode 15.2
+        run: sudo xcode-select -switch /Applications/Xcode_15.2.app
 
-    # (Optional) Install xcbeautify for readable logs
-    - name: Install xcbeautify
-      run: brew install xcbeautify
+      - name: Run Tests
+        working-directory: frontend/MenuVision
+        run: |
+          xcodebuild test \
+            -project MenuVision.xcodeproj \
+            -scheme MenuVision \
+            -resultBundlePath TestResults \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=iPhone 14,OS=16.0"
 
-    # Run tests using the MenuVision scheme and test plan
-    - name: Run Tests on iPhone 14 Simulator (iOS 16.0)
-      working-directory: frontend/MenuVision
-      run: |
-        xcodebuild test \
-          -project MenuVision.xcodeproj \
-          -scheme MenuVision \
-          -destination 'platform=iOS Simulator,name=iPhone 14,OS=16.0' \
-        | xcbeautify && exit ${PIPESTATUS[0]}
+      - uses: kishikawakatsumi/xcresulttool@v1
+        if: success() || failure()
+        with:
+          path: frontend/MenuVision/TestResults.xcresult
