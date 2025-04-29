@@ -1,13 +1,13 @@
 //
-//  MenuVisionUITests.swift
-//  MenuVisionUITests
+//  MenuVisionSystemTests.swift
+//  MenuVisionSystemTests
 //
 //  Created by Ethan Nguyen on 4/28/25.
 //
 
 import XCTest
 
-final class MenuVisionUITests: XCTestCase {
+final class MenuVisionSystemTests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

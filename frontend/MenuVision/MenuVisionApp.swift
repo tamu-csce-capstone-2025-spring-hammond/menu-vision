@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct MenuVisionUIApp: App {
+struct MenuVisionApp: App {
     @StateObject private var restaurantData = RestaurantData()
     @StateObject private var dishMapping = DishMapping()
     @StateObject private var userStateViewModel = UserStateViewModel()

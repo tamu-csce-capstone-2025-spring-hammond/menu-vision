@@ -1,13 +1,13 @@
 //
-//  MenuVisionUITestsLaunchTests.swift
-//  MenuVisionUITests
+//  MenuVisionSystemTestsLaunchTests.swift
+//  MenuVisionSystemTests
 //
 //  Created by Ethan Nguyen on 4/28/25.
 //
 
 import XCTest
 
-final class MenuVisionUITestsLaunchTests: XCTestCase {
+final class MenuVisionSystemTestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
