@@ -9,11 +9,17 @@ import Foundation
 
 class LoginHandler {
     static let shared = LoginHandler()
-    
-    private init() {}
-    
+
+    private let api: API
+
+    // MARK: - Init for App and Testing
+    private init(api: API = API.shared) {
+        self.api = api
+    }
+
+    // MARK: - Validate Login
     func validateLogin(email: String, password: String, rememberMe: Bool, completion: @escaping (Bool, String?, Int?) -> Void) {
-        let payload = [
+        let payload: [String: String] = [
             "email": email,
             "password": password
         ]
@@ -23,7 +29,7 @@ class LoginHandler {
             return
         }
 
-        API.shared.request(
+        api.request(
             endpoint: "user/login",
             method: "POST",
             body: jsonData,
@@ -58,6 +64,7 @@ class LoginHandler {
                             let errorMessage = response["message"] as? String ?? "Login failed"
                             completion(false, errorMessage, nil)
                         }
+
                     } else {
                         completion(false, "Invalid response format", nil)
                     }
@@ -68,7 +75,8 @@ class LoginHandler {
             }
         }
     }
-    
+
+    // MARK: - Fetch AWS Credentials
     func fetchAWSCredentials() {
         API.shared.request(
             endpoint: "general/keys", 
@@ -80,7 +88,6 @@ class LoginHandler {
                     if let json = try JSONSerialization.jsonObject(with: data) as? [String: String],
                        let accessKey = json["AWS_ACCESS_KEY"],
                        let secretKey = json["AWS_SECRET_KEY"] {
-                        // Store AWS credentials in UserDefaults
                         UserDefaults.standard.set(accessKey, forKey: "AWS_ACCESS_KEY")
                         UserDefaults.standard.set(secretKey, forKey: "AWS_SECRET_KEY")
                         print("AWS credentials stored successfully")
@@ -95,14 +102,13 @@ class LoginHandler {
             }
         }
     }
-    
-    // Helper function to get AWS credentials from UserDefaults
+
+    // MARK: - Get AWS Credentials
     func getAWSCredentials() -> (accessKey: String, secretKey: String)? {
         guard let accessKey = UserDefaults.standard.string(forKey: "AWS_ACCESS_KEY"),
               let secretKey = UserDefaults.standard.string(forKey: "AWS_SECRET_KEY") else {
             return nil
         }
-        
         return (accessKey, secretKey)
     }
 }
