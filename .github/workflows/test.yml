@@ -13,16 +13,14 @@ jobs:
 
     defaults:
       run:
-        working-directory: frontend/MenuVision
+        working-directory: frontend
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Xcode
-      uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: '15.2'
+    - name: Select Xcode Version
+      run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
 
     - name: Install xcbeautify
       run: brew install xcbeautify
@@ -32,14 +30,13 @@ jobs:
         xcodebuild test \
           -project MenuVision.xcodeproj \
           -scheme MenuVision \
-          -destination 'platform=iOS Simulator,name=iPhone 14' \
-          -testPlan TestPlan \
+          -destination 'platform=iOS Simulator,name=iPhone 14,OS=17.2' \
         | xcbeautify --report junit --junit-report-filename TestPlanReport.xml
 
     - name: Upload Test Plan Report
       uses: actions/upload-artifact@v4
       with:
-        name: TestPlan-Test-Report
+        name: Test-Plan-Report
         path: TestPlanReport.xml
 
     - name: Publish Combined Test Summary
