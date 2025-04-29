@@ -7,12 +7,32 @@
 		<key>MenuVision.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+		<key>MenuVisionIntegrationTests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>MenuVisionSystemTests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
 			<integer>0</integer>
+		</dict>
+		<key>MenuVisionUnitTests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
 		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
 		<key>D1FEDC662DC0680000FD528E</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>D1FEDF802DC07FA000FD528E</key>
 		<dict>
 			<key>primary</key>
 			<true/>
