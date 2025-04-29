@@ -28,7 +28,7 @@ jobs:
     - name: Run Unit Tests
       run: |
         xcodebuild test \
-          -project MenuVision.xcodeproj \
+          -project frontend/MenuVision.xcodeproj \
           -scheme MenuVision \
           -destination 'platform=iOS Simulator,name=iPhone 14' \
           -only-testing:MenuVisionUnitTests \
@@ -44,7 +44,7 @@ jobs:
     - name: Run Integration Tests
       run: |
         xcodebuild test \
-          -project MenuVision.xcodeproj \
+          -project frontend/MenuVision.xcodeproj \
           -scheme MenuVision \
           -destination 'platform=iOS Simulator,name=iPhone 14' \
           -only-testing:MenuVisionIntegrationTests \
@@ -60,7 +60,7 @@ jobs:
     - name: Run System (UI) Tests
       run: |
         xcodebuild test \
-          -project MenuVision.xcodeproj \
+          -project frontend/MenuVision.xcodeproj \
           -scheme MenuVision \
           -destination 'platform=iOS Simulator,name=iPhone 14' \
           -only-testing:MenuVisionSystemTests \
