@@ -11,6 +11,10 @@ jobs:
   build-and-test:
     runs-on: macos-13
 
+    defaults:
+      run:
+        working-directory: frontend
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -21,14 +25,13 @@ jobs:
         xcode-version: '15.2'
 
     - name: Install xcbeautify
-      run: |
-        brew install xcbeautify
+      run: brew install xcbeautify
 
     # UNIT TESTS
     - name: Run Unit Tests
       run: |
         xcodebuild test \
-          -project frontend/MenuVision.xcodeproj \
+          -project MenuVision.xcodeproj \
           -scheme MenuVision \
           -destination 'platform=iOS Simulator,name=iPhone 14' \
           -only-testing:MenuVisionUnitTests \
@@ -44,7 +47,7 @@ jobs:
     - name: Run Integration Tests
       run: |
         xcodebuild test \
-          -project frontend/MenuVision.xcodeproj \
+          -project MenuVision.xcodeproj \
           -scheme MenuVision \
           -destination 'platform=iOS Simulator,name=iPhone 14' \
           -only-testing:MenuVisionIntegrationTests \
@@ -60,7 +63,7 @@ jobs:
     - name: Run System (UI) Tests
       run: |
         xcodebuild test \
-          -project frontend/MenuVision.xcodeproj \
+          -project MenuVision.xcodeproj \
           -scheme MenuVision \
           -destination 'platform=iOS Simulator,name=iPhone 14' \
           -only-testing:MenuVisionSystemTests \
@@ -75,7 +78,7 @@ jobs:
     # FINAL COMBINED SUMMARY
     - name: Publish Combined Test Summary
       uses: dorny/test-reporter@v1
-      if: always() # run even if tests fail
+      if: always()
       with:
         name: All Test Results
         path: '**/*.xml'
