@@ -1,3 +1,4 @@
+# Python / macOS
 venv/
 __pycache__/
 *.pyc
@@ -6,11 +7,23 @@ __pycache__/
 *.log
 *.sqlite3
 .DS_Store
-frontend/MenuVisionUI.xcodeproj/xcuserdata/
+
+# Xcode - Local User Data (safe to ignore)
 *.xcuserstate
-frontend/MenuVisionUI.xcodeproj/project.xcworkspace/
-xcuserdata/
-*.ipa
+*.xcuserdata/
+*.xcworkspace/
+*.xcscheme
+
+# Only ignore local user data inside xcodeproj
+frontend/MenuVision.xcodeproj/xcuserdata/
+frontend/MenuVision.xcodeproj/project.xcworkspace/
+
+# Keep shared data and project
+!frontend/MenuVision.xcodeproj/
+!frontend/MenuVision.xcodeproj/project.pbxproj
+!frontend/MenuVision.xcodeproj/xcshareddata/
+
+# Build
 *.dSYM.zip
 *.dSYM
 .build/
