@@ -1,5 +1,9 @@
 # Menu Vision
 
+Overview Presentation:
+
+https://docs.google.com/presentation/d/1xu8qd8TJtGXhmltBZzCVNOrVnwTR9nS2a8IF7XtkgV4/edit?usp=sharing
+
 ## Backend Server
 
 ### **1. Create Virtual Environment**
